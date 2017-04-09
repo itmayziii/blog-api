@@ -24,6 +24,6 @@ class ContactMeController extends Controller
 
         $contactMe->save();
 
-        return 'Created';
+        return $this->respondCreated('contact', $contactMe);
     }
 }

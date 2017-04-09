@@ -25,9 +25,7 @@ class ContactMeControllerTest extends TestCase
             'POST',
             ['first-name' => 'Unit', 'last-name' => 'Testing', 'comments' => 'Some Comments']
         );
-
-        $response = $this->contactMeController->store($request);
-        $this->assertEquals('Created', $response);
+        $this->contactMeController->store($request);
 
         $contactMes = ContactMe::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
         $contactMe = $contactMes->first();
