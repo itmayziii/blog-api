@@ -53,11 +53,25 @@ class Controller extends BaseController
         return $this->setStatusCode(200)->respondSuccessful($data);
     }
 
-    private function respond($data, $headers)
+    public function respondResourceNotFound()
     {
-        $response = new Response(['data' => $data], $this->getStatusCode());
+        $errors = [
+            [
+                'status' => 404,
+                'title'  => 'Not Found',
+                'detail' => 'Could not find the requested resource'
+            ]
+        ];
+
+        return $this->setStatusCode(404)->respondError($errors);
+    }
+
+    private function respond($content, $headers)
+    {
+        $response = new Response($content, $this->getStatusCode());
 
         $headers['Date'] = Carbon::now()->format(DateTime::RFC850);
+        $headers['Content-Type'] = 'application/vnd.api+json';
         $response->withHeaders($headers);
 
         return $response;
@@ -65,8 +79,12 @@ class Controller extends BaseController
 
     private function respondSuccessful($data, $headers = [])
     {
-        $headers['Content-Type'] = 'application/vnd.api+json';
-        return $this->respond($data, $headers);
+        return $this->respond(['data' => $data], $headers);
+    }
+
+    private function respondError($errors, $headers = [])
+    {
+        return $this->respond(['errors' => $errors], $headers);
     }
 
     private function createJsonApiResourceObject(ApiModel $model)

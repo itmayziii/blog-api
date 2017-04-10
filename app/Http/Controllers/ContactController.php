@@ -30,6 +30,11 @@ class ContactController extends Controller
     public function show($id)
     {
         $contact = Contact::find($id);
-        return $this->respondResourceFound($contact);
+
+        if ($contact) {
+            return $this->respondResourceFound($contact);
+        } else {
+            return $this->respondResourceNotFound();
+        }
     }
 }
