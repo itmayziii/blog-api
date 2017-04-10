@@ -138,7 +138,7 @@ class ControllerTest extends TestCase
     {
         $responseContent = $response->getOriginalContent();
         $links = $responseContent['data']['links'];
-
+         
         $expectedSelfUrl = $this->contact->getResourceUrl();
         $actualSelfUrl = $links['self'];
         $this->assertEquals($expectedSelfUrl, $actualSelfUrl);
