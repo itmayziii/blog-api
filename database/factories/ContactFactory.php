@@ -1,6 +1,6 @@
 <?php
 
-$factory->define(App\ContactMe::class, function (Faker\Generator $faker) {
+$factory->define(App\Contact::class, function (Faker\Generator $faker) {
 
     return [
         'created_at' => $faker->dateTime,

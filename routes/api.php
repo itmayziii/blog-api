@@ -8,12 +8,10 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 //
 //    });
 
-    $app->group(['prefix' => 'contact'], function () use ($app) {
+    $app->group(['prefix' => 'contacts'], function () use ($app) {
 
-        $app->post('', 'ContactMeController@store');
-        $app->get('', function () {
-            return 'test';
-        });
+        $app->post('', 'ContactController@store');
+        $app->get('/{id}', 'ContactController@show');
 
     });
 

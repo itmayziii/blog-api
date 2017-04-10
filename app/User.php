@@ -2,9 +2,7 @@
 
 namespace App;
 
-use Illuminate\Database\Eloquent\Model;
-
-class User extends Model
+class User extends ApiModel
 {
     /**
      * The attributes that are mass assignable.

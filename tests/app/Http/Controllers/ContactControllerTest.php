@@ -1,21 +1,24 @@
 <?php
 
-use App\ContactMe;
-use App\Http\Controllers\ContactMeController;
+use App\Contact;
+use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
-class ContactMeControllerTest extends TestCase
+class ContactControllerTest extends TestCase
 {
     use DatabaseTransactions;
 
-    private $contactMeController;
+    /**
+     * @var ContactController
+     */
+    private $contactController;
 
     public function setUp()
     {
         parent::setUp();
-        $this->contactMeController = new ContactMeController();
+        $this->contactController = new ContactController();
     }
 
     public function test_successful_creation()
@@ -25,13 +28,13 @@ class ContactMeControllerTest extends TestCase
             'POST',
             ['first-name' => 'Unit', 'last-name' => 'Testing', 'comments' => 'Some Comments']
         );
-        $this->contactMeController->store($request);
+        $this->contactController->store($request);
 
-        $contactMes = ContactMe::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
-        $contactMe = $contactMes->first();
-        $this->assertEquals('Unit', $contactMe->first_name);
-        $this->assertEquals('Testing', $contactMe->last_name);
-        $this->assertEquals('Some Comments', $contactMe->comments);
+        $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
+        $contact = $contact->first();
+        $this->assertEquals('Unit', $contact->first_name);
+        $this->assertEquals('Testing', $contact->last_name);
+        $this->assertEquals('Some Comments', $contact->comments);
     }
 
 
@@ -44,6 +47,6 @@ class ContactMeControllerTest extends TestCase
         );
 
         $this->expectException(ValidationException::class);
-        $this->contactMeController->store($request);
+        $this->contactController->store($request);
     }
 }

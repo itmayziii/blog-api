@@ -1,9 +1,9 @@
 <?php
 
-use App\ContactMe;
+use App\Contact;
 use Illuminate\Database\Seeder;
 
-class ContactMeTableSeeder extends Seeder
+class ContactsTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -12,7 +12,7 @@ class ContactMeTableSeeder extends Seeder
      */
     public function run()
     {
-        ContactMe::truncate();
-        factory(ContactMe::class, 100)->create();
+        Contact::truncate();
+        factory(Contact::class, 100)->create();
     }
 }
