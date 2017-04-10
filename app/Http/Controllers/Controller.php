@@ -34,14 +34,7 @@ class Controller extends BaseController
         return $this;
     }
 
-    private function respondSuccessful($data, $headers = [])
-    {
-        $response = new Response(['data' => $data], $this->getStatusCode(), $headers);
-        $response->withHeaders(['Content-Type' => 'application/vnd.api+json', 'Date' => Carbon::now()->format(DateTime::RFC850)]);
-        return $response;
-    }
-
-    public function respondCreated(ApiModel $model)
+    public function respondResourceCreated(ApiModel $model)
     {
         $url = $model->getResourceUrl();
         $data = $this->createJsonApiResourceObject($model);
@@ -54,10 +47,26 @@ class Controller extends BaseController
         );
     }
 
-    public function respondFound(ApiModel $model)
+    public function respondResourceFound(ApiModel $model)
     {
         $data = $this->createJsonApiResourceObject($model);
         return $this->setStatusCode(200)->respondSuccessful($data);
+    }
+
+    private function respond($data, $headers)
+    {
+        $response = new Response(['data' => $data], $this->getStatusCode());
+
+        $headers['Date'] = Carbon::now()->format(DateTime::RFC850);
+        $response->withHeaders($headers);
+
+        return $response;
+    }
+
+    private function respondSuccessful($data, $headers = [])
+    {
+        $headers['Content-Type'] = 'application/vnd.api+json';
+        return $this->respond($data, $headers);
     }
 
     private function createJsonApiResourceObject(ApiModel $model)

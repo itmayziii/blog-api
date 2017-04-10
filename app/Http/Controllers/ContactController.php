@@ -24,12 +24,12 @@ class ContactController extends Controller
 
         $contact->save();
 
-        return $this->respondCreated($contact);
+        return $this->respondResourceCreated($contact);
     }
 
     public function show($id)
     {
         $contact = Contact::find($id);
-        return $this->respondFound($contact);
+        return $this->respondResourceFound($contact);
     }
 }

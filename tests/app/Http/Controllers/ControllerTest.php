@@ -32,13 +32,13 @@ class ControllerTest extends TestCase
 
     public function test_respond_created_status_code()
     {
-        $response = $this->controller->respondCreated($this->contact);
+        $response = $this->controller->respondResourceCreated($this->contact);
         $this->assertEquals(201, $response->getStatusCode());
     }
 
     public function test_respond_created_content()
     {
-        $response = $this->controller->respondCreated($this->contact);
+        $response = $this->controller->respondResourceCreated($this->contact);
 
         $responseContent = $response->getOriginalContent();
         $responseAttributes = $responseContent['data']['attributes'];
@@ -51,7 +51,7 @@ class ControllerTest extends TestCase
 
     public function test_respond_created_headers()
     {
-        $response = $this->controller->respondCreated($this->contact);
+        $response = $this->controller->respondResourceCreated($this->contact);
         $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-Type'));
         $this->assertEquals($this->contact->getResourceUrl(), $response->headers->get('Location'));
 
@@ -62,7 +62,7 @@ class ControllerTest extends TestCase
 
     public function test_respond_created_links()
     {
-        $response = $this->controller->respondCreated($this->contact);
+        $response = $this->controller->respondResourceCreated($this->contact);
         $responseContent = $response->getOriginalContent();
         $links = $responseContent['data']['links'];
 
@@ -73,13 +73,13 @@ class ControllerTest extends TestCase
 
     public function test_respond_found_status_code()
     {
-        $response = $this->controller->respondFound($this->contact);
+        $response = $this->controller->respondResourceFound($this->contact);
         $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function test_respond_found_content()
     {
-        $response = $this->controller->respondFound($this->contact);
+        $response = $this->controller->respondResourceFound($this->contact);
         $responseContent = $response->getOriginalContent();
         $responseContent['data'];
     }
