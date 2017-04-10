@@ -7,6 +7,18 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
+    public function index(Request $request)
+    {
+        $requestPage = $request->query('page');
+        $requestSize = $request->query('size');
+
+        $page = ($requestPage) ? $requestPage : 1;
+        $size = ($requestSize) ? $requestSize : 20;
+
+        $paginator = Contact::paginate($size, null, 'page', $page);
+        return $this->respondResourcesFound($paginator);
+    }
+
     public function store(Request $request)
     {
         $this->validate($request, [

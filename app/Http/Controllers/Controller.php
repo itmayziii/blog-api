@@ -6,6 +6,7 @@ use App\ApiModel;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
@@ -53,6 +54,27 @@ class Controller extends BaseController
         return $this->setStatusCode(200)->respondSuccessful($data);
     }
 
+    public function respondResourcesFound(LengthAwarePaginator $paginator)
+    {
+        $first = 1;
+        $last = $paginator->lastPage();
+        $prev = $paginator->previousPageUrl();
+        $next = $paginator->nextPageUrl();
+        $data = [];
+
+        foreach ($paginator->getCollection() as $model) {
+            $data[] = $this->createJsonApiResourceObject($model);
+        }
+
+        return $this->setStatusCode(200)->respond([
+            'first' => $first,
+            'last'  => $last,
+            'prev'  => $prev,
+            'next'  => $next,
+            'data'  => $data
+        ]);
+    }
+
     public function respondResourceNotFound()
     {
         $errors = [
@@ -66,7 +88,7 @@ class Controller extends BaseController
         return $this->setStatusCode(404)->respondError($errors);
     }
 
-    private function respond($content, $headers)
+    private function respond($content, $headers = [])
     {
         $response = new Response($content, $this->getStatusCode());
 

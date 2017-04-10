@@ -49,4 +49,20 @@ class ContactControllerTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->contactController->store($request);
     }
+
+    public function test_found()
+    {
+        $contact = new Contact();
+        $contact->comments = 'Test Comments';
+        $contact->save();
+
+        $response = $this->contactController->show($contact->id);
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    public function test_not_found()
+    {
+        $response = $this->contactController->show(347937472943294);
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 }
