@@ -28,7 +28,9 @@ class ContactControllerTest extends TestCase
             'POST',
             ['first-name' => 'Unit', 'last-name' => 'Testing', 'comments' => 'Some Comments']
         );
-        $this->contactController->store($request);
+        $response = $this->contactController->store($request);
+
+        $this->assertEquals(201, $response->getStatusCode());
 
         $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
         $contact = $contact->first();
@@ -37,27 +39,53 @@ class ContactControllerTest extends TestCase
         $this->assertEquals('Some Comments', $contact->comments);
     }
 
-
-    public function test_comments_are_required()
+    public function test_creation_validation_failed()
     {
         $request = Request::create(
             'api/v1/contact',
             'POST',
-            ['comments' => '']
+            [
+                // testing first / last name, and email can't be over 100 characters
+                'first-name' => 'aaaaabbbbbcccccdddddeeeeefffffggggghhhhhiiiiijjjjjjkkkkkllllllmmmmmmnnnnnnooooooppppppqqqqqqrrrrrrssssssttttttuuuuuuvvvvvvvvwwwwwwwxxxxxyyyyyzzzzz',
+                'last-name'  => 'aaaaabbbbbcccccdddddeeeeefffffggggghhhhhiiiiijjjjjjkkkkkllllllmmmmmmnnnnnnooooooppppppqqqqqqrrrrrrssssssttttttuuuuuuvvvvvvvvwwwwwwwxxxxxyyyyyzzzzz',
+                'email'      => 'aaaaabbbbbcccccdddddeeeeefffffggggghhhhhiiiiijjjjjjkkkkkllllllmmmmmmnnnnnnooooooppppppqqqqqqrrrrrrssssssttttttuuuuuuvvvvvvvvwwwwwwwxxxxxyyyyyzzzzz',
+                'comments'   => '']
         );
 
-        $this->expectException(ValidationException::class);
-        $this->contactController->store($request);
+        $response = $this->contactController->store($request);
+        $responseContent = $response->getOriginalContent()['errors'];
+
+        $this->assertArrayHasKey('first-name', $responseContent['source']);
+        $this->assertContains('The first-name may not be greater than 100 characters.', $responseContent['source']['first-name']);
+
+        $this->assertArrayHasKey('last-name', $responseContent['source']);
+        $this->assertContains('The last-name may not be greater than 100 characters.', $responseContent['source']['last-name']);
+
+        $this->assertArrayHasKey('email', $responseContent['source']);
+        $this->assertContains('The email may not be greater than 100 characters.', $responseContent['source']['email']);
+
+        $this->assertArrayHasKey('comments', $responseContent['source']);
+        $this->assertContains('The comments field is required.', $responseContent['source']['comments']);
     }
 
     public function test_found()
     {
         $contact = new Contact();
+        $contact->first_name = 'Found';
+        $contact->last_name = 'This';
+        $contact->email = 'test@testing.com';
         $contact->comments = 'Test Comments';
         $contact->save();
 
         $response = $this->contactController->show($contact->id);
-        $this->assertEquals(200, $response->getStatusCode());
+        $responseContent = $response->getOriginalContent()['data'];
+
+        $this->assertEquals($contact->id, $responseContent['id']);
+        $this->assertEquals($contact->getResourceName(), $responseContent['type']);
+        $this->assertEquals('Found', $responseContent['attributes']['first_name']);
+        $this->assertEquals('This', $responseContent['attributes']['last_name']);
+        $this->assertEquals('test@testing.com', $responseContent['attributes']['email']);
+        $this->assertEquals('Test Comments', $responseContent['attributes']['comments']);
     }
 
     public function test_not_found()
@@ -65,4 +93,6 @@ class ContactControllerTest extends TestCase
         $response = $this->contactController->show(347937472943294);
         $this->assertEquals(404, $response->getStatusCode());
     }
+
+
 }

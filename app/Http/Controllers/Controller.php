@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\ApiModel;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\MessageBag;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
@@ -81,11 +84,31 @@ class Controller extends BaseController
             [
                 'status' => 404,
                 'title'  => 'Not Found',
-                'detail' => 'Could not find the requested resource'
+                'detail' => 'Could not find the requested resource.'
             ]
         ];
 
         return $this->setStatusCode(404)->respondError($errors);
+    }
+
+    public function respondValidationFailed(MessageBag $messageBag)
+    {
+        $failedFields = [];
+        $failedFieldMessages = [];
+
+        foreach ($messageBag->messages() as $key => $value) {
+            $failedFields[] = $key;
+            $failedFieldMessages[$key] = $value;
+        }
+
+        $errors = [
+            'status' => 422,
+            'title'  => 'Validation Failed',
+            'detail' => 'Validation failed for the following input (' . implode(", ", $failedFields) . '), check the source member for more details.',
+            'source' => $failedFieldMessages
+        ];
+
+        return $this->setStatusCode(422)->respondError($errors);
     }
 
     private function respond($content, $headers = [])
@@ -124,5 +147,18 @@ class Controller extends BaseController
             'attributes' => $attributes,
             'links'      => $links
         ];
+    }
+
+    /**
+     * @param Request $request
+     * @param $rules
+     * @return \Illuminate\Contracts\Validation\Validator
+     */
+    protected function initializeValidation(Request $request, $rules)
+    {
+        $validator = $this->getValidationFactory();
+        $validation = $validator->make($request->all(), $rules);
+
+        return $validation;
     }
 }

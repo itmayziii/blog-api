@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
@@ -21,12 +22,17 @@ class ContactController extends Controller
 
     public function store(Request $request)
     {
-        $this->validate($request, [
+        $rules = [
             'first-name' => 'max:100',
             'last-name'  => 'max:100',
             'email'      => 'max:100',
-            'comments'   => 'required|max:3000'
-        ]);
+            'comments'   => 'required|max:4000'
+        ];
+        $validation = $this->initializeValidation($request, $rules);
+
+        if ($validation->fails()) {
+            return $this->respondValidationFailed($validation->getMessageBag());
+        }
 
         $contact = new Contact();
         $contact->first_name = $request->input('first-name');
