@@ -18,7 +18,7 @@ class ApiModelTest extends TestCase
         $this->apiModel = new ConcreteApiModel();
     }
 
-    public function test_get_resourcse_url()
+    public function test_get_resource_url()
     {
         $contact = new Contact();
         $contact->comments = 'Test Comments';

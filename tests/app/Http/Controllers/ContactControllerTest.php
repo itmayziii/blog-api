@@ -3,6 +3,7 @@
 use App\Contact;
 use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
@@ -26,17 +27,18 @@ class ContactControllerTest extends TestCase
         $request = Request::create(
             'api/v1/contact',
             'POST',
-            ['first-name' => 'Unit', 'last-name' => 'Testing', 'comments' => 'Some Comments']
+            ['first-name' => 'Unit', 'last-name' => 'Testing', 'comments' => 'Please test this', 'email' => 'UnitTesting@example.com']
         );
         $response = $this->contactController->store($request);
-
-        $this->assertEquals(201, $response->getStatusCode());
 
         $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
         $contact = $contact->first();
         $this->assertEquals('Unit', $contact->first_name);
         $this->assertEquals('Testing', $contact->last_name);
-        $this->assertEquals('Some Comments', $contact->comments);
+        $this->assertEquals('Please test this', $contact->comments);
+        $this->assertEquals('UnitTesting@example.com', $contact->email);
+
+        $this->verifyResponseData($response, $contact);
     }
 
     public function test_creation_validation_failed()
@@ -71,21 +73,14 @@ class ContactControllerTest extends TestCase
     public function test_found()
     {
         $contact = new Contact();
-        $contact->first_name = 'Found';
-        $contact->last_name = 'This';
-        $contact->email = 'test@testing.com';
-        $contact->comments = 'Test Comments';
+        $contact->first_name = 'Unit';
+        $contact->last_name = 'Testing';
+        $contact->email = 'UnitTesting@example.com';
+        $contact->comments = 'Please test this';
         $contact->save();
 
         $response = $this->contactController->show($contact->id);
-        $responseContent = $response->getOriginalContent()['data'];
-
-        $this->assertEquals($contact->id, $responseContent['id']);
-        $this->assertEquals($contact->getResourceName(), $responseContent['type']);
-        $this->assertEquals('Found', $responseContent['attributes']['first_name']);
-        $this->assertEquals('This', $responseContent['attributes']['last_name']);
-        $this->assertEquals('test@testing.com', $responseContent['attributes']['email']);
-        $this->assertEquals('Test Comments', $responseContent['attributes']['comments']);
+        $this->verifyResponseData($response, $contact);
     }
 
     public function test_not_found()
@@ -94,5 +89,15 @@ class ContactControllerTest extends TestCase
         $this->assertEquals(404, $response->getStatusCode());
     }
 
+    private function verifyResponseData(Response $response, Contact $contact)
+    {
+        $responseContent = $response->getOriginalContent()['data'];
 
+        $this->assertEquals($contact->id, $responseContent['id']);
+        $this->assertEquals($contact->getResourceName(), $responseContent['type']);
+        $this->assertEquals('Unit', $responseContent['attributes']['first_name']);
+        $this->assertEquals('Testing', $responseContent['attributes']['last_name']);
+        $this->assertEquals('UnitTesting@example.com', $responseContent['attributes']['email']);
+        $this->assertEquals('Please test this', $responseContent['attributes']['comments']);
+    }
 }
