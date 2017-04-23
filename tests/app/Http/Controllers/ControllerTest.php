@@ -200,7 +200,7 @@ class ControllerTest extends TestCase
         $response = $this->controller->respondResourcesFound(new Contact(), $request);
         $links = $response->getOriginalContent()['links'];
 
-        // TODO test the actual prev and next links, this was harder than originally thought
+        // TODO test the actual links, this was harder than originally thought
         $this->assertNotEmpty($links['prev']);
         $this->assertNotEmpty($links['next']);
         $this->assertNotEmpty($links['first']);
