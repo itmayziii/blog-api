@@ -39,3 +39,7 @@ Thumbs.db
 # Editors #
 #######################
 .idea
+
+# Vendor #
+#######################
+vendor
