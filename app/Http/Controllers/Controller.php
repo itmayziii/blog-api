@@ -59,12 +59,16 @@ class Controller extends BaseController
     {
         $requestPage = $request->query('page');
         $page = ($requestPage) ? $requestPage : 1;
+
         $requestSize = $request->query('size');
         $size = ($requestSize) ? $requestSize : 20;
+
         $paginator = $model::orderBy('created_at', 'desc')->paginate($size, null, 'page', $page);
 
         $prev = $paginator->previousPageUrl();
         $next = $paginator->nextPageUrl();
+        $first = $paginator->url(1);
+        $last = $paginator->url($paginator->lastPage());
         $data = [];
 
         foreach ($paginator->getCollection() as $model) {
@@ -73,8 +77,10 @@ class Controller extends BaseController
 
         return $this->setStatusCode(200)->respond([
             'links' => [
-                'prev' => $prev,
-                'next' => $next,
+                'prev'  => $prev,
+                'next'  => $next,
+                'first' => $first,
+                'last'  => $last
             ],
             'data'  => $data
         ]);
