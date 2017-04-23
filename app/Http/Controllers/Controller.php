@@ -7,8 +7,6 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\MessageBag;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
@@ -63,13 +61,11 @@ class Controller extends BaseController
         $page = ($requestPage) ? $requestPage : 1;
         $requestSize = $request->query('size');
         $size = ($requestSize) ? $requestSize : 20;
-        $paginator = $model::paginate($size, null, 'page', $page);
+        $paginator = $model::orderBy('created_at', 'desc')->paginate($size, null, 'page', $page);
 
         $prev = $paginator->previousPageUrl();
         $next = $paginator->nextPageUrl();
         $data = [];
-        Log::info(print_r($prev, true));
-        Log::info(print_r($next, true));
 
         foreach ($paginator->getCollection() as $model) {
             $data[] = $this->createJsonApiResourceObject($model);
