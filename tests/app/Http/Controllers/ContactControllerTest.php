@@ -44,7 +44,7 @@ class ContactControllerTest extends TestCase
     public function test_creation_validation_failed()
     {
         $request = Request::create(
-            'api/v1/contact',
+            'v1/contacts',
             'POST',
             [
                 // testing first / last name, and email can't be over 100 characters

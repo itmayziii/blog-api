@@ -2,6 +2,7 @@
 
 use App\Contact;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\MessageBag;
 use Laravel\Lumen\Testing\DatabaseTransactions;
@@ -120,6 +121,9 @@ class ControllerTest extends TestCase
         $this->assertArrayHasKey('data', $responseContent);
         $this->assertArrayHasKey('id', $responseContent['data']);
         $this->assertArrayHasKey('type', $responseContent['data']);
+
+        // The actual content of attributes will vary heavily for each type of resource, and therefore should be tested
+        // for each specific case, just verifying the attributes member will work
         $this->assertArrayHasKey('attributes', $responseContent['data']);
     }
 
@@ -160,6 +164,45 @@ class ControllerTest extends TestCase
     {
         $response = $this->controller->respondResourceNotFound();
         $this->basicResponseHeaders($response);
+    }
+
+    /*******************************************************************************************************************
+     * List of resources
+     ******************************************************************************************************************/
+
+    public function test_respond_found_list_status_code()
+    {
+        $response = $this->controller->respondResourceFound($this->contact);
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    public function test_respond_found_list_content()
+    {
+        $request = Request::create('v1/contacts');
+        $response = $this->controller->respondResourcesFound(new Contact(), $request);
+
+        $responseContent = $response->getOriginalContent();
+        $this->assertArrayHasKey('data', $responseContent);
+        $this->assertArrayHasKey('links', $responseContent);
+        $this->assertCount(20, $responseContent['data']);
+        // Not going to test the content of each records in "data" that is handled by testing single resources
+    }
+
+    public function test_respond_found_list_headers()
+    {
+        $response = $this->controller->respondResourceFound($this->contact);
+        $this->basicResponseHeaders($response);
+    }
+
+    public function test_respond_found_list_links()
+    {
+        $request = Request::create('v1/contacts?page=2');
+        $response = $this->controller->respondResourcesFound(new Contact(), $request);
+        $links = $response->getOriginalContent()['links'];
+
+        // TODO test the actual prev and next links, this was harder than originally thought
+        $this->assertNotEmpty($links['prev']);
+        $this->assertNotEmpty($links['next']);
     }
 
 

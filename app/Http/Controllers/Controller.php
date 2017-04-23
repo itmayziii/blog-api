@@ -43,7 +43,7 @@ class Controller extends BaseController
         $url = $model->getResourceUrl();
         $data = $this->createJsonApiResourceObject($model);
 
-        return $this->setStatusCode(201)->respondSuccessful($data,
+        return $this->setStatusCode(201)->respond(['data' => $data],
             [
                 'Last-Modified' => $model->updated_at->format(DateTime::RFC850),
                 'Location'      => $url
@@ -54,26 +54,32 @@ class Controller extends BaseController
     public function respondResourceFound(ApiModel $model)
     {
         $data = $this->createJsonApiResourceObject($model);
-        return $this->setStatusCode(200)->respondSuccessful($data);
+        return $this->setStatusCode(200)->respond(['data' => $data]);
     }
 
-    public function respondResourcesFound(LengthAwarePaginator $paginator)
+    public function respondResourcesFound(ApiModel $model, Request $request)
     {
-        $first = 1;
-        $last = $paginator->lastPage();
+        $requestPage = $request->query('page');
+        $page = ($requestPage) ? $requestPage : 1;
+        $requestSize = $request->query('size');
+        $size = ($requestSize) ? $requestSize : 20;
+        $paginator = $model::paginate($size, null, 'page', $page);
+
         $prev = $paginator->previousPageUrl();
         $next = $paginator->nextPageUrl();
         $data = [];
+        Log::info(print_r($prev, true));
+        Log::info(print_r($next, true));
 
         foreach ($paginator->getCollection() as $model) {
             $data[] = $this->createJsonApiResourceObject($model);
         }
 
         return $this->setStatusCode(200)->respond([
-            'first' => $first,
-            'last'  => $last,
-            'prev'  => $prev,
-            'next'  => $next,
+            'links' => [
+                'prev' => $prev,
+                'next' => $next,
+            ],
             'data'  => $data
         ]);
     }
@@ -88,7 +94,7 @@ class Controller extends BaseController
             ]
         ];
 
-        return $this->setStatusCode(404)->respondError($errors);
+        return $this->setStatusCode(404)->respond(['errors' => $errors]);
     }
 
     public function respondValidationFailed(MessageBag $messageBag)
@@ -108,7 +114,7 @@ class Controller extends BaseController
             'source' => $failedFieldMessages
         ];
 
-        return $this->setStatusCode(422)->respondError($errors);
+        return $this->setStatusCode(422)->respond(['errors' => $errors]);
     }
 
     private function respond($content, $headers = [])
@@ -120,16 +126,6 @@ class Controller extends BaseController
         $response->withHeaders($headers);
 
         return $response;
-    }
-
-    private function respondSuccessful($data, $headers = [])
-    {
-        return $this->respond(['data' => $data], $headers);
-    }
-
-    private function respondError($errors, $headers = [])
-    {
-        return $this->respond(['errors' => $errors], $headers);
     }
 
     private function createJsonApiResourceObject(ApiModel $model)
