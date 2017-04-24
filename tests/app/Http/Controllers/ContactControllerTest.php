@@ -33,6 +33,7 @@ class ContactControllerTest extends TestCase
 
         $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
         $contact = $contact->first();
+
         $this->assertEquals('Unit', $contact->first_name);
         $this->assertEquals('Testing', $contact->last_name);
         $this->assertEquals('Please test this', $contact->comments);

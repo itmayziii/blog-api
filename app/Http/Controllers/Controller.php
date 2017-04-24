@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\MessageBag;
+use Illuminate\Contracts\Support\MessageBag;
 use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
@@ -36,6 +36,10 @@ class Controller extends BaseController
         return $this;
     }
 
+    /**
+     * @param ApiModel $model
+     * @return Response
+     */
     public function respondResourceCreated(ApiModel $model)
     {
         $url = $model->getResourceUrl();
@@ -49,12 +53,21 @@ class Controller extends BaseController
         );
     }
 
+    /**
+     * @param ApiModel $model
+     * @return Response
+     */
     public function respondResourceFound(ApiModel $model)
     {
         $data = $this->createJsonApiResourceObject($model);
         return $this->setStatusCode(200)->respond(['data' => $data]);
     }
 
+    /**
+     * @param ApiModel $model
+     * @param Request $request
+     * @return Response
+     */
     public function respondResourcesFound(ApiModel $model, Request $request)
     {
         $requestPage = $request->query('page');
@@ -86,6 +99,9 @@ class Controller extends BaseController
         ]);
     }
 
+    /**
+     * @return Response
+     */
     public function respondResourceNotFound()
     {
         $errors = [
@@ -99,6 +115,10 @@ class Controller extends BaseController
         return $this->setStatusCode(404)->respond(['errors' => $errors]);
     }
 
+    /**
+     * @param MessageBag $messageBag
+     * @return Response
+     */
     public function respondValidationFailed(MessageBag $messageBag)
     {
         $failedFields = [];
@@ -119,6 +139,9 @@ class Controller extends BaseController
         return $this->setStatusCode(422)->respond(['errors' => $errors]);
     }
 
+    /**
+     * @return Response
+     */
     public function respondUnauthorized()
     {
         $errors = [
@@ -130,6 +153,9 @@ class Controller extends BaseController
         return $this->setStatusCode(403)->respond(['errors' => $errors]);
     }
 
+    /**
+     * @return Response
+     */
     public function respondUnauthenticated()
     {
         $errors = [
@@ -141,6 +167,11 @@ class Controller extends BaseController
         return $this->setStatusCode(401)->respond(['errors' => $errors]);
     }
 
+    /**
+     * @param $content
+     * @param array $headers
+     * @return Response
+     */
     private function respond($content, $headers = [])
     {
         $response = new Response($content, $this->getStatusCode());
@@ -152,6 +183,10 @@ class Controller extends BaseController
         return $response;
     }
 
+    /**
+     * @param ApiModel $model
+     * @return array
+     */
     private function createJsonApiResourceObject(ApiModel $model)
     {
         $type = $model->getResourceName();
@@ -170,6 +205,8 @@ class Controller extends BaseController
     }
 
     /**
+     * Resolve the validator from the service container with specific rules applied.
+     *
      * @param Request $request
      * @param $rules
      * @return \Illuminate\Contracts\Validation\Validator

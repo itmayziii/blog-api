@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
+    /**
+     * Lists the existing contacts.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         if ($request->user()->cannot('index', new Contact())) {
@@ -16,6 +22,12 @@ class ContactController extends Controller
         return $this->respondResourcesFound(new Contact(), $request);
     }
 
+    /**
+     * Creates a new contact.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $rules = [
@@ -41,6 +53,12 @@ class ContactController extends Controller
         return $this->respondResourceCreated($contact);
     }
 
+    /**
+     * Find specific contacts by id.
+     *
+     * @param $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         $contact = Contact::find($id);
