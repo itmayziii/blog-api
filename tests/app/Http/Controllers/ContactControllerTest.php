@@ -98,7 +98,21 @@ class ContactControllerTest extends TestCase
 
     public function test_listing()
     {
+        $this->actAsAdministrator();
 
+        $request = Request::create('v1/contacts');
+        $response = $this->contactController->index($request);
+        $this->assertEquals(200, $response->getStatusCode());
+        // TODO mock out the base controller class and make sure that the correct methods are being called
+    }
+
+    public function test_list_authorization()
+    {
+        $this->actAsStandardUser();
+
+        $request = Request::create('v1/contacts');
+        $response = $this->contactController->index($request);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     private function verifyResponseData(Response $response, Contact $contact)
