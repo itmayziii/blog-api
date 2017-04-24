@@ -29,5 +29,16 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
 
         $this->actingAs($admin);
     }
+
+    protected function actAsStandardUser()
+    {
+        $user = User::create([
+            'first_name' => 'John',
+            'last_name'  => 'Smith',
+            'email'      => 'johnsmith@example.com'
+        ]);
+
+        $this->actingAs($user);
+    }
 }
 

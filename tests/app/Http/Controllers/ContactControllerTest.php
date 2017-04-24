@@ -4,7 +4,6 @@ use App\Contact;
 use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ContactControllerTest extends TestCase
@@ -24,7 +23,6 @@ class ContactControllerTest extends TestCase
 
     public function test_successful_creation()
     {
-        $this->actAsAdministrator();
         $request = Request::create(
             'api/v1/contact',
             'POST',
@@ -45,7 +43,6 @@ class ContactControllerTest extends TestCase
 
     public function test_creation_validation_failed()
     {
-
         $request = Request::create(
             'v1/contacts',
             'POST',
@@ -77,13 +74,7 @@ class ContactControllerTest extends TestCase
     {
         $this->actAsAdministrator();
 
-        $contact = new Contact();
-        $contact->first_name = 'Unit';
-        $contact->last_name = 'Testing';
-        $contact->email = 'UnitTesting@example.com';
-        $contact->comments = 'Please test this';
-        $contact->save();
-
+        $contact = $this->createContact();
         $response = $this->contactController->show($contact->id);
         $this->verifyResponseData($response, $contact);
     }
@@ -93,6 +84,21 @@ class ContactControllerTest extends TestCase
         $this->actAsAdministrator();
         $response = $this->contactController->show(347937472943294);
         $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_finding_authorization()
+    {
+        $this->actAsStandardUser();
+
+        $contact = $this->createContact();
+
+        $response = $this->contactController->show($contact->id);
+        $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    public function test_listing()
+    {
+
     }
 
     private function verifyResponseData(Response $response, Contact $contact)
@@ -105,5 +111,17 @@ class ContactControllerTest extends TestCase
         $this->assertEquals('Testing', $responseContent['attributes']['last_name']);
         $this->assertEquals('UnitTesting@example.com', $responseContent['attributes']['email']);
         $this->assertEquals('Please test this', $responseContent['attributes']['comments']);
+    }
+
+    private function createContact()
+    {
+        $contact = new Contact();
+        $contact->first_name = 'Unit';
+        $contact->last_name = 'Testing';
+        $contact->email = 'UnitTesting@example.com';
+        $contact->comments = 'Please test this';
+        $contact->save();
+
+        return $contact;
     }
 }
