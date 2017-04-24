@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Contact;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class ContactController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->user()->cannot('index', new Contact())) {
+            return $this->respondUnauthorized();
+        }
+
         return $this->respondResourcesFound(new Contact(), $request);
     }
 

@@ -2,8 +2,12 @@
 
 namespace App;
 
+use Illuminate\Auth\Authenticatable;
+use Laravel\Lumen\Auth\Authorizable;
+
 class User extends ApiModel
 {
+    use Authenticatable, Authorizable;
     /**
      * The attributes that are mass assignable.
      *

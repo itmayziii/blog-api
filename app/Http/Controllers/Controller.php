@@ -119,6 +119,28 @@ class Controller extends BaseController
         return $this->setStatusCode(422)->respond(['errors' => $errors]);
     }
 
+    public function respondUnauthorized()
+    {
+        $errors = [
+            'status' => 403,
+            'title'  => 'Forbidden',
+            'detail' => 'Authorization checks failed.'
+        ];
+
+        return $this->setStatusCode(403)->respond(['errors' => $errors]);
+    }
+
+    public function respondUnauthenticated()
+    {
+        $errors = [
+            'status' => 401,
+            'title'  => 'Unauthorized',
+            'detail' => 'You are not authenticated, please try again once authenticated.'
+        ];
+
+        return $this->setStatusCode(401)->respond(['errors' => $errors]);
+    }
+
     private function respond($content, $headers = [])
     {
         $response = new Response($content, $this->getStatusCode());

@@ -12,7 +12,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
         $app->post('', 'ContactController@store');
         $app->get('/{id}', 'ContactController@show');
-        $app->get('', 'ContactController@index');
+        $app->get('', ['middleware' => 'authtommy', 'uses' => 'ContactController@index']);
 
     });
 
