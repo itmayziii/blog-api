@@ -24,6 +24,7 @@ class ContactControllerTest extends TestCase
 
     public function test_successful_creation()
     {
+        $this->actAsAdministrator();
         $request = Request::create(
             'api/v1/contact',
             'POST',
@@ -44,6 +45,7 @@ class ContactControllerTest extends TestCase
 
     public function test_creation_validation_failed()
     {
+
         $request = Request::create(
             'v1/contacts',
             'POST',
@@ -73,6 +75,8 @@ class ContactControllerTest extends TestCase
 
     public function test_found()
     {
+        $this->actAsAdministrator();
+
         $contact = new Contact();
         $contact->first_name = 'Unit';
         $contact->last_name = 'Testing';
@@ -86,6 +90,7 @@ class ContactControllerTest extends TestCase
 
     public function test_not_found()
     {
+        $this->actAsAdministrator();
         $response = $this->contactController->show(347937472943294);
         $this->assertEquals(404, $response->getStatusCode());
     }

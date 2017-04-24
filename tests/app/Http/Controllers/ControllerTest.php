@@ -42,6 +42,32 @@ class ControllerTest extends TestCase
     }
 
     /*******************************************************************************************************************
+     * Authentication / Authorization
+     ******************************************************************************************************************/
+
+    public function test_respond_unauthorized()
+    {
+        $response = $this->controller->respondUnauthorized();
+        $responseContent = $response->getOriginalContent()['errors'];
+
+        $this->assertEquals(403, $response->getStatusCode());
+        $this->assertEquals(403, $responseContent['status']);
+        $this->assertEquals('Forbidden', $responseContent['title']);
+        $this->assertEquals('Authorization checks failed.', $responseContent['detail']);
+    }
+
+    public function test_respond_unauthenticated()
+    {
+        $response = $this->controller->respondUnauthenticated();
+        $responseContent = $response->getOriginalContent()['errors'];
+
+        $this->assertEquals(401, $response->getStatusCode());
+        $this->assertEquals(401, $responseContent['status']);
+        $this->assertEquals('Unauthorized', $responseContent['title']);
+        $this->assertEquals('You are not authenticated, please try again once authenticated.', $responseContent['detail']);
+    }
+
+    /*******************************************************************************************************************
      * Created new resource
      ******************************************************************************************************************/
 

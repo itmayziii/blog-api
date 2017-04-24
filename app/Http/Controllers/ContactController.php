@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ContactController extends Controller
 {
@@ -15,7 +16,7 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->user()->cannot('index', new Contact())) {
+        if (Gate::denies('index', new Contact())) {
             return $this->respondUnauthorized();
         }
 
@@ -56,11 +57,15 @@ class ContactController extends Controller
     /**
      * Find specific contacts by id.
      *
-     * @param $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
+        if (Gate::denies('show', new Contact())) {
+            return $this->respondUnauthorized();
+        }
+
         $contact = Contact::find($id);
 
         if ($contact) {
