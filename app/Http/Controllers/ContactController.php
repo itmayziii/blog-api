@@ -4,15 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Contact;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class ContactController extends Controller
 {
+    /**
+     * Lists the existing contacts.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
+        if (Gate::denies('index', new Contact())) {
+            return $this->respondUnauthorized();
+        }
+
         return $this->respondResourcesFound(new Contact(), $request);
     }
 
+    /**
+     * Creates a new contact.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $rules = [
@@ -38,8 +54,18 @@ class ContactController extends Controller
         return $this->respondResourceCreated($contact);
     }
 
+    /**
+     * Find specific contacts by id.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
+        if (Gate::denies('show', new Contact())) {
+            return $this->respondUnauthorized();
+        }
+
         $contact = Contact::find($id);
 
         if ($contact) {

@@ -4,7 +4,6 @@ use App\Contact;
 use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ContactControllerTest extends TestCase
@@ -33,6 +32,7 @@ class ContactControllerTest extends TestCase
 
         $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
         $contact = $contact->first();
+
         $this->assertEquals('Unit', $contact->first_name);
         $this->assertEquals('Testing', $contact->last_name);
         $this->assertEquals('Please test this', $contact->comments);
@@ -72,21 +72,47 @@ class ContactControllerTest extends TestCase
 
     public function test_found()
     {
-        $contact = new Contact();
-        $contact->first_name = 'Unit';
-        $contact->last_name = 'Testing';
-        $contact->email = 'UnitTesting@example.com';
-        $contact->comments = 'Please test this';
-        $contact->save();
+        $this->actAsAdministrator();
 
+        $contact = $this->createContact();
         $response = $this->contactController->show($contact->id);
         $this->verifyResponseData($response, $contact);
     }
 
     public function test_not_found()
     {
+        $this->actAsAdministrator();
         $response = $this->contactController->show(347937472943294);
         $this->assertEquals(404, $response->getStatusCode());
+    }
+
+    public function test_finding_authorization()
+    {
+        $this->actAsStandardUser();
+
+        $contact = $this->createContact();
+
+        $response = $this->contactController->show($contact->id);
+        $this->assertEquals(403, $response->getStatusCode());
+    }
+
+    public function test_listing()
+    {
+        $this->actAsAdministrator();
+
+        $request = Request::create('v1/contacts');
+        $response = $this->contactController->index($request);
+        $this->assertEquals(200, $response->getStatusCode());
+        // TODO mock out the base controller class and make sure that the correct methods are being called
+    }
+
+    public function test_list_authorization()
+    {
+        $this->actAsStandardUser();
+
+        $request = Request::create('v1/contacts');
+        $response = $this->contactController->index($request);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 
     private function verifyResponseData(Response $response, Contact $contact)
@@ -99,5 +125,17 @@ class ContactControllerTest extends TestCase
         $this->assertEquals('Testing', $responseContent['attributes']['last_name']);
         $this->assertEquals('UnitTesting@example.com', $responseContent['attributes']['email']);
         $this->assertEquals('Please test this', $responseContent['attributes']['comments']);
+    }
+
+    private function createContact()
+    {
+        $contact = new Contact();
+        $contact->first_name = 'Unit';
+        $contact->last_name = 'Testing';
+        $contact->email = 'UnitTesting@example.com';
+        $contact->comments = 'Please test this';
+        $contact->save();
+
+        return $contact;
     }
 }
