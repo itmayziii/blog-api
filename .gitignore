@@ -43,3 +43,7 @@ Thumbs.db
 # Vendor #
 #######################
 vendor/
+
+# Configuration #
+#######################
+.env
