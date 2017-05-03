@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'allow_origins' => ['http://tommytrio.com'],
+    'allow_origins' => ['http://tommytrio.com', 'localhost:8080'],
 
     /*
     |--------------------------------------------------------------------------
