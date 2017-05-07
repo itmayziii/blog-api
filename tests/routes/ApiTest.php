@@ -4,13 +4,18 @@ class ApiTest extends TestCase
 {
     public function test_contacts_show_authentication()
     {
-        $response = $this->call('GET', 'v1/contacts/1');
+        $_SERVER['CONTENT_TYPE'] = 'application/vnd.api+json';
+        $_SERVER['HTTP_ACCEPT'] = 'application/vnd.api+json';
+        $response = $this->call('GET', 'v1/contacts', [], [], [], $_SERVER);
         $this->assertEquals(401, $response->getStatusCode());
     }
 
     public function test_contacts_show_authorization()
     {
-        $response = $this->call('GET', 'v1/contacts');
-        $this->assertEquals(401, $response->getStatusCode());
+        $this->actAsStandardUser();
+        $_SERVER['CONTENT_TYPE'] = 'application/vnd.api+json';
+        $_SERVER['HTTP_ACCEPT'] = 'application/vnd.api+json';
+        $response = $this->call('GET', 'v1/contacts', [], [], [], $_SERVER);
+        $this->assertEquals(403, $response->getStatusCode());
     }
 }

@@ -5,9 +5,20 @@ namespace App\Http\Controllers;
 use App\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use itmayziii\Laravel\JsonApi;
 
 class ContactController extends Controller
 {
+    /**
+     * @var JsonApi
+     */
+    private $jsonApi;
+
+    public function __construct(JsonApi $jsonApi)
+    {
+        $this->jsonApi = $jsonApi;
+    }
+
     /**
      * Lists the existing contacts.
      *
@@ -17,10 +28,10 @@ class ContactController extends Controller
     public function index(Request $request)
     {
         if (Gate::denies('index', new Contact())) {
-            return $this->respondUnauthorized();
+            return $this->jsonApi->respondUnauthorized();
         }
 
-        return $this->respondResourcesFound(new Contact(), $request);
+        return $this->jsonApi->respondResourcesFound(new Contact(), $request);
     }
 
     /**
@@ -40,7 +51,7 @@ class ContactController extends Controller
         $validation = $this->initializeValidation($request, $rules);
 
         if ($validation->fails()) {
-            return $this->respondValidationFailed($validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
         }
 
         $contact = new Contact();
@@ -51,7 +62,7 @@ class ContactController extends Controller
 
         $contact->save();
 
-        return $this->respondResourceCreated($contact);
+        return $this->jsonApi->respondResourceCreated($contact);
     }
 
     /**
@@ -63,15 +74,15 @@ class ContactController extends Controller
     public function show($id)
     {
         if (Gate::denies('show', new Contact())) {
-            return $this->respondUnauthorized();
+            return $this->jsonApi->respondUnauthorized();
         }
 
         $contact = Contact::find($id);
 
         if ($contact) {
-            return $this->respondResourceFound($contact);
+            return $this->jsonApi->respondResourceFound($contact);
         } else {
-            return $this->respondResourceNotFound();
+            return $this->jsonApi->respondResourceNotFound();
         }
     }
 }

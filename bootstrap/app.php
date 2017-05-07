@@ -61,6 +61,7 @@ $app->singleton(
 
 $app->middleware([
     \Nord\Lumen\Cors\CorsMiddleware::class,
+    itmayziii\Laravel\Middleware\JsonApiMiddleware::class
 ]);
 
 $app->routeMiddleware([
@@ -81,6 +82,7 @@ $app->routeMiddleware([
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
+$app->register(\itmayziii\Laravel\Providers\JsonApiProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
 /*

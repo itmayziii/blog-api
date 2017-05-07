@@ -4,6 +4,7 @@ use App\Contact;
 use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use itmayziii\Laravel\JsonApi;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ContactControllerTest extends TestCase
@@ -15,10 +16,17 @@ class ContactControllerTest extends TestCase
      */
     private $contactController;
 
+    /**
+     * @var JsonApi
+     */
+    private $jsonApi;
+
     public function setUp()
     {
         parent::setUp();
-        $this->contactController = new ContactController();
+        $this->jsonApi = app(JsonApi::class);
+        $this->jsonApi->setResourceName('contacts');
+        $this->contactController = new ContactController($this->jsonApi);
     }
 
     public function test_successful_creation()
@@ -120,7 +128,7 @@ class ContactControllerTest extends TestCase
         $responseContent = $response->getOriginalContent()['data'];
 
         $this->assertEquals($contact->id, $responseContent['id']);
-        $this->assertEquals($contact->getResourceName(), $responseContent['type']);
+        $this->assertEquals($this->jsonApi->getResourceName(), $responseContent['type']);
         $this->assertEquals('Unit', $responseContent['attributes']['first_name']);
         $this->assertEquals('Testing', $responseContent['attributes']['last_name']);
         $this->assertEquals('UnitTesting@example.com', $responseContent['attributes']['email']);
