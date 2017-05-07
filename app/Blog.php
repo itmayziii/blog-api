@@ -2,7 +2,9 @@
 
 namespace App;
 
-class Blog extends ApiModel
+use Illuminate\Database\Eloquent\Model;
+
+class Blog extends Model
 {
     public function getRouteKeyName()
     {
