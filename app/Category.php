@@ -2,7 +2,9 @@
 
 namespace App;
 
-class Category extends ApiModel
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
 {
     public function getRouteKeyName()
     {

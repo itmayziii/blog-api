@@ -2,7 +2,9 @@
 
 namespace App;
 
-class Contact extends ApiModel
+use Illuminate\Database\Eloquent\Model;
+
+class Contact extends Model
 {
     protected $table = 'contacts';
     protected $resourceName = 'contacts';
