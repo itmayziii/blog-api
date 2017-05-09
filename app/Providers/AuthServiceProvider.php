@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Blog;
 use App\Contact;
+use App\Policies\BlogPolicy;
 use App\Policies\ContactPolicy;
 use App\User;
 use Illuminate\Support\Facades\Gate;
@@ -11,7 +13,8 @@ use Illuminate\Support\ServiceProvider;
 class AuthServiceProvider extends ServiceProvider
 {
     private $policies = [
-        Contact::class => ContactPolicy::class
+        Contact::class => ContactPolicy::class,
+        Blog::class    => BlogPolicy::class
     ];
 
     /**

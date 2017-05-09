@@ -26,7 +26,7 @@ class ContactControllerTest extends TestCase
         parent::setUp();
         $this->jsonApi = app(JsonApi::class);
         $this->jsonApi->setResourceName('contacts');
-        $this->contactController = new ContactController($this->jsonApi);
+        $this->contactController = app(ContactController::class);
     }
 
     public function test_successful_creation()
