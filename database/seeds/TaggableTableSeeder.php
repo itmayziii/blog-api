@@ -3,6 +3,7 @@
 use App\Blog;
 use App\Tag;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class TaggablesTableSeeder extends Seeder
 {
