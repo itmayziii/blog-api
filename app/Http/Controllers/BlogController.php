@@ -15,6 +15,11 @@ class BlogController extends Controller
      */
     private $jsonApi;
 
+    /**
+     * Validation Rules
+     *
+     * @var array
+     */
     private $rules = [
         'user-id'     => 'required',
         'category-id' => 'required',
@@ -27,6 +32,12 @@ class BlogController extends Controller
         $this->jsonApi = $jsonApi;
     }
 
+    /**
+     * List the existing blogs.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function index(Request $request)
     {
         return $this->jsonApi->respondResourcesFound(new Blog(), $request);
@@ -134,6 +145,13 @@ class BlogController extends Controller
         $blog = Blog::find($id);
         if (!$blog) {
             return $this->jsonApi->respondResourceNotFound();
+        }
+
+        try {
+            $blog->delete();
+        } catch (\Exception $e) {
+            Log::error("Failed to delete a blog with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to delete blog");
         }
 
         return $this->jsonApi->respondResourceDeleted($blog);
