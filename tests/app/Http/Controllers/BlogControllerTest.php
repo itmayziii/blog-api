@@ -1,5 +1,6 @@
 <?php
 
+use App\Blog;
 use App\Http\Controllers\BlogController;
 use Illuminate\Http\Request;
 use itmayziii\Laravel\JsonApi;
@@ -73,8 +74,18 @@ class BlogControllerTest extends \TestCase
         $this->assertThat($response, $this->equalTo('Blog Creation Successful'));
     }
 
-    public function test_()
+    public function test_found()
     {
+        $this->jsonApiMock->shouldReceive('respondResourceFound')->once()->andReturn('Blog Found');
 
+        $blog = $this->createBlog();
+        $response = $this->blogController->show($blog->id);
+
+        $this->assertThat($response, $this->equalTo('Blog Found'));
+    }
+
+    private function createBlog()
+    {
+        return factory(Blog::class, 1)->create()->first();
     }
 }

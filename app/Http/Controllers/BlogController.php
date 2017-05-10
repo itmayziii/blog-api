@@ -25,6 +25,23 @@ class BlogController extends Controller
     }
 
     /**
+     * Find specific blogs by id.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $contact = Blog::find($id);
+
+        if ($contact) {
+            return $this->jsonApi->respondResourceFound($contact);
+        } else {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+    }
+
+    /**
      * Creates a new blog.
      *
      * @param Request $request

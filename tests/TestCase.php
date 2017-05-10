@@ -16,8 +16,6 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
     public function setUp()
     {
         parent::setUp();
-        $clazz = JsonApi::class;
-        echo "$clazz\n";
         $this->jsonApiMock = $this->jsonApiMock = \Mockery::mock(JsonApi::class)->shouldDeferMissing();
     }
 
