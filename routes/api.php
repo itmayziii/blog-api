@@ -19,6 +19,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
     $app->group(['prefix' => 'blogs'], function () use ($app) {
 
         $app->post('', ['middleware' => 'auth', 'uses' => 'BlogController@store']);
+
     });
 
 });

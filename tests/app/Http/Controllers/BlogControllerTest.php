@@ -3,7 +3,6 @@
 use App\Blog;
 use App\Http\Controllers\BlogController;
 use Illuminate\Http\Request;
-use itmayziii\Laravel\JsonApi;
 
 class BlogControllerTest extends \TestCase
 {
