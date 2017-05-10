@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -25,6 +24,12 @@ class BlogController extends Controller
         return 'index';
     }
 
+    /**
+     * Creates a new blog.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         if (Gate::denies('store', new Blog())) {
@@ -32,10 +37,10 @@ class BlogController extends Controller
         }
 
         $rules = [
-            'user_id'     => 'required',
-            'category_id' => 'required',
-            'title'       => 'required',
-            'content'     => 'required'
+            'user-id'     => 'required',
+            'category-id' => 'required',
+            'title'       => 'required|max:200',
+            'content'     => 'required|max:10000'
         ];
         $validation = $this->initializeValidation($request, $rules);
 
@@ -44,10 +49,16 @@ class BlogController extends Controller
         }
 
         $blog = new Blog();
-        $blog->setAttribute('user_id', $request->input('user_id'));
-        $blog->setAttribute('category_id', $request->input('category_id'));
+        $blog->setAttribute('user_id', $request->input('user-id'));
+        $blog->setAttribute('category_id', $request->input('category-id'));
         $blog->setAttribute('title', $request->input('title'));
         $blog->setAttribute('content', $request->input('content'));
+
+        try {
+            $blog->save();
+        } catch (\Exception $e) {
+            $this->jsonApi->respondBadRequest();
+        }
 
         return $this->jsonApi->respondResourceCreated($blog);
     }

@@ -28,8 +28,8 @@ class ContactController extends Controller
     public function index(Request $request)
     {
         if (Gate::denies('index', new Contact())) {
-        return $this->jsonApi->respondUnauthorized();
-    }
+            return $this->jsonApi->respondUnauthorized();
+        }
 
         return $this->jsonApi->respondResourcesFound(new Contact(), $request);
     }
@@ -60,7 +60,11 @@ class ContactController extends Controller
         $contact->email = $request->input('email');
         $contact->comments = $request->input('comments');
 
-        $contact->save();
+        try {
+            $contact->save();
+        } catch (\Exception $e) {
+            $this->jsonApi->respondBadRequest();
+        }
 
         return $this->jsonApi->respondResourceCreated($contact);
     }

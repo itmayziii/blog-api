@@ -43,8 +43,8 @@ class BlogControllerTest extends \TestCase
             'v1/blogs',
             'POST',
             [
-                'user_id'     => 1,
-                'category_id' => 1,
+                'user-id'     => 1,
+                'category-id' => 1,
                 'title'       => '', // title is required
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
@@ -63,13 +63,18 @@ class BlogControllerTest extends \TestCase
             'v1/blogs',
             'POST',
             [
-                'user_id'     => 1,
-                'category_id' => 1,
+                'user-id'     => 1,
+                'category-id' => 1,
                 'title'       => 'My test blog.',
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
         $response = $this->blogController->store($request);
 
         $this->assertThat($response, $this->equalTo('Blog Creation Successful'));
+    }
+
+    public function test_()
+    {
+
     }
 }
