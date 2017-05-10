@@ -1,11 +1,30 @@
 <?php
 
 use App\User;
+use itmayziii\Laravel\JsonApi;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 abstract class TestCase extends Laravel\Lumen\Testing\TestCase
 {
     use DatabaseTransactions;
+
+    /**
+     * @var \Mockery\Mock
+     */
+    protected $jsonApiMock;
+
+    public function setUp()
+    {
+        parent::setUp();
+        $clazz = JsonApi::class;
+        echo "$clazz\n";
+        $this->jsonApiMock = $this->jsonApiMock = \Mockery::mock(JsonApi::class)->shouldDeferMissing();
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
+    }
 
     /**
      * Creates the application.

@@ -30,5 +30,25 @@ class BlogController extends Controller
         if (Gate::denies('store', new Blog())) {
             return $this->jsonApi->respondUnauthorized();
         }
+
+        $rules = [
+            'user_id'     => 'required',
+            'category_id' => 'required',
+            'title'       => 'required',
+            'content'     => 'required'
+        ];
+        $validation = $this->initializeValidation($request, $rules);
+
+        if ($validation->fails()) {
+            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+        }
+
+        $blog = new Blog();
+        $blog->setAttribute('user_id', $request->input('user_id'));
+        $blog->setAttribute('category_id', $request->input('category_id'));
+        $blog->setAttribute('title', $request->input('title'));
+        $blog->setAttribute('content', $request->input('content'));
+
+        return $this->jsonApi->respondResourceCreated($blog);
     }
 }
