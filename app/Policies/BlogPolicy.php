@@ -18,4 +18,16 @@ class BlogPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can update blogs.
+     *
+     * @param User $user
+     * @param Blog $blog
+     * @return bool
+     */
+    public function update(User $user, Blog $blog)
+    {
+        return $user->isAdmin();
+    }
 }

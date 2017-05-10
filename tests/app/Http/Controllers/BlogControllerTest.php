@@ -93,6 +93,79 @@ class BlogControllerTest extends \TestCase
         $this->assertThat($response, $this->equalTo('Blogs Found'));
     }
 
+    public function test_update_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Blog Update Authorization Failed');
+
+        $request = Request::create('v1/blogs', 'PUT');
+        $blog = $this->createBlog();
+        $response = $this->blogController->update($request, $blog->id);
+
+        $this->assertThat($response, $this->equalTo('Blog Update Authorization Failed'));
+    }
+
+    public function test_update_validation()
+    {
+        $this->jsonApiMock->shouldReceive('respondValidationFailed')->once()->andReturn('Blog Update Validation Failed');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create(
+            'v1/blogs',
+            'PATCH',
+            [
+                'user-id'     => 1,
+                'category-id' => 1,
+                'title'       => '', // title is required
+                'content'     => 'This is a blog, and it happens to be the first.'
+            ]);
+        $blog = $this->createBlog();
+        $response = $this->blogController->update($request, $blog->id);
+
+        $this->assertThat($response, $this->equalTo('Blog Update Validation Failed'));
+    }
+
+    public function test_update_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('Blog Not Found');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create(
+            'v1/blogs',
+            'PATCH',
+            [
+                'user-id'     => 1,
+                'category-id' => 1,
+                'title'       => 'A title',
+                'content'     => 'This is a blog, and it happens to be the first.'
+            ]);
+        $response = $this->blogController->update($request, 342364198236413294);
+
+        $this->assertThat($response, $this->equalTo('Blog Not Found'));
+    }
+
+    public function test_update_successful()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceUpdated')->once()->andReturn('Blog Updated Successfully');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create(
+            'v1/blogs',
+            'PATCH',
+            [
+                'user-id'     => 1,
+                'category-id' => 1,
+                'title'       => 'A title',
+                'content'     => 'This is a blog, and it happens to be the first.'
+            ]);
+        $blog = $this->createBlog();
+        $response = $this->blogController->update($request, $blog->id);
+
+        $this->assertThat($response, $this->equalTo('Blog Updated Successfully'));
+    }
+
     private function createBlog()
     {
         return factory(Blog::class, 1)->create()->first();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use itmayziii\Laravel\JsonApi;
 
 class BlogController extends Controller
@@ -13,6 +14,13 @@ class BlogController extends Controller
      * @var JsonApi
      */
     private $jsonApi;
+
+    private $rules = [
+        'user-id'     => 'required',
+        'category-id' => 'required',
+        'title'       => 'required|max:200',
+        'content'     => 'required|max:10000'
+    ];
 
     public function __construct(JsonApi $jsonApi)
     {
@@ -32,10 +40,10 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        $contact = Blog::find($id);
+        $blog = Blog::find($id);
 
-        if ($contact) {
-            return $this->jsonApi->respondResourceFound($contact);
+        if ($blog) {
+            return $this->jsonApi->respondResourceFound($blog);
         } else {
             return $this->jsonApi->respondResourceNotFound();
         }
@@ -53,30 +61,61 @@ class BlogController extends Controller
             return $this->jsonApi->respondUnauthorized();
         }
 
-        $rules = [
-            'user-id'     => 'required',
-            'category-id' => 'required',
-            'title'       => 'required|max:200',
-            'content'     => 'required|max:10000'
-        ];
-        $validation = $this->initializeValidation($request, $rules);
-
+        $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
         }
 
-        $blog = new Blog();
-        $blog->setAttribute('user_id', $request->input('user-id'));
-        $blog->setAttribute('category_id', $request->input('category-id'));
-        $blog->setAttribute('title', $request->input('title'));
-        $blog->setAttribute('content', $request->input('content'));
-
         try {
-            $blog->save();
+            $blog = (new Blog)->create([
+                'user_id'     => $request->input('user-id'),
+                'category_id' => $request->input('category-id'),
+                'title'       => $request->input('title'),
+                'content'     => $request->input('content')
+            ]);
         } catch (\Exception $e) {
-            $this->jsonApi->respondBadRequest();
+            Log::error("Failed to create a blog with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to create the blog");
         }
 
         return $this->jsonApi->respondResourceCreated($blog);
+    }
+
+    /**
+     * Updates an existing blog.
+     *
+     * @param Request $request
+     * @param String $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        if (Gate::denies('update', new Blog())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        $blog = Blog::find($id);
+        if (!$blog) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        $validation = $this->initializeValidation($request, $this->rules);
+        if ($validation->fails()) {
+            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+        }
+
+        try {
+            $blog->update([
+                'user_id'     => $request->input('user-id'),
+                'category_id' => $request->input('category-id'),
+                'title'       => $request->input('title'),
+                'content'     => $request->input('content')
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to update a blog with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to update blog");
+        }
+
+        return $this->jsonApi->respondResourceUpdated($blog);
     }
 }
