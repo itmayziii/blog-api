@@ -84,6 +84,16 @@ class BlogControllerTest extends \TestCase
         $this->assertThat($response, $this->equalTo('Blog Found'));
     }
 
+    public function test_listing()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourcesFound')->once()->andReturn('Blogs Found');
+
+        $request = Request::create('v1/blogs');
+        $response = $this->blogController->index($request);
+
+        $this->assertThat($response, $this->equalTo('Blogs Found'));
+    }
+
     private function createBlog()
     {
         return factory(Blog::class, 1)->create()->first();

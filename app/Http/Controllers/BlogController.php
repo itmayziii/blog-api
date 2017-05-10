@@ -19,9 +19,9 @@ class BlogController extends Controller
         $this->jsonApi = $jsonApi;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return 'index';
+        return $this->jsonApi->respondResourcesFound(new Blog(), $request);
     }
 
     /**
