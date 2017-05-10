@@ -118,4 +118,24 @@ class BlogController extends Controller
 
         return $this->jsonApi->respondResourceUpdated($blog);
     }
+
+    /**
+     * Deletes an existing blog.
+     *
+     * @param $id
+     * @return \Illuminate\Http\Response
+     */
+    public function delete($id)
+    {
+        if (Gate::denies('delete', new Blog())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        $blog = Blog::find($id);
+        if (!$blog) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        return $this->jsonApi->respondResourceDeleted($blog);
+    }
 }

@@ -1141,12 +1141,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/itmayziii/json-api.git",
-                "reference": "59e770bbd81b716ae8a4198390be5abf82419914"
+                "reference": "646189f085c3ee5567d3d70b8bf0aeb9ba3c762c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/itmayziii/json-api/zipball/59e770bbd81b716ae8a4198390be5abf82419914",
-                "reference": "59e770bbd81b716ae8a4198390be5abf82419914",
+                "url": "https://api.github.com/repos/itmayziii/json-api/zipball/646189f085c3ee5567d3d70b8bf0aeb9ba3c762c",
+                "reference": "646189f085c3ee5567d3d70b8bf0aeb9ba3c762c",
                 "shasum": ""
             },
             "require": {
@@ -1184,7 +1184,7 @@
                 "laravel",
                 "lumen"
             ],
-            "time": "2017-05-10 18:22:12"
+            "time": "2017-05-10 20:11:57"
         },
         {
             "name": "laravel/lumen-framework",

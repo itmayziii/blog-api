@@ -166,6 +166,39 @@ class BlogControllerTest extends \TestCase
         $this->assertThat($response, $this->equalTo('Blog Updated Successfully'));
     }
 
+    public function test_delete_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Deleting Blog Not Authorized');
+
+        $blog = $this->createBlog();
+        $response = $this->blogController->delete($blog->id);
+
+        $this->assertThat($response, $this->equalTo('Deleting Blog Not Authorized'));
+    }
+
+    public function test_delete_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('No Blog to Delete');
+
+        $this->actAsAdministrator();
+
+        $response = $this->blogController->delete(43298574432965923475);
+
+        $this->assertThat($response, $this->equalTo('No Blog to Delete'));
+    }
+
+    public function test_successful_deletion()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceDeleted')->once()->andReturn('No Blog to Delete');
+
+        $this->actAsAdministrator();
+
+        $blog = $this->createBlog();
+        $response = $this->blogController->delete($blog->id);
+
+        $this->assertThat($response, $this->equalTo('No Blog to Delete'));
+    }
+
     private function createBlog()
     {
         return factory(Blog::class, 1)->create()->first();

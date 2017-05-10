@@ -30,4 +30,16 @@ class BlogPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can delete blogs.
+     *
+     * @param User $user
+     * @param Blog $blog
+     * @return bool
+     */
+    public function delete(User $user, Blog $blog)
+    {
+        return $user->isAdmin();
+    }
 }
