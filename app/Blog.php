@@ -6,11 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
-    public function __construct()
-    {
-        parent::__construct();
-        $this->setKeyName('slug');
-    }
+    protected $primaryKey = 'slug';
 
     protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
 

@@ -78,7 +78,7 @@ class BlogControllerTest extends \TestCase
         $this->jsonApiMock->shouldReceive('respondResourceFound')->once()->andReturn('Blog Found');
 
         $blog = $this->createBlog();
-        $response = $this->blogController->show($blog->id);
+        $response = $this->blogController->show($blog->slug);
 
         $this->assertThat($response, $this->equalTo('Blog Found'));
     }
@@ -120,7 +120,7 @@ class BlogControllerTest extends \TestCase
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
         $blog = $this->createBlog();
-        $response = $this->blogController->update($request, $blog->id);
+        $response = $this->blogController->update($request, $blog->slug);
 
         $this->assertThat($response, $this->equalTo('Blog Update Validation Failed'));
     }
@@ -161,7 +161,7 @@ class BlogControllerTest extends \TestCase
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
         $blog = $this->createBlog();
-        $response = $this->blogController->update($request, $blog->id);
+        $response = $this->blogController->update($request, $blog->slug);
 
         $this->assertThat($response, $this->equalTo('Blog Updated Successfully'));
     }
@@ -194,7 +194,7 @@ class BlogControllerTest extends \TestCase
         $this->actAsAdministrator();
 
         $blog = $this->createBlog();
-        $response = $this->blogController->delete($blog->id);
+        $response = $this->blogController->delete($blog->slug);
 
         $this->assertThat($response, $this->equalTo('No Blog to Delete'));
     }
