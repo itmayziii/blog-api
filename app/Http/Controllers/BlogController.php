@@ -44,14 +44,14 @@ class BlogController extends Controller
     }
 
     /**
-     * Find specific blogs by id.
+     * Find specific blogs by slug.
      *
-     * @param int $id
+     * @param string $slug
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($slug)
     {
-        $blog = Blog::find($id);
+        $blog = Blog::find($slug);
 
         if ($blog) {
             return $this->jsonApi->respondResourceFound($blog);
