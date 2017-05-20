@@ -6,8 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
+    /**
+     * @inheritDoc
+     */
     protected $primaryKey = 'slug';
 
+    /**
+     * @inheritDoc
+     */
     protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
 
     /**
