@@ -2,9 +2,7 @@ version: '2'
 services:
   itmayziii:
       container_name: itmayziii
-      build:
-        context: .
-        dockerfile: Dockerfile
+      image: itmayziii/nginx-php70:latest
       ports:
           - 8080:80
       links:
