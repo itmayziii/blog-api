@@ -3,8 +3,9 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 
-class Blog extends Model
+class Blog extends Model implements JsonApiModelInterface
 {
     /**
      * @inheritDoc
@@ -47,5 +48,25 @@ class Blog extends Model
     public function isOwner(User $user)
     {
         return ($this->user_id === $user->id);
+    }
+
+    /**
+     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     *
+     * @return string
+     */
+    public function getJsonApiType()
+    {
+        return 'blogs';
+    }
+
+    /**
+     * Value of model's primary key.
+     *
+     * @return mixed
+     */
+    public function getJsonApiModelPrimaryKey()
+    {
+        return $this->getKey();
     }
 }

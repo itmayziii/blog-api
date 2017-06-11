@@ -1,17 +1,17 @@
 version: '3'
 services:
-  blog-api-web:
-      container_name: blog-api-web
+  blog_api_web:
+      container_name: blog_api_web
       image: itmayziii/nginx-php70:latest
       ports:
           - 8080:80
       links:
-          - blog-api-db
+          - mysql
       volumes:
           - ./:/home/forge/default
       tty: true
-  blog-api-db:
-      container_name: blog-api-db
+  mysql:
+      container_name: blog_api_db
       image: mysql:latest
       environment:
           - MYSQL_ROOT_PASSWORD=C12H22o11
