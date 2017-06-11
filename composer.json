@@ -13,7 +13,7 @@
     "laravel/lumen-framework": "5.4.*",
     "vlucas/phpdotenv": "~2.2",
     "nordsoftware/lumen-cors": "^2.1",
-    "itmayziii/json-api": "dev-master"
+    "itmayziii/json-api": "^v0.1.0"
   },
   "require-dev": {
     "fzaninotto/faker": "~1.4",
