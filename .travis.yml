@@ -4,7 +4,12 @@ php:
   - 7.0
   - 7.1
 
+services:
+    - mysql
+
 before_script:
+  - cp .travis.env .env
+  - mysql -e 'create database itmayziii;'
   - composer self-update
   - composer install --dev --prefer-source --no-interaction
   - export CI_BRANCH="$TRAVIS_BRANCH"
