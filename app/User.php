@@ -6,9 +6,10 @@ use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
+use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 use Laravel\Lumen\Auth\Authorizable;
 
-class User extends Model implements AuthenticatableContract, AuthorizableContract
+class User extends Model implements AuthenticatableContract, AuthorizableContract, JsonApiModelInterface
 {
     use Authenticatable, Authorizable;
     /**
@@ -43,5 +44,25 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function isAdmin()
     {
         return ($this->role === 'Administrator');
+    }
+
+    /**
+     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     *
+     * @return string
+     */
+    public function getJsonApiType()
+    {
+        return 'users';
+    }
+
+    /**
+     * Value of model's primary key.
+     *
+     * @return mixed
+     */
+    public function getJsonApiModelPrimaryKey()
+    {
+        return $this->getKey();
     }
 }

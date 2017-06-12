@@ -60,7 +60,11 @@ class ContactController extends Controller
         $contact->email = $request->input('email');
         $contact->comments = $request->input('comments');
 
-        $contact->save();
+        try {
+            $contact->save();
+        } catch (\Exception $e) {
+            $this->jsonApi->respondBadRequest();
+        }
 
         return $this->jsonApi->respondResourceCreated($contact);
     }

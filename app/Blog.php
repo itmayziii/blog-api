@@ -3,14 +3,18 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 
-class Blog extends Model
+class Blog extends Model implements JsonApiModelInterface
 {
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
+    /**
+     * @inheritDoc
+     */
+    protected $primaryKey = 'slug';
 
+    /**
+     * @inheritDoc
+     */
     protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
 
     /**
@@ -18,7 +22,7 @@ class Blog extends Model
      */
     public function tags()
     {
-        return $this->morphToMany('App\Tag', 'taggable');
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 
     /**
@@ -26,7 +30,7 @@ class Blog extends Model
      */
     public function user()
     {
-        return $this->belongsTo('App\User');
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -34,7 +38,7 @@ class Blog extends Model
      */
     public function category()
     {
-        return $this->belongsTo('App\Category');
+        return $this->belongsTo(Category::class);
     }
 
     /**
@@ -44,5 +48,25 @@ class Blog extends Model
     public function isOwner(User $user)
     {
         return ($this->user_id === $user->id);
+    }
+
+    /**
+     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     *
+     * @return string
+     */
+    public function getJsonApiType()
+    {
+        return 'blogs';
+    }
+
+    /**
+     * Value of model's primary key.
+     *
+     * @return mixed
+     */
+    public function getJsonApiModelPrimaryKey()
+    {
+        return $this->getKey();
     }
 }

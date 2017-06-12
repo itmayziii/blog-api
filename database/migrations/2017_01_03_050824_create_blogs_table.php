@@ -14,13 +14,12 @@ class CreateBlogsTable extends Migration
     public function up()
     {
         Schema::create('blogs', function (Blueprint $table) {
-            $table->increments('id');
+            $table->string('slug')->primary();
             $table->timestamps();
             $table->integer('user_id')->unsigned();
             $table->integer('category_id')->unsigned();
             $table->string('status', 20)->default('draft');
             $table->string('title', 200)->unique();
-            $table->string('slug')->unique();
             $table->longText('content')->nullable();
             $table->string('image_path')->nullable();
 

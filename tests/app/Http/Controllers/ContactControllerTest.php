@@ -16,21 +16,21 @@ class ContactControllerTest extends TestCase
      */
     private $contactController;
 
-    /**
-     * @var JsonApi
-     */
-    private $jsonApi;
-
     public function setUp()
     {
         parent::setUp();
-        $this->jsonApi = app(JsonApi::class);
-        $this->jsonApi->setResourceName('contacts');
-        $this->contactController = new ContactController($this->jsonApi);
+        $this->contactController = new ContactController($this->jsonApiMock);
+    }
+
+    public function tearDown()
+    {
+        parent::tearDown();
     }
 
     public function test_successful_creation()
     {
+        $this->jsonApiMock->shouldReceive('respondResourceCreated')->once()->andReturn('Successful Creation');
+
         $request = Request::create(
             'api/v1/contact',
             'POST',
@@ -38,19 +38,13 @@ class ContactControllerTest extends TestCase
         );
         $response = $this->contactController->store($request);
 
-        $contact = Contact::where(['first_name' => 'Unit', 'last_name' => 'Testing'])->orderBy('created_at', 'desc')->take(1)->get();
-        $contact = $contact->first();
-
-        $this->assertEquals('Unit', $contact->first_name);
-        $this->assertEquals('Testing', $contact->last_name);
-        $this->assertEquals('Please test this', $contact->comments);
-        $this->assertEquals('UnitTesting@example.com', $contact->email);
-
-        $this->verifyResponseData($response, $contact);
+        $this->assertThat($response, $this->equalTo('Successful Creation'));
     }
 
     public function test_creation_validation_failed()
     {
+        $this->jsonApiMock->shouldReceive('respondValidationFailed')->once()->andReturn('Validation Failed');
+
         $request = Request::create(
             'v1/contacts',
             'POST',
@@ -61,78 +55,66 @@ class ContactControllerTest extends TestCase
                 'email'      => 'aaaaabbbbbcccccdddddeeeeefffffggggghhhhhiiiiijjjjjjkkkkkllllllmmmmmmnnnnnnooooooppppppqqqqqqrrrrrrssssssttttttuuuuuuvvvvvvvvwwwwwwwxxxxxyyyyyzzzzz',
                 'comments'   => '']
         );
-
         $response = $this->contactController->store($request);
-        $responseContent = $response->getOriginalContent()['errors'];
 
-        $this->assertArrayHasKey('first-name', $responseContent['source']);
-        $this->assertContains('The first-name may not be greater than 100 characters.', $responseContent['source']['first-name']);
-
-        $this->assertArrayHasKey('last-name', $responseContent['source']);
-        $this->assertContains('The last-name may not be greater than 100 characters.', $responseContent['source']['last-name']);
-
-        $this->assertArrayHasKey('email', $responseContent['source']);
-        $this->assertContains('The email may not be greater than 100 characters.', $responseContent['source']['email']);
-
-        $this->assertArrayHasKey('comments', $responseContent['source']);
-        $this->assertContains('The comments field is required.', $responseContent['source']['comments']);
+        $this->assertThat($response, $this->equalTo('Validation Failed'));
     }
 
     public function test_found()
     {
+        $this->jsonApiMock->shouldReceive('respondResourceFound')->once()->andReturn('Contact Found');
+
         $this->actAsAdministrator();
 
         $contact = $this->createContact();
         $response = $this->contactController->show($contact->id);
-        $this->verifyResponseData($response, $contact);
+
+        $this->assertThat($response, $this->equalTo('Contact Found'));
     }
 
     public function test_not_found()
     {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('Contact Not Found');
+
         $this->actAsAdministrator();
+
         $response = $this->contactController->show(347937472943294);
-        $this->assertEquals(404, $response->getStatusCode());
+
+        $this->assertThat($response, $this->equalTo('Contact Not Found'));
     }
 
     public function test_finding_authorization()
     {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Not Authorized to find Contacts');
+
         $this->actAsStandardUser();
 
         $contact = $this->createContact();
-
         $response = $this->contactController->show($contact->id);
-        $this->assertEquals(403, $response->getStatusCode());
+
+        $this->assertThat($response, $this->equalTo('Not Authorized to find Contacts'));
     }
 
     public function test_listing()
     {
+        $this->jsonApiMock->shouldReceive('respondResourcesFound')->once()->andReturn('Contacts Found');
+
         $this->actAsAdministrator();
 
         $request = Request::create('v1/contacts');
         $response = $this->contactController->index($request);
-        $this->assertEquals(200, $response->getStatusCode());
-        // TODO mock out the base controller class and make sure that the correct methods are being called
+
+        $this->assertThat($response, $this->equalTo('Contacts Found'));
     }
 
     public function test_list_authorization()
     {
-        $this->actAsStandardUser();
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Not Authorized to list Contacts');
 
         $request = Request::create('v1/contacts');
         $response = $this->contactController->index($request);
-        $this->assertEquals(403, $response->getStatusCode());
-    }
 
-    private function verifyResponseData(Response $response, Contact $contact)
-    {
-        $responseContent = $response->getOriginalContent()['data'];
-
-        $this->assertEquals($contact->id, $responseContent['id']);
-        $this->assertEquals($this->jsonApi->getResourceName(), $responseContent['type']);
-        $this->assertEquals('Unit', $responseContent['attributes']['first_name']);
-        $this->assertEquals('Testing', $responseContent['attributes']['last_name']);
-        $this->assertEquals('UnitTesting@example.com', $responseContent['attributes']['email']);
-        $this->assertEquals('Please test this', $responseContent['attributes']['comments']);
+        $this->assertThat($response, $this->equalTo('Not Authorized to list Contacts'));
     }
 
     private function createContact()
