@@ -26,9 +26,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     /**
      * @inheritDoc
      */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     /**
      * Get all of the blogs for a user.

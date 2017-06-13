@@ -15,6 +15,11 @@ class Category extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
+    protected $fillable = ['name'];
+
+    /**
+     * @inheritDoc
+     */
     public function getRouteKeyName()
     {
         return 'name';
