@@ -8,11 +8,14 @@ use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 class Tag extends Model implements JsonApiModelInterface
 {
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
+     * @inheritDoc
      */
     protected $fillable = ['name'];
+
+    /**
+     * @inheritDoc
+     */
+    protected $visible = ['name'];
 
     /**
      * Get all of the posts that are assigned this tag.

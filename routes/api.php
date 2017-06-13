@@ -20,6 +20,14 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
     });
 
-//    $app->group('');
+    $app->group(['prefix' => 'categories'], function () use ($app) {
+
+        $app->get('', 'CategoryController@index');
+
+    });
 
 });
+
+
+// TODO add a catch all route for anything that does not match a defined route.
+//$app->addRoute(['GET', 'PUT', 'PATCH', 'POST', 'DELETE'], '', '');

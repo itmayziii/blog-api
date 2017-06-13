@@ -7,9 +7,15 @@ use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 
 class Contact extends Model implements JsonApiModelInterface
 {
-    protected $table = 'contacts';
-    protected $resourceName = 'contacts';
-    protected $fillable = ['first_name', 'last_id', 'email', 'comments'];
+    /**
+     * @inheritDoc
+     */
+    protected $fillable = ['first_name', 'last_name', 'email', 'comments'];
+
+    /**
+     * @inheritDoc
+     */
+    protected $visible = ['first_name', 'last_name', 'email', 'comments'];
 
     /**
      * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).

@@ -12,19 +12,19 @@ use Laravel\Lumen\Auth\Authorizable;
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JsonApiModelInterface
 {
     use Authenticatable, Authorizable;
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'first_name', 'last_name', 'email', 'password', 'api_token'
-    ];
 
     /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
+     * @inheritDoc
+     */
+    protected $fillable = ['first_name', 'last_name', 'email', 'password', 'api_token', 'role'];
+
+    /**
+     * @inheritDoc
+     */
+    protected $visible = ['first_name', 'last_name', 'email', 'role'];
+
+    /**
+     * @inheritDoc
      */
     protected $hidden = [
         'password', 'remember_token',
