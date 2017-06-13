@@ -83,12 +83,47 @@ class CategoryControllerTest extends \TestCase
             'v1/categories',
             'POST',
             [
-                'name' => 'Technology'
+                'name' => 'Crazy Category'
             ]
         );
         $response = $this->categoryController->store($request);
 
         $this->assertThat($response, $this->equalTo('Category Create Successful'));
+    }
+
+    public function test_update_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Category Update Authorization Failed');
+
+        $this->actAsStandardUser();
+        $request = Request::create('v1/categories/28', 'PATCH');
+        $response = $this->categoryController->update($request, 28);
+
+        $this->assertThat($response, $this->equalTo('Category Update Authorization Failed'));
+    }
+
+    public function test_update_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('Category Not Found');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create('v1/categories/9674325643254', 'PATCH');
+        $response = $this->categoryController->update($request, 9674325643254);
+
+        $this->assertThat($response, $this->equalTo('Category Not Found'));
+    }
+
+    public function test_update_successful()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceUpdated')->once()->andReturn('Category Updated');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create('v1/categories/28', 'PATCH', ['name' => 'Crazy Category']);
+        $response = $this->categoryController->update($request, 28);
+
+        $this->assertThat($response, $this->equalTo('Category Updated'));
     }
 
     private function createCategory()

@@ -68,4 +68,34 @@ class CategoryController extends Controller
         return $this->jsonApi->respondResourceCreated($category);
     }
 
+    public function update(Request $request, $id)
+    {
+        if (Gate::denies('update', new Category())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        Log::info('htting');
+
+        $category = Category::find($id);
+        if (!$category) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        $validation = $this->initializeValidation($request, $this->rules);
+        if ($validation->fails()) {
+            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+        }
+
+        try {
+            $category->update([
+                'name' => $request->input('name'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to update a category with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to update category");
+        }
+
+        return $this->jsonApi->respondResourceUpdated($category);
+    }
+
 }
