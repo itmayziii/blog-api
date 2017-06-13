@@ -2,12 +2,6 @@
 
 $app->group(['prefix' => 'v1'], function () use ($app) {
 
-//    $app->group(['prefix' => 'blogs'], function () use ($app) {
-//
-//        $app->get('', 'BlogController@index');
-//
-//    });
-
     $app->group(['prefix' => 'contacts'], function () use ($app) {
 
         $app->post('', 'ContactController@store');
@@ -22,7 +16,10 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
         $app->get('/{slug}', 'BlogController@show');
         $app->post('', ['middleware' => 'auth', 'uses' => 'BlogController@store']);
         $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'BlogController@update']);
+        $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'BlogController@delete']);
 
     });
+
+//    $app->group('');
 
 });
