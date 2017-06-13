@@ -120,8 +120,9 @@ class CategoryControllerTest extends \TestCase
 
         $this->actAsAdministrator();
 
-        $request = Request::create('v1/categories/28', 'PATCH', ['name' => 'Crazy Category']);
-        $response = $this->categoryController->update($request, 28);
+        $category = $this->createCategory();
+        $request = Request::create('v1/categories/' . $category->id, 'PATCH', ['name' => 'Crazy Category']);
+        $response = $this->categoryController->update($request, $category->id);
 
         $this->assertThat($response, $this->equalTo('Category Updated'));
     }
