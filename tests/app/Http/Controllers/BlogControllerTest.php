@@ -97,7 +97,7 @@ class BlogControllerTest extends \TestCase
     {
         $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Blog Update Authorization Failed');
 
-        $request = Request::create('v1/blogs', 'PUT');
+        $request = Request::create('v1/blogs', 'PATCH');
         $blog = $this->createBlog();
         $response = $this->blogController->update($request, $blog->id);
 

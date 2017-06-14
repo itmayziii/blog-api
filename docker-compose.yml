@@ -1,6 +1,6 @@
 version: '3'
 services:
-  blog_api_web:
+  web:
       container_name: blog_api_web
       image: itmayziii/nginx-php70:latest
       ports:

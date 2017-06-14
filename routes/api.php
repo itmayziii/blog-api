@@ -2,12 +2,6 @@
 
 $app->group(['prefix' => 'v1'], function () use ($app) {
 
-//    $app->group(['prefix' => 'blogs'], function () use ($app) {
-//
-//        $app->get('', 'BlogController@index');
-//
-//    });
-
     $app->group(['prefix' => 'contacts'], function () use ($app) {
 
         $app->post('', 'ContactController@store');
@@ -21,8 +15,23 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
         $app->get('', 'BlogController@index');
         $app->get('/{slug}', 'BlogController@show');
         $app->post('', ['middleware' => 'auth', 'uses' => 'BlogController@store']);
-        $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'BlogController@update']);
+        $app->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'BlogController@update']);
+        $app->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'BlogController@delete']);
+
+    });
+
+    $app->group(['prefix' => 'categories'], function () use ($app) {
+
+        $app->get('', 'CategoryController@index');
+        $app->get('/{id}', 'CategoryController@show');
+        $app->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
+        $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
+        $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
     });
 
 });
+
+
+// TODO add a catch all route for anything that does not match a defined route.
+//$app->addRoute(['GET', 'PUT', 'PATCH', 'POST', 'DELETE'], '', '');

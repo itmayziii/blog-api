@@ -18,6 +18,11 @@ class Blog extends Model implements JsonApiModelInterface
     protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
 
     /**
+     * @inheritDoc
+     */
+    protected $visible = ['status', 'title', 'slug', 'content'];
+
+    /**
      * Get all of the tags for the post.
      */
     public function tags()

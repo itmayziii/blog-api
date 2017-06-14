@@ -97,16 +97,16 @@ class BlogController extends Controller
      * Updates an existing blog.
      *
      * @param Request $request
-     * @param String $id
+     * @param string $slug
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $slug)
     {
         if (Gate::denies('update', new Blog())) {
             return $this->jsonApi->respondUnauthorized();
         }
 
-        $blog = Blog::find($id);
+        $blog = Blog::find($slug);
         if (!$blog) {
             return $this->jsonApi->respondResourceNotFound();
         }
@@ -134,16 +134,16 @@ class BlogController extends Controller
     /**
      * Deletes an existing blog.
      *
-     * @param $id
+     * @param string $slug
      * @return \Illuminate\Http\Response
      */
-    public function delete($id)
+    public function delete($slug)
     {
         if (Gate::denies('delete', new Blog())) {
             return $this->jsonApi->respondUnauthorized();
         }
 
-        $blog = Blog::find($id);
+        $blog = Blog::find($slug);
         if (!$blog) {
             return $this->jsonApi->respondResourceNotFound();
         }

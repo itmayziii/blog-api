@@ -9,7 +9,7 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
     use DatabaseTransactions;
 
     /**
-     * @var \Mockery\Mock
+     * @var \Mockery\Mock|JsonApi
      */
     protected $jsonApiMock;
 
