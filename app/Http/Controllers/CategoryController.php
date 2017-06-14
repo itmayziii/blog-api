@@ -74,8 +74,6 @@ class CategoryController extends Controller
             return $this->jsonApi->respondUnauthorized();
         }
 
-        Log::info('htting');
-
         $category = Category::find($id);
         if (!$category) {
             return $this->jsonApi->respondResourceNotFound();
@@ -96,6 +94,27 @@ class CategoryController extends Controller
         }
 
         return $this->jsonApi->respondResourceUpdated($category);
+    }
+
+    public function delete($id)
+    {
+        if (Gate::denies('update', new Category())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        $category = Category::find($id);
+        if (!$category) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        try {
+            $category->delete();
+        } catch (\Exception $e) {
+            Log::error("Failed to delete a category with exception " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to delete category");
+        }
+
+        return $this->jsonApi->respondResourceDeleted($category);
     }
 
 }

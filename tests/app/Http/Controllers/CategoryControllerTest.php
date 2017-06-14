@@ -127,6 +127,40 @@ class CategoryControllerTest extends \TestCase
         $this->assertThat($response, $this->equalTo('Category Updated'));
     }
 
+    public function test_delete_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('Category Delete Authorization Failed');
+
+        $this->actAsStandardUser();
+
+        $response = $this->categoryController->delete(100);
+
+        $this->assertThat($response, $this->equalTo('Category Delete Authorization Failed'));
+    }
+
+    public function test_delete_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('Category Not Found');
+
+        $this->actAsAdministrator();
+
+        $response = $this->categoryController->delete(9674325643254);
+
+        $this->assertThat($response, $this->equalTo('Category Not Found'));
+    }
+
+    public function test_successful_deletion()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceDeleted')->once()->andReturn('Category Deleted');
+
+        $this->actAsAdministrator();
+
+        $category = $this->createCategory();
+        $response = $this->categoryController->delete($category->id);
+
+        $this->assertThat($response, $this->equalTo('Category Deleted'));
+    }
+
     private function createCategory()
     {
         return factory(Category::class, 1)->create()->first();

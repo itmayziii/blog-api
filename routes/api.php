@@ -26,6 +26,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
         $app->get('/{id}', 'CategoryController@show');
         $app->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
         $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
+        $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
     });
 
