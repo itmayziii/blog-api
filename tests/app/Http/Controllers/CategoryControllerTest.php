@@ -163,6 +163,8 @@ class CategoryControllerTest extends \TestCase
 
     private function createCategory()
     {
-        return factory(Category::class, 1)->create()->first();
+        return $this->keepTryingIntegrityConstraints(function () {
+            return factory(Category::class, 1)->create()->first();
+        });
     }
 }

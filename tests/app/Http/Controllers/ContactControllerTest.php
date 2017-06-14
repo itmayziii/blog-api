@@ -3,8 +3,6 @@
 use App\Contact;
 use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use itmayziii\Laravel\JsonApi;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
 class ContactControllerTest extends TestCase
@@ -119,13 +117,15 @@ class ContactControllerTest extends TestCase
 
     private function createContact()
     {
-        $contact = new Contact();
-        $contact->first_name = 'Unit';
-        $contact->last_name = 'Testing';
-        $contact->email = 'UnitTesting@example.com';
-        $contact->comments = 'Please test this';
-        $contact->save();
+        return $this->keepTryingIntegrityConstraints(function () {
+            $contact = new Contact();
+            $contact->first_name = 'Unit';
+            $contact->last_name = 'Testing';
+            $contact->email = 'UnitTesting@example.com';
+            $contact->comments = 'Please test this';
+            $contact->save();
 
-        return $contact;
+            return $contact;
+        });
     }
 }
