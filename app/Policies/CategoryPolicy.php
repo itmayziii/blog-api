@@ -30,7 +30,7 @@ class CategoryPolicy
     {
         return $user->isAdmin();
     }
-    
+
     /**
      * Determine whether the user can delete a specific category.
      *

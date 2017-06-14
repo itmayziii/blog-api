@@ -57,5 +57,34 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
 
         $this->actingAs($user);
     }
+
+    protected function keepTryingIntegrityConstraints(Closure $closure)
+    {
+        $result = null;
+
+        $maxAttempts = 10;
+        $attempts = 0;
+        while ($attempts < $maxAttempts) {
+            try {
+                $result = call_user_func($closure);
+                break;
+            } catch (\Exception $e) {
+                $isIntegrityConstraint = strpos($e->getMessage(), 'Integrity constraint violation');
+                if ($isIntegrityConstraint !== false) {
+                    $attempts++;
+                    continue;
+                } else {
+                    throw new \Exception($e->getMessage());
+                }
+
+            }
+        }
+
+        if ($attempts === $maxAttempts) {
+            throw new Exception('Integrity constraints were never satisfied, maybe consider raising the max attempts');
+        }
+
+        return $result;
+    }
 }
 
