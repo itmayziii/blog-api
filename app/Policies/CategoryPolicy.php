@@ -30,4 +30,16 @@ class CategoryPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can delete a specific category.
+     *
+     * @param  User $user
+     * @param  Category $category
+     * @return bool
+     */
+    public function delete(User $user, Category $category)
+    {
+        return $user->isAdmin();
+    }
 }
