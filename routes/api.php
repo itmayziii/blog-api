@@ -30,6 +30,16 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
     });
 
+    $app->group(['prefix' => 'tags'], function () use ($app) {
+
+        $app->get('', 'TagController@index');
+        $app->get('/{id}', 'TagController@show');
+        $app->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
+        $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
+        $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
+
+    });
+
 });
 
 
