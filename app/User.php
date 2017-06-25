@@ -33,7 +33,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     public function blogs()
     {
-        return $this->hasMany('App\Blog');
+        return $this->hasMany(Blog::class);
     }
 
     /**

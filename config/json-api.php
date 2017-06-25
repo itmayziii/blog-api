@@ -7,8 +7,8 @@ return [
     'relationship_links' => [
         Blog::class => [
             Category::class => [
-                'self'    => '/{base-type}/{base-key}/relationships/{related-type}',
-                'related' => '{base-type}/{base-key}/{related-type}'
+                'self'    => '/{related-type}/{related-key}/relationships/{base-type}',
+                'related' => '/{related-type}/{related-key}/{base-type}'
             ]
         ]
     ]
