@@ -16,7 +16,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     /**
      * @inheritDoc
      */
-    protected $fillable = ['first_name', 'last_name', 'email', 'password', 'api_token', 'role'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'password', 'api_token', 'api_token_expiration', 'role'];
 
     /**
      * @inheritDoc

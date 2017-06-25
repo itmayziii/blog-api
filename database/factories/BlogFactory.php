@@ -11,8 +11,8 @@ $factory->define(App\Blog::class, function (Faker\Generator $faker) {
     \Illuminate\Support\Facades\Log::info($sentence);
     return [
         'slug'        => str_slug($sentence),
-        'created_at'  => $faker->dateTime,
-        'updated_at'  => $faker->dateTime,
+        'created_at'  => $faker->unixTime,
+        'updated_at'  => $faker->unixTime,
         'user_id'     => $user->id,
         'category_id' => $category->id,
 //        'status'      => 'draft', // Default in DB
