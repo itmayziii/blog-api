@@ -18,7 +18,7 @@ class CategoryBlogController extends Controller
         $this->jsonApi = $jsonApi;
     }
 
-    public function index($id)
+    public function show($id)
     {
         $category = Category::find($id);
         if (!$category) {
