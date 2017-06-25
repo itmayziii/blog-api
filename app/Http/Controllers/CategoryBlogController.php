@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Category;
 use itmayziii\Laravel\JsonApi;
 
@@ -18,6 +17,12 @@ class CategoryBlogController extends Controller
         $this->jsonApi = $jsonApi;
     }
 
+    /**
+     * Find specific category with all related blogs.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
         $category = Category::find($id);
