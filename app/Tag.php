@@ -22,7 +22,7 @@ class Tag extends Model implements JsonApiModelInterface
      */
     public function blogs()
     {
-        return $this->morphedByMany('App\Blog', 'taggable');
+        return $this->morphedByMany(Blog::class, 'taggable');
     }
 
     /**

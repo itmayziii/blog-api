@@ -28,6 +28,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
         $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
         $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
+        $app->get('/{id}/blogs', 'CategoryBlogController@index');
     });
 
     $app->group(['prefix' => 'tags'], function () use ($app) {

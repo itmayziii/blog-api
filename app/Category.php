@@ -30,7 +30,7 @@ class Category extends Model implements JsonApiModelInterface
      */
     public function blogs()
     {
-        return $this->hasMany('App\Blog');
+        return $this->hasMany(Blog::class);
     }
 
     /**
