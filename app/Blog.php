@@ -25,7 +25,7 @@ class Blog extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
-    protected $visible = ['status', 'title', 'content'];
+    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'content'];
 
     /**
      * Get all of the tags for the post.

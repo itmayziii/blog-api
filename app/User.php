@@ -16,12 +16,12 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     /**
      * @inheritDoc
      */
-    protected $fillable = ['first_name', 'last_name', 'email', 'password', 'api_token', 'role'];
+    protected $fillable = ['first_name', 'last_name', 'email', 'password', 'api_token', 'api_token_expiration', 'role'];
 
     /**
      * @inheritDoc
      */
-    protected $visible = ['first_name', 'last_name', 'email', 'role'];
+    protected $visible = ['created_at', 'updated_at', 'first_name', 'last_name', 'email', 'role'];
 
     /**
      * @inheritDoc
@@ -42,6 +42,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function isAdmin()
     {
         return ($this->role === 'Administrator');
+    }
+
+    public function isUser(User $user)
+    {
+        return ($this->id === $user->id);
     }
 
     /**

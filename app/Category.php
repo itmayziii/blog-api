@@ -10,7 +10,7 @@ class Category extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
-    protected $visible = ['name'];
+    protected $visible = ['created_at', 'updated_at', 'name'];
 
     /**
      * @inheritDoc
