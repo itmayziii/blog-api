@@ -70,11 +70,10 @@ class AuthenticateController extends Controller
             return ['error' => 'Authorization header must be of "Basic" type.'];
         }
 
-        $authorizationHeaderValue = $splitAuthorizationHeader[1];
-        if (!$authorizationHeaderValue) {
+        if (!key_exists(1, $splitAuthorizationHeader)) {
             return ['error' => 'Authorization header must have a value'];
         }
 
-        return ['type' => $authorizationHeaderType, 'value' => $authorizationHeaderValue];
+        return ['type' => $authorizationHeaderType, 'value' => $splitAuthorizationHeader[1]];
     }
 }
