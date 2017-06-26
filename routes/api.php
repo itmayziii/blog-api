@@ -41,6 +41,12 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
     });
 
+    $app->group(['prefix' => 'users'], function () use ($app) {
+
+        $app->post('', 'UserController@store');
+
+    });
+
 });
 
 

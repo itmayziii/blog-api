@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use itmayziii\Laravel\JsonApi;
 
 class UserController extends Controller
@@ -39,27 +39,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        if (Gate::denies('store', new User())) {
-            return $this->jsonApi->respondUnauthorized();
-        }
-
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
         }
 
         try {
-            $blog = (new Blog)->create([
-                'user_id'     => $request->input('user-id'),
-                'category_id' => $request->input('category-id'),
-                'slug'        => str_slug($request->input('title')),
-                'title'       => $request->input('title'),
-                'content'     => $request->input('content')
+            $user = (new User())->create([
+                'first_name' => $request->input('first-name'),
+                'last_name'  => $request->input('last-name'),
+                'email'      => str_slug($request->input('email')),
+                'password'   => $request->input('password'),
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());
             return $this->jsonApi->respondBadRequest("Unable to create the blog");
         }
 
-        return $this->jsonApi->respondResourceCreated($blog);
+        return $this->jsonApi->respondResourceCreated($user);
     }
+}
