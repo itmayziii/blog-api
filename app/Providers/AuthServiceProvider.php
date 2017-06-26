@@ -9,6 +9,7 @@ use App\Policies\BlogPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\TagPolicy;
+use App\Policies\UserPolicy;
 use App\Tag;
 use App\User;
 use Illuminate\Support\Facades\Gate;
@@ -20,7 +21,8 @@ class AuthServiceProvider extends ServiceProvider
         Contact::class  => ContactPolicy::class,
         Blog::class     => BlogPolicy::class,
         Category::class => CategoryPolicy::class,
-        Tag::class      => TagPolicy::class
+        Tag::class      => TagPolicy::class,
+        User::class     => UserPolicy::class
     ];
 
     /**
