@@ -41,6 +41,14 @@ class Authenticate
             return $jsonApi->respondUnauthenticated();
         }
 
+        $currentUser = $this->auth->guard($guard)->user();
+        $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
+        $now = (new \DateTime())->getTimestamp();
+
+        if ($now >= $apiTokenExpiration) {
+            return $jsonApi->respondUnauthenticated();
+        }
+
         return $next($request);
     }
 }
