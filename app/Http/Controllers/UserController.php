@@ -74,4 +74,25 @@ class UserController extends Controller
 
         return $this->jsonApi->respondResourceCreated($user);
     }
+
+    public function delete($id)
+    {
+        if (Gate::denies('delete', new User())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        try {
+            $user->delete();
+        } catch (\Exception $e) {
+            Log::error("Failed to delete a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to delete user");
+        }
+
+        return $this->jsonApi->respondResourceDeleted($user);
+    }
 }

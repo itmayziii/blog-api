@@ -82,6 +82,29 @@ class UserControllerTest extends \TestCase
         $this->assertThat($actualResponse, $this->equalTo('Users Found'));
     }
 
+    public function test_delete_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('User Delete Authorization Failed');
+
+        $request = Request::create('v1/users', 'DELETE');
+        $user = $this->createUser();
+        $actualResponse = $this->userController->delete($user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Delete Authorization Failed'));
+    }
+
+    public function test_delete_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('User Not Found');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create('v1/users', 'DELETE');
+        $actualResponse = $this->userController->delete(9483652957912364012356);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Not Found'));
+    }
+
     private function createUser()
     {
         return $this->keepTryingIntegrityConstraints(function () {
