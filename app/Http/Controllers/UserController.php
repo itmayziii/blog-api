@@ -47,6 +47,11 @@ class UserController extends Controller
         return $this->jsonApi->respondResourcesFound(new User(), $request);
     }
 
+    public function show($id)
+    {
+
+    }
+
     /**
      * Creates a new user.
      *
@@ -75,6 +80,12 @@ class UserController extends Controller
         return $this->jsonApi->respondResourceCreated($user);
     }
 
+    /**
+     * Creates a new user.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function delete($id)
     {
         if (Gate::denies('delete', new User())) {

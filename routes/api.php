@@ -43,6 +43,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
     $app->group(['prefix' => 'users'], function () use ($app) {
 
+        $app->get('', ['middleware' => 'auth', 'uses' => 'UserController@show']);
         $app->get('', ['middleware' => 'auth', 'uses' => 'UserController@index']);
         $app->post('', 'UserController@store');
         $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@index']);
