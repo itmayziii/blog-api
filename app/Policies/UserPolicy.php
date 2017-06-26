@@ -27,4 +27,15 @@ class UserPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can show a specific user.
+     *
+     * @param  User $user
+     * @return bool
+     */
+    public function show(User $user)
+    {
+        return $user->isAdmin() || $user->isUser($user);
+    }
 }

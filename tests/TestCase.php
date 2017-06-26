@@ -58,6 +58,13 @@ abstract class TestCase extends Laravel\Lumen\Testing\TestCase
         $this->actingAs($user);
     }
 
+    // TODO this will probably be important when needing to test methods where the user has to own a resource. Leaving this until then
+//    public function actAsResourceOwner(Model $model)
+//    {
+//        $user = $model::has('user')->get();
+//        \Illuminate\Support\Facades\Log::info(print_r($user, true));
+//    }
+
     protected function keepTryingIntegrityConstraints(Closure $closure)
     {
         $result = null;

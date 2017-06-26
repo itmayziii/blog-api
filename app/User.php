@@ -44,6 +44,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
         return ($this->role === 'Administrator');
     }
 
+    public function isUser(User $user)
+    {
+        return ($this->id === $user->id);
+    }
+
     /**
      * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
      *

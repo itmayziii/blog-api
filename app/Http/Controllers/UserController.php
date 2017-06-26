@@ -49,7 +49,16 @@ class UserController extends Controller
 
     public function show($id)
     {
+        if (Gate::denies('show', new User())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
 
+        $user = User::find($id);
+        if ($user) {
+            return $this->jsonApi->respondResourceFound($user);
+        } else {
+            return $this->jsonApi->respondResourceNotFound();
+        }
     }
 
     /**

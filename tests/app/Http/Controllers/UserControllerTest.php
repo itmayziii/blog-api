@@ -105,6 +105,39 @@ class UserControllerTest extends \TestCase
         $this->assertThat($actualResponse, $this->equalTo('User Not Found'));
     }
 
+    public function test_show_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('User Show Authorization Failed');
+
+        $user = $this->createUser();
+        $actualResponse = $this->userController->show($user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Show Authorization Failed'));
+    }
+
+    public function test_show_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('User Not Found');
+
+        $this->actAsAdministrator();
+
+        $actualResponse = $this->userController->show(246182354123046);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Not Found'));
+    }
+
+    public function test_show_successful()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceFound')->once()->andReturn('User Found');
+
+        $user = $this->createUser();
+        $this->actingAs($user);
+
+        $actualResponse = $this->userController->show($user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Found'));
+    }
+
     private function createUser()
     {
         return $this->keepTryingIntegrityConstraints(function () {
