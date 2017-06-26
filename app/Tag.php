@@ -15,7 +15,7 @@ class Tag extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
-    protected $visible = ['name'];
+    protected $visible = ['created_at', 'updated_at', 'name'];
 
     /**
      * Get all of the posts that are assigned this tag.

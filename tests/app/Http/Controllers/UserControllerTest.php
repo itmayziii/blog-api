@@ -1,13 +1,8 @@
 <?php
+
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 
-/**
- * Created by IntelliJ IDEA.
- * User: txm241
- * Date: 6/25/17
- * Time: 11:40 PM
- */
 class UserControllerTest extends \TestCase
 {
     /**

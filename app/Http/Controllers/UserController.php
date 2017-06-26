@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use itmayziii\Laravel\JsonApi;
 
@@ -22,13 +23,28 @@ class UserController extends Controller
     private $rules = [
         'first-name' => 'required|max:100',
         'last-name'  => 'required|max:100',
-        'email'      => 'required|max:100',
+        'email'      => 'required|max:100|email|unique:users',
         'password'   => 'required|max:255|confirmed'
     ];
 
     public function __construct(JsonApi $jsonApi)
     {
         $this->jsonApi = $jsonApi;
+    }
+
+    /**
+     * List the existing users.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        if (Gate::denies('index', new User())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        return $this->jsonApi->respondResourcesFound(new User(), $request);
     }
 
     /**
@@ -48,7 +64,7 @@ class UserController extends Controller
             $user = (new User())->create([
                 'first_name' => $request->input('first-name'),
                 'last_name'  => $request->input('last-name'),
-                'email'      => str_slug($request->input('email')),
+                'email'      => $request->input('email'),
                 'password'   => $request->input('password'),
             ]);
         } catch (\Exception $e) {
