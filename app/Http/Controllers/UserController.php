@@ -89,7 +89,8 @@ class UserController extends Controller
             $user = (new User())->create([
                 'first_name' => $request->input('first-name'),
                 'last_name'  => $request->input('last-name'),
-                'email'      => $request->input('email')
+                'email'      => $request->input('email'),
+                'password'   => $request->input('password')
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());
