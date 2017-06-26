@@ -60,12 +60,12 @@ $app->singleton(
 */
 
 $app->middleware([
-    \Nord\Lumen\Cors\CorsMiddleware::class,
-    itmayziii\Laravel\Middleware\JsonApiMiddleware::class
+    \Nord\Lumen\Cors\CorsMiddleware::class
 ]);
 
 $app->routeMiddleware([
-    'auth' => App\Http\Middleware\Authenticate::class,
+    'auth'     => App\Http\Middleware\Authenticate::class,
+    'json-api' => itmayziii\Laravel\Middleware\JsonApiMiddleware::class
 ]);
 
 /*
