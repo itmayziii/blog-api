@@ -29,6 +29,17 @@ class UserPolicy
     }
 
     /**
+     * Determine whether the user can update users.
+     *
+     * @param  User $user
+     * @return bool
+     */
+    public function update(User $user)
+    {
+        return $user->isAdmin() || $user->isUser($user);
+    }
+
+    /**
      * Determine whether the user can show a specific user.
      *
      * @param  User $user

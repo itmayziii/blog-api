@@ -16,15 +16,26 @@ class UserController extends Controller
     private $jsonApi;
 
     /**
-     * Validation Rules
+     * Creation Validation Rules
      *
      * @var array
      */
-    private $rules = [
+    private $creationRules = [
         'first-name' => 'required|max:100',
         'last-name'  => 'required|max:100',
         'email'      => 'required|max:100|email|unique:users',
         'password'   => 'required|max:255|confirmed'
+    ];
+
+    /**
+     * Update Validation Rules
+     *
+     * @var array
+     */
+    private $updateRules = [
+        'first-name' => 'required|max:100',
+        'last-name'  => 'required|max:100',
+        'email'      => 'required|max:100|email|unique:users'
     ];
 
     public function __construct(JsonApi $jsonApi)
@@ -69,7 +80,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validation = $this->initializeValidation($request, $this->rules);
+        $validation = $this->initializeValidation($request, $this->creationRules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
         }
@@ -78,8 +89,7 @@ class UserController extends Controller
             $user = (new User())->create([
                 'first_name' => $request->input('first-name'),
                 'last_name'  => $request->input('last-name'),
-                'email'      => $request->input('email'),
-                'password'   => $request->input('password'),
+                'email'      => $request->input('email')
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());
@@ -89,8 +99,38 @@ class UserController extends Controller
         return $this->jsonApi->respondResourceCreated($user);
     }
 
+    public function update(Request $request, $id)
+    {
+        if (Gate::denies('update', new User())) {
+            return $this->jsonApi->respondUnauthorized();
+        }
+
+        $user = User::find($id);
+        if (!$user) {
+            return $this->jsonApi->respondResourceNotFound();
+        }
+
+        $validation = $this->initializeValidation($request, $this->updateRules);
+        if ($validation->fails()) {
+            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+        }
+
+        try {
+            $user->update([
+                'first_name' => $request->input('first-name'),
+                'last_name'  => $request->input('last-name'),
+                'email'      => $request->input('email'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to update a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to update user");
+        }
+
+        return $this->jsonApi->respondResourceUpdated($user);
+    }
+
     /**
-     * Creates a new user.
+     * Deletes a user.
      *
      * @param int $id
      * @return \Illuminate\Http\Response

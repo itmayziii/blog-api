@@ -86,7 +86,6 @@ class UserControllerTest extends \TestCase
     {
         $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('User Delete Authorization Failed');
 
-        $request = Request::create('v1/users', 'DELETE');
         $user = $this->createUser();
         $actualResponse = $this->userController->delete($user->id);
 
@@ -99,7 +98,6 @@ class UserControllerTest extends \TestCase
 
         $this->actAsAdministrator();
 
-        $request = Request::create('v1/users', 'DELETE');
         $actualResponse = $this->userController->delete(9483652957912364012356);
 
         $this->assertThat($actualResponse, $this->equalTo('User Not Found'));
@@ -136,6 +134,87 @@ class UserControllerTest extends \TestCase
         $actualResponse = $this->userController->show($user->id);
 
         $this->assertThat($actualResponse, $this->equalTo('User Found'));
+    }
+
+    public function test_update_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('User Update Authorization Failed');
+
+        $request = Request::create(
+            'v1/users',
+            'PATCH',
+            [
+                'first-name' => 'Tommy',
+                'last-name'  => 'May',
+                'email'      => 'TommyMay37@gmail.com'
+            ]);
+        $user = $this->createUser();
+        $actualResponse = $this->userController->update($request, $user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Update Authorization Failed'));
+    }
+
+    public function test_update_not_found()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceNotFound')->once()->andReturn('User Update Not Found');
+
+        $user = $this->createUser();
+        $this->actingAs($user);
+
+        $request = Request::create(
+            'v1/users',
+            'PATCH',
+            [
+                'first-name' => 'Tommy',
+                'last-name'  => 'May',
+                'email'      => 'TommyMay37@gmail.com'
+            ]);
+
+        $actualResponse = $this->userController->update($request, 45986293456234957);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Update Not Found'));
+    }
+
+    public function test_update_validation_failed()
+    {
+        $this->jsonApiMock->shouldReceive('respondValidationFailed')->once()->andReturn('User Update Validation Failed');
+
+        $user = $this->createUser();
+        $this->actingAs($user);
+
+        $request = Request::create(
+            'v1/users',
+            'PATCH',
+            [
+                'first-name' => '',
+                'last-name'  => 'May',
+                'email'      => 'TommyMay37@gmail.com'
+            ]);
+
+        $actualResponse = $this->userController->update($request, $user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Update Validation Failed'));
+    }
+
+    public function test_update_successful()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourceUpdated')->once()->andReturn('User Update Successful');
+
+        $user = $this->createUser();
+        $this->actingAs($user);
+
+        $request = Request::create(
+            'v1/users',
+            'PATCH',
+            [
+                'first-name' => 'Tommy',
+                'last-name'  => 'May',
+                'email'      => 'TommyMay37@gmail.com'
+            ]);
+
+        $actualResponse = $this->userController->update($request, $user->id);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Update Successful'));
     }
 
     private function createUser()
