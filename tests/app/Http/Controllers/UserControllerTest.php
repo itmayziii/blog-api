@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\UserController;
+use App\User;
 use Illuminate\Http\Request;
 
 class UserControllerTest extends \TestCase
@@ -54,8 +55,37 @@ class UserControllerTest extends \TestCase
                 'password'              => 'MyPassword1',
                 'password_confirmation' => 'MyPassword1'
             ]);
-        $response = $this->userController->store($request);
+        $actualResponse = $this->userController->store($request);
 
-        $this->assertThat($response, $this->equalTo('User Creation Successful'));
+        $this->assertThat($actualResponse, $this->equalTo('User Creation Successful'));
+    }
+
+    public function test_listing_authorization()
+    {
+        $this->jsonApiMock->shouldReceive('respondUnauthorized')->once()->andReturn('User Listing Authorization Failed');
+
+        $request = Request::create('v1/users', 'GET');
+        $actualResponse = $this->userController->index($request);
+
+        $this->assertThat($actualResponse, $this->equalTo('User Listing Authorization Failed'));
+    }
+
+    public function test_listing_successful()
+    {
+        $this->jsonApiMock->shouldReceive('respondResourcesFound')->once()->andReturn('Users Found');
+
+        $this->actAsAdministrator();
+
+        $request = Request::create('v1/users', 'GET');
+        $actualResponse = $this->userController->index($request);
+
+        $this->assertThat($actualResponse, $this->equalTo('Users Found'));
+    }
+
+    private function createUser()
+    {
+        return $this->keepTryingIntegrityConstraints(function () {
+            return factory(User::class, 1)->create()->first();
+        });
     }
 }
