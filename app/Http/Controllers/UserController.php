@@ -90,7 +90,7 @@ class UserController extends Controller
                 'first_name' => $request->input('first-name'),
                 'last_name'  => $request->input('last-name'),
                 'email'      => $request->input('email'),
-                'password'   => $request->input('password')
+                'password'   => app('hash')->make($request->input('password'))
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());

@@ -3,9 +3,21 @@
 namespace App\Repositories;
 
 use App\User;
+use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Support\Facades\Hash;
 
 class UserRepository
 {
+    /**
+     * @var Hasher
+     */
+    private $hasher;
+
+    public function __construct(Hasher $hasher)
+    {
+        $this->hasher = $hasher;
+    }
+
     /**
      * @param string $username
      * @param string $password
@@ -15,11 +27,15 @@ class UserRepository
     {
         $user = (new User())
             ->where('email', $username)
-            ->where('password', $password)
             ->get()
             ->first();
 
-        if ($user) {
+        $successfulAuthentication = false;
+        if ($this->hasher->check($password, $user->password)) {
+            $successfulAuthentication = true;
+        }
+
+        if ($successfulAuthentication) {
             return $user;
         } else {
             return false;
