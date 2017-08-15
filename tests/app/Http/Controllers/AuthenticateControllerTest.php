@@ -54,8 +54,8 @@ class AuthenticateControllerTest extends \TestCase
     {
         $user = $this->createUser();
 
-        $urlEncodedCredentials = urlencode($user->getAttribute('email') . ':' . $user->getAttribute('password'));
-        $this->requestMock->shouldReceive('header')->with('Authorization')->once()->andReturn("Basic $urlEncodedCredentials");
+        $credentials = $user->getAttribute('email') . ':' . 'ThisPass1';
+        $this->requestMock->shouldReceive('header')->with('Authorization')->once()->andReturn("Basic $credentials");
         $actualResponse = $this->authenticateController->authenticate($this->requestMock)->getContent();
 
         $user = User::find($user->id); // Refresh user

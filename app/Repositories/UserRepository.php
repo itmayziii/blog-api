@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\User;
 use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Support\Facades\Log;
 
 class UserRepository
 {
@@ -30,8 +31,11 @@ class UserRepository
             ->first();
 
         $successfulAuthentication = false;
-        if ($this->hasher->check($password, $user->password)) {
-            $successfulAuthentication = true;
+        if ($user) {
+            Log::info(print_r($user));
+            if ($this->hasher->check($password, $user->password)) {
+                $successfulAuthentication = true;
+            }
         }
 
         if ($successfulAuthentication) {

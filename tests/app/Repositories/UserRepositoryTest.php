@@ -13,7 +13,7 @@ class UserRepositoryTest extends \TestCase
     public function setUp()
     {
         parent::setUp();
-        $this->userRepository = new UserRepository();
+        $this->userRepository = new UserRepository(app('hash'));
     }
 
     public function tearDown()
@@ -27,7 +27,7 @@ class UserRepositoryTest extends \TestCase
         $this->assertThat($user, $this->equalTo(false));
 
         $newUser = $this->createUser();
-        $user = $this->userRepository->retrieveUserByCredentials($newUser->email, $newUser->password);
+        $user = $this->userRepository->retrieveUserByCredentials($newUser->email, 'ThisPass1');
         $this->assertThat($user, $this->isInstanceOf(User::class));
     }
 
