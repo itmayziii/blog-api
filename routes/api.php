@@ -2,7 +2,7 @@
 
 $app->group(['prefix' => 'v1'], function () use ($app) {
 
-    $app->post('/authenticate', 'AuthenticateController@authenticate');
+    $app->get('/authenticate', 'AuthenticateController@authenticate');
 
     $app->group(['middleware' => 'json-api'], function () use ($app) {
 
