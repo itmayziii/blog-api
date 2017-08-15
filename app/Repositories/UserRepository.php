@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\User;
 use Illuminate\Contracts\Hashing\Hasher;
-use Illuminate\Support\Facades\Hash;
 
 class UserRepository
 {
