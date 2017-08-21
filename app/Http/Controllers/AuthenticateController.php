@@ -74,6 +74,11 @@ class AuthenticateController extends Controller
             return ['error' => 'Authorization header must have a value'];
         }
 
+        $splitCredentials = explode(':', $splitAuthorizationHeader[1]);
+        if (!key_exists(0, $splitCredentials) || !key_exists(1, $splitCredentials)) {
+            return ['error' => 'Username and Password must be set'];
+        }
+
         return ['type' => $authorizationHeaderType, 'value' => $splitAuthorizationHeader[1]];
     }
 }
