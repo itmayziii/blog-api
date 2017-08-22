@@ -36,7 +36,7 @@ class AuthenticateController extends Controller
 
         $user = $this->userRepository->retrieveUserByCredentials($username, $password);
         if (!$user) {
-            return new Response(['error' => 'Authentication failed.']);
+            return new Response(['error' => 'Authentication failed.'], Response::HTTP_UNAUTHORIZED);
         }
 
         $apiToken = sha1(str_random());

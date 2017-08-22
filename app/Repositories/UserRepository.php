@@ -32,7 +32,6 @@ class UserRepository
 
         $successfulAuthentication = false;
         if ($user) {
-            Log::info(print_r($user));
             if ($this->hasher->check($password, $user->password)) {
                 $successfulAuthentication = true;
             }
