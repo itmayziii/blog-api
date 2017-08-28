@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\User;
 use Illuminate\Contracts\Hashing\Hasher;
-use Illuminate\Support\Facades\Log;
 
 class UserRepository
 {
@@ -42,5 +41,19 @@ class UserRepository
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param $apiToken
+     * @return User|bool
+     */
+    public function retrieveUserByToken($apiToken)
+    {
+        $user = (new User())
+            ->where('api_token', $apiToken)
+            ->get()
+            ->first();
+
+        return ($user) ? $user : false;
     }
 }

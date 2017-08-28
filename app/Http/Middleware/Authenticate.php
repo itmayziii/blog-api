@@ -45,7 +45,7 @@ class Authenticate
         $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
         $now = (new \DateTime())->getTimestamp();
 
-        if ($now >= $apiTokenExpiration) {
+        if ($now > $apiTokenExpiration) {
             return $jsonApi->respondUnauthenticated();
         }
 

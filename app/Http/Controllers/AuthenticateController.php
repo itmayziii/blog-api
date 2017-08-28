@@ -19,6 +19,10 @@ class AuthenticateController extends Controller
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @param Request $request
+     * @return Response
+     */
     public function authenticate(Request $request)
     {
         $authorizationHeader = $request->header('Authorization');
@@ -51,6 +55,31 @@ class AuthenticateController extends Controller
         }
 
         return new Response(['API-Token' => $apiToken]);
+    }
+
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function validateToken(Request $request)
+    {
+        $apiTokenHeader = $request->header('API-Token');
+        if (!$apiTokenHeader) {
+            return new Response(['error' => 'API-Token header is not set'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
+        if (!$user) {
+            return new Response(['error' => 'User could not be authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $tokenExpiration = strtotime($user->getAttribute('api_token_expiration'));
+        $now = (new \DateTime())->getTimestamp();
+        if ($now > $tokenExpiration) {
+            return new Response(['error' => 'API-Token has expired'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return new Response(['API-Token' => $apiTokenHeader]);
     }
 
     /**

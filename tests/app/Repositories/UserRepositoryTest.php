@@ -27,14 +27,30 @@ class UserRepositoryTest extends \TestCase
         $this->assertThat($user, $this->equalTo(false));
 
         $newUser = $this->createUser();
-        $user = $this->userRepository->retrieveUserByCredentials($newUser->email, 'ThisPass1');
+        $user = $this->userRepository->retrieveUserByCredentials($newUser->getAttribute('email'), 'ThisPass1');
+        $this->assertThat($user, $this->isInstanceOf(User::class));
+    }
+
+    public function test_retrieve_user_by_token()
+    {
+        $user = $this->userRepository->retrieveUserByToken('FakeToken');
+        $this->assertThat($user, $this->equalTo(false));
+
+        $newUser = $this->createUser();
+        $user = $this->userRepository->retrieveUserByToken($newUser->getAttribute('api_token'));
         $this->assertThat($user, $this->isInstanceOf(User::class));
     }
 
     private function createUser()
     {
-        return $this->keepTryingIntegrityConstraints(function () {
+        $user = $this->keepTryingIntegrityConstraints(function () {
             return factory(User::class, 1)->create()->first();
         });
+
+        $user->update([
+            'api_token' => 'TestableToken'
+        ]);
+
+        return $user;
     }
 }
