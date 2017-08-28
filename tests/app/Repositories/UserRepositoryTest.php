@@ -37,20 +37,19 @@ class UserRepositoryTest extends \TestCase
         $this->assertThat($user, $this->equalTo(false));
 
         $newUser = $this->createUser();
-        $user = $this->userRepository->retrieveUserByToken($newUser->getAttribute('api_token'));
+        $token = sha1(str_random());
+        $newUser->update([
+            'api_token' => $token
+        ]);
+
+        $user = $this->userRepository->retrieveUserByToken($token);
         $this->assertThat($user, $this->isInstanceOf(User::class));
     }
 
     private function createUser()
     {
-        $user = $this->keepTryingIntegrityConstraints(function () {
+        return $this->keepTryingIntegrityConstraints(function () {
             return factory(User::class, 1)->create()->first();
         });
-
-        $user->update([
-            'api_token' => 'TestableToken'
-        ]);
-
-        return $user;
     }
 }
