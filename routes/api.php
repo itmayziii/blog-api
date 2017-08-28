@@ -3,6 +3,7 @@
 $app->group(['prefix' => 'v1'], function () use ($app) {
 
     $app->get('/authenticate', 'AuthenticateController@authenticate');
+    $app->get('/token-validation', 'AuthenticateController@validateToken');
 
     $app->group(['middleware' => 'json-api'], function () use ($app) {
 
