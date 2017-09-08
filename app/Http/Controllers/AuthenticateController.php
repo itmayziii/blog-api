@@ -65,21 +65,21 @@ class AuthenticateController extends Controller
     {
         $apiTokenHeader = $request->header('API-Token');
         if (!$apiTokenHeader) {
-            return new Response(['error' => 'API-Token header is not set'], Response::HTTP_UNAUTHORIZED);
+            return new Response(['error' => 'API-Token header is not set'], Response::HTTP_BAD_REQUEST);
         }
 
         $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
         if (!$user) {
-            return new Response(['error' => 'User could not be authenticated'], Response::HTTP_UNAUTHORIZED);
+            return new Response(['invalid' => 'User could not be authenticated']);
         }
 
         $tokenExpiration = strtotime($user->getAttribute('api_token_expiration'));
         $now = (new \DateTime())->getTimestamp();
         if ($now > $tokenExpiration) {
-            return new Response(['error' => 'API-Token has expired'], Response::HTTP_UNAUTHORIZED);
+            return new Response(['invalid' => 'API-Token has expired']);
         }
 
-        return new Response(['API-Token' => $apiTokenHeader]);
+        return new Response(['valid' => $apiTokenHeader]);
     }
 
     /**
