@@ -6,6 +6,7 @@ use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use itmayziii\Laravel\JsonApi;
 
 class AuthenticateController extends Controller
 {
@@ -14,9 +15,15 @@ class AuthenticateController extends Controller
      */
     private $userRepository;
 
-    public function __construct(UserRepository $userRepository)
+    /**
+     * @var JsonApi
+     */
+    private $jsonApi;
+
+    public function __construct(JsonApi $jsonApi, UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
+        $this->jsonApi = $jsonApi;
     }
 
     /**
@@ -65,21 +72,21 @@ class AuthenticateController extends Controller
     {
         $apiTokenHeader = $request->header('API-Token');
         if (!$apiTokenHeader) {
-            return new Response(['error' => 'API-Token header is not set'], Response::HTTP_BAD_REQUEST);
+            return $this->jsonApi->respondBadRequest('API-Token header is not set');
         }
 
         $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
         if (!$user) {
-            return new Response(['invalid' => 'User could not be authenticated']);
+            return $this->jsonApi->respondUnauthenticated();
         }
 
         $tokenExpiration = strtotime($user->getAttribute('api_token_expiration'));
         $now = (new \DateTime())->getTimestamp();
         if ($now > $tokenExpiration) {
-            return new Response(['invalid' => 'API-Token has expired']);
+            return $this->jsonApi->respondUnauthenticated();
         }
 
-        return new Response(['valid' => $apiTokenHeader]);
+        return $this->jsonApi->respondResourceFound($user);
     }
 
     /**
