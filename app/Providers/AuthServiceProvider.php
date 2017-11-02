@@ -5,9 +5,11 @@ namespace App\Providers;
 use App\Blog;
 use App\Category;
 use App\Contact;
+use App\Http\Controllers\FileController;
 use App\Policies\BlogPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
+use App\Policies\FilePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Tag;
@@ -53,6 +55,7 @@ class AuthServiceProvider extends ServiceProvider
             $apiToken = $request->header('API-Token');
             if ($apiToken) {
                 $user = User::where('api_token', $apiToken)->first();
+
                 return $user;
             }
 
