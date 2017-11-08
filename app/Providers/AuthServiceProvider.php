@@ -5,15 +5,15 @@ namespace App\Providers;
 use App\Blog;
 use App\Category;
 use App\Contact;
-use App\Http\Controllers\FileController;
 use App\Policies\BlogPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
-use App\Policies\FilePolicy;
+use App\Policies\FilesystemPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Tag;
 use App\User;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,7 +24,8 @@ class AuthServiceProvider extends ServiceProvider
         Blog::class     => BlogPolicy::class,
         Category::class => CategoryPolicy::class,
         Tag::class      => TagPolicy::class,
-        User::class     => UserPolicy::class
+        User::class     => UserPolicy::class,
+        Filesystem::class => FilesystemPolicy::class
     ];
 
     /**

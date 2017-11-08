@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Contracts\Auth\Guard as Auth;
+use Illuminate\Support\Facades\Gate;
 
 class FileController extends Controller
 {
@@ -19,10 +19,9 @@ class FileController extends Controller
         $this->fileSystem = $filesystem;
     }
 
-    public function uploadImage(Request $request, Auth $auth)
+    public function uploadImage(Request $request)
     {
-        $user = $auth->user();
-        if (!$user->isAdmin()) {
+        if (Gate::denies('store', $this->fileSystem)) {
             return new Response('Unauthorized', Response::HTTP_UNAUTHORIZED);
         }
 
