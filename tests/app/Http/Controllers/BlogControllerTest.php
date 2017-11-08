@@ -66,6 +66,7 @@ class BlogControllerTest extends \TestCase
                 'user-id'     => 1,
                 'category-id' => 1,
                 'title'       => 'My test blog.',
+                'slug'        => 'my-test-blog',
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
         $response = $this->blogController->store($request);
@@ -158,6 +159,7 @@ class BlogControllerTest extends \TestCase
                 'user-id'     => 1,
                 'category-id' => 1,
                 'title'       => 'A title',
+                'slug'        => 'a-title',
                 'content'     => 'This is a blog, and it happens to be the first.'
             ]);
         $blog = $this->createBlog();
