@@ -18,7 +18,7 @@ class Contact extends Model implements JsonApiModelInterface
     protected $visible = ['created_at', 'updated_at', 'first_name', 'last_name', 'email', 'comments'];
 
     /**
-     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     * Name of the resource (i.e. type = posts for http://localhost/posts/first-post).
      *
      * @return string
      */

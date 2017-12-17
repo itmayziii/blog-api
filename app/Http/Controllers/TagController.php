@@ -61,7 +61,7 @@ class TagController extends Controller
                 'name' => $request->input('name'),
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to create a blog with exception: " . $e->getMessage());
+            Log::error("Failed to create a tat with exception: " . $e->getMessage());
             return $this->jsonApi->respondBadRequest("Unable to create the tag");
         }
 

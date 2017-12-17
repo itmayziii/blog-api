@@ -1,6 +1,6 @@
 <?php
 
-use App\Blog;
+use App\Post;
 use App\Tag;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -17,13 +17,13 @@ class TaggablesTableSeeder extends Seeder
         DB::table('taggables')->truncate();
 
         $tags = Tag::all();
-        $blogs = Blog::all();
-        foreach ($blogs as $blog) {
+        $posts = Post::all();
+        foreach ($posts as $post) {
 
             $tags->shuffle();
 
             $randomTags = $tags->random(3);
-            $blog->tags()->attach($randomTags);
+            $post->tags()->attach($randomTags);
         }
     }
 }

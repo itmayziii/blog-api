@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Blog;
+use App\Post;
 use App\Category;
 use App\Contact;
-use App\Policies\BlogPolicy;
+use App\Policies\PostPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
@@ -20,11 +20,11 @@ use Illuminate\Support\ServiceProvider;
 class AuthServiceProvider extends ServiceProvider
 {
     private $policies = [
-        Contact::class  => ContactPolicy::class,
-        Blog::class     => BlogPolicy::class,
-        Category::class => CategoryPolicy::class,
-        Tag::class      => TagPolicy::class,
-        User::class     => UserPolicy::class,
+        Contact::class    => ContactPolicy::class,
+        Post::class       => PostPolicy::class,
+        Category::class   => CategoryPolicy::class,
+        Tag::class        => TagPolicy::class,
+        User::class       => UserPolicy::class,
         Filesystem::class => FilesystemPolicy::class
     ];
 

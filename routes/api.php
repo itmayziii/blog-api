@@ -17,13 +17,13 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
         });
 
-        $app->group(['prefix' => 'blogs'], function () use ($app) {
+        $app->group(['prefix' => 'posts'], function () use ($app) {
 
-            $app->get('', 'BlogController@index');
-            $app->get('/{slug}', 'BlogController@show');
-            $app->post('', ['middleware' => 'auth', 'uses' => 'BlogController@store']);
-            $app->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'BlogController@update']);
-            $app->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'BlogController@delete']);
+            $app->get('', 'PostController@index');
+            $app->get('/{slug}', 'PostController@show');
+            $app->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
+            $app->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
+            $app->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
 
         });
 
@@ -35,7 +35,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
             $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
             $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
-            $app->get('/{id}/blogs', 'CategoryBlogController@show');
+            $app->get('/{id}/posts', 'CategoryPostController@show');
         });
 
         $app->group(['prefix' => 'tags'], function () use ($app) {

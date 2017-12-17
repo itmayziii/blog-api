@@ -1,6 +1,6 @@
 <?php
 
-use App\Blog;
+use App\Post;
 use App\Http\Controllers\FileController;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;

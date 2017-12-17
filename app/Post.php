@@ -5,7 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 
-class Blog extends Model implements JsonApiModelInterface
+class Post extends Model implements JsonApiModelInterface
 {
     /**
      * @inheritDoc
@@ -36,7 +36,7 @@ class Blog extends Model implements JsonApiModelInterface
     }
 
     /**
-     * Get the user the blog belongs to.
+     * Get the user the post belongs to.
      */
     public function user()
     {
@@ -44,7 +44,7 @@ class Blog extends Model implements JsonApiModelInterface
     }
 
     /**
-     * Get the category the blog belongs to.
+     * Get the category the post belongs to.
      */
     public function category()
     {
@@ -61,13 +61,13 @@ class Blog extends Model implements JsonApiModelInterface
     }
 
     /**
-     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     * Name of the resource (e.g. type = posts for http://localhost/posts/first-post).
      *
      * @return string
      */
     public function getJsonApiType()
     {
-        return 'blogs';
+        return 'posts';
     }
 
     /**

@@ -26,15 +26,15 @@ class Category extends Model implements JsonApiModelInterface
     }
 
     /**
-     * Get all the blogs under this category.
+     * Get all the posts under this category.
      */
-    public function blogs()
+    public function posts()
     {
-        return $this->hasMany(Blog::class);
+        return $this->hasMany(Post::class);
     }
 
     /**
-     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     * Name of the resource (e.g. type = posts for http://localhost/posts/first-post).
      *
      * @return string
      */

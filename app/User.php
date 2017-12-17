@@ -29,11 +29,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $hidden = ['password', 'remember_token'];
 
     /**
-     * Get all of the blogs for a user.
+     * Get all of the posts for a user.
      */
-    public function blogs()
+    public function posts()
     {
-        return $this->hasMany(Blog::class);
+        return $this->hasMany(Post::class);
     }
 
     /**
@@ -50,7 +50,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     }
 
     /**
-     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     * Name of the resource (e.g. type = posts for http://localhost/posts/first-post).
      *
      * @return string
      */
