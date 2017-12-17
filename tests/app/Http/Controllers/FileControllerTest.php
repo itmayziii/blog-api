@@ -55,12 +55,12 @@ class FileControllerTest extends \TestCase
         $this->fileSystemMock->shouldReceive('put')->once()->andReturn(123);
 
         $this->actAsAdministrator();
-        $file = new UploadedFile('tmp/123/zzz', '/path/to/fake/file.jpg', null, null, 2, true);
+        $file = new UploadedFile('tmp/123/zzz', 'file.jpg', null, null, 2, true);
         $request = Request::create('/v1/images', 'POST', [], [], [$file]);
 
         $response = $this->fileController->uploadImage($request);
 
-        $this->assertThat($response->getContent(), $this->equalTo('["/path/to/fake/file.jpg"'));
+        $this->assertThat($response->getContent(), $this->equalTo('["assets/images/file.jpg"]'));
         $this->assertThat($response->getStatusCode(), $this->equalTo(200));
     }
 }
