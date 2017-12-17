@@ -36,9 +36,13 @@
 ehthumbs.db
 Thumbs.db
 
+# Uploaded content #
+#######################
+public/assets/images/
+
 # Editors #
 #######################
-.idea
+.idea/
 
 # Vendor #
 #######################

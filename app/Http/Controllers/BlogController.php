@@ -84,7 +84,8 @@ class BlogController extends Controller
                 'category_id' => $request->input('category-id'),
                 'slug'        => $request->input('slug'),
                 'title'       => $request->input('title'),
-                'content'     => $request->input('content')
+                'content'     => $request->input('content'),
+                'image_path'  => $request->input('image-path')
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());

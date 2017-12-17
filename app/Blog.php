@@ -20,7 +20,7 @@ class Blog extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
-    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
+    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'image_path'];
 
     /**
      * @inheritDoc
