@@ -2,7 +2,10 @@
 
 $app->group(['prefix' => 'v1'], function () use ($app) {
 
-    $app->post('/authenticate', 'AuthenticateController@authenticate');
+    $app->get('/authenticate', 'AuthenticateController@authenticate');
+    $app->get('/token-validation', 'AuthenticateController@validateToken');
+
+    $app->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImage']);
 
     $app->group(['middleware' => 'json-api'], function () use ($app) {
 

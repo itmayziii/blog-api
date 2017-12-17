@@ -30,8 +30,10 @@ class UserRepository
             ->first();
 
         $successfulAuthentication = false;
-        if ($this->hasher->check($password, $user->password)) {
-            $successfulAuthentication = true;
+        if ($user) {
+            if ($this->hasher->check($password, $user->password)) {
+                $successfulAuthentication = true;
+            }
         }
 
         if ($successfulAuthentication) {
@@ -39,5 +41,19 @@ class UserRepository
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param $apiToken
+     * @return User|bool
+     */
+    public function retrieveUserByToken($apiToken)
+    {
+        $user = (new User())
+            ->where('api_token', $apiToken)
+            ->get()
+            ->first();
+
+        return ($user) ? $user : false;
     }
 }

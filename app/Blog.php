@@ -20,12 +20,12 @@ class Blog extends Model implements JsonApiModelInterface
     /**
      * @inheritDoc
      */
-    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content'];
+    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'image_path'];
 
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'content'];
+    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'slug', 'content', 'image_path'];
 
     /**
      * Get all of the tags for the post.

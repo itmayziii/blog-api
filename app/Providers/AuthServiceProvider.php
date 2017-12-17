@@ -8,10 +8,12 @@ use App\Contact;
 use App\Policies\BlogPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
+use App\Policies\FilesystemPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Tag;
 use App\User;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,7 +24,8 @@ class AuthServiceProvider extends ServiceProvider
         Blog::class     => BlogPolicy::class,
         Category::class => CategoryPolicy::class,
         Tag::class      => TagPolicy::class,
-        User::class     => UserPolicy::class
+        User::class     => UserPolicy::class,
+        Filesystem::class => FilesystemPolicy::class
     ];
 
     /**
@@ -53,6 +56,7 @@ class AuthServiceProvider extends ServiceProvider
             $apiToken = $request->header('API-Token');
             if ($apiToken) {
                 $user = User::where('api_token', $apiToken)->first();
+
                 return $user;
             }
 

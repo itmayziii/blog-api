@@ -24,6 +24,7 @@ class BlogController extends Controller
         'user-id'     => 'required',
         'category-id' => 'required',
         'title'       => 'required|max:200',
+        'slug'        => 'required|max:255',
         'content'     => 'required|max:10000'
     ];
 
@@ -81,9 +82,10 @@ class BlogController extends Controller
             $blog = (new Blog)->create([
                 'user_id'     => $request->input('user-id'),
                 'category_id' => $request->input('category-id'),
-                'slug'        => str_slug($request->input('title')),
+                'slug'        => $request->input('slug'),
                 'title'       => $request->input('title'),
-                'content'     => $request->input('content')
+                'content'     => $request->input('content'),
+                'image_path'  => $request->input('image-path')
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a blog with exception: " . $e->getMessage());
@@ -120,6 +122,7 @@ class BlogController extends Controller
             $blog->update([
                 'user_id'     => $request->input('user-id'),
                 'category_id' => $request->input('category-id'),
+                'slug'        => $request->input('slug'),
                 'title'       => $request->input('title'),
                 'content'     => $request->input('content')
             ]);

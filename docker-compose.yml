@@ -10,6 +10,9 @@ services:
       volumes:
           - ./:/home/forge/default
       tty: true
+      networks:
+        - backend
+
   mysql:
       container_name: blog_api_db
       image: mysql:latest
@@ -20,3 +23,8 @@ services:
           - MYSQL_USER=forge
       ports:
           - 3306:3306
+      networks:
+        - backend
+
+networks:
+  backend:
