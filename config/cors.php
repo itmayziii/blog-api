@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'allow_origins' => ['http://tommytrio.com', 'http://localhost:4200'],
+    'allow_origins' => ['http://fullheapdeveloper.com', 'http://localhost:4200'],
 
     /*
     |--------------------------------------------------------------------------
