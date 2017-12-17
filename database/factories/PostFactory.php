@@ -3,7 +3,7 @@
 use App\Category;
 use App\User;
 
-$factory->define(App\Blog::class, function (Faker\Generator $faker) {
+$factory->define(App\Post::class, function (Faker\Generator $faker) {
 
     $user = User::all()->shuffle()->first(); // Random user
     $category = Category::all()->shuffle()->first(); // Random category

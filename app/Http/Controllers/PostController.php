@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Blog;
+use App\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use itmayziii\Laravel\JsonApi;
 
-class BlogController extends Controller
+class PostController extends Controller
 {
     /**
      * @var JsonApi
@@ -34,42 +34,42 @@ class BlogController extends Controller
     }
 
     /**
-     * List the existing blogs.
+     * List the existing posts.
      *
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
     {
-        return $this->jsonApi->respondResourcesFound(new Blog(), $request);
+        return $this->jsonApi->respondResourcesFound(new Post(), $request);
     }
 
     /**
-     * Find specific blogs by slug.
+     * Find specific posts by slug.
      *
      * @param string $slug
      * @return \Illuminate\Http\Response
      */
     public function show($slug)
     {
-        $blog = Blog::find($slug);
+        $post = Post::find($slug);
 
-        if ($blog) {
-            return $this->jsonApi->respondResourceFound($blog);
+        if ($post) {
+            return $this->jsonApi->respondResourceFound($post);
         } else {
             return $this->jsonApi->respondResourceNotFound();
         }
     }
 
     /**
-     * Creates a new blog.
+     * Creates a new post.
      *
      * @param Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        if (Gate::denies('store', new Blog())) {
+        if (Gate::denies('store', new Post())) {
             return $this->jsonApi->respondUnauthorized();
         }
 
@@ -79,7 +79,7 @@ class BlogController extends Controller
         }
 
         try {
-            $blog = (new Blog)->create([
+            $post = (new Post)->create([
                 'user_id'     => $request->input('user-id'),
                 'category_id' => $request->input('category-id'),
                 'slug'        => $request->input('slug'),
@@ -88,15 +88,15 @@ class BlogController extends Controller
                 'image_path'  => $request->input('image-path')
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to create a blog with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to create the blog");
+            Log::error("Failed to create a post with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to create the post");
         }
 
-        return $this->jsonApi->respondResourceCreated($blog);
+        return $this->jsonApi->respondResourceCreated($post);
     }
 
     /**
-     * Updates an existing blog.
+     * Updates an existing post.
      *
      * @param Request $request
      * @param string $slug
@@ -104,12 +104,12 @@ class BlogController extends Controller
      */
     public function update(Request $request, $slug)
     {
-        if (Gate::denies('update', new Blog())) {
+        if (Gate::denies('update', new Post())) {
             return $this->jsonApi->respondUnauthorized();
         }
 
-        $blog = Blog::find($slug);
-        if (!$blog) {
+        $post = Post::find($slug);
+        if (!$post) {
             return $this->jsonApi->respondResourceNotFound();
         }
 
@@ -119,7 +119,7 @@ class BlogController extends Controller
         }
 
         try {
-            $blog->update([
+            $post->update([
                 'user_id'     => $request->input('user-id'),
                 'category_id' => $request->input('category-id'),
                 'slug'        => $request->input('slug'),
@@ -127,37 +127,37 @@ class BlogController extends Controller
                 'content'     => $request->input('content')
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to update a blog with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to update blog");
+            Log::error("Failed to update a post with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to update post");
         }
 
-        return $this->jsonApi->respondResourceUpdated($blog);
+        return $this->jsonApi->respondResourceUpdated($post);
     }
 
     /**
-     * Deletes an existing blog.
+     * Deletes an existing post.
      *
      * @param string $slug
      * @return \Illuminate\Http\Response
      */
     public function delete($slug)
     {
-        if (Gate::denies('delete', new Blog())) {
+        if (Gate::denies('delete', new Post())) {
             return $this->jsonApi->respondUnauthorized();
         }
 
-        $blog = Blog::find($slug);
-        if (!$blog) {
+        $post = Post::find($slug);
+        if (!$post) {
             return $this->jsonApi->respondResourceNotFound();
         }
 
         try {
-            $blog->delete();
+            $post->delete();
         } catch (\Exception $e) {
-            Log::error("Failed to delete a blog with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to delete blog");
+            Log::error("Failed to delete a post with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to delete post");
         }
 
-        return $this->jsonApi->respondResourceDeleted($blog);
+        return $this->jsonApi->respondResourceDeleted($post);
     }
 }

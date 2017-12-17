@@ -20,13 +20,13 @@ class Tag extends Model implements JsonApiModelInterface
     /**
      * Get all of the posts that are assigned this tag.
      */
-    public function blogs()
+    public function posts()
     {
-        return $this->morphedByMany(Blog::class, 'taggable');
+        return $this->morphedByMany(Post::class, 'taggable');
     }
 
     /**
-     * Name of the resource (e.g. type = blogs for http://localhost/blogs/first-blog).
+     * Name of the resource (e.g. type = posts for http://localhost/posts/first-post).
      *
      * @return string
      */

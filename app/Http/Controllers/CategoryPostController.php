@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use itmayziii\Laravel\JsonApi;
 
-class CategoryBlogController extends Controller
+class CategoryPostController extends Controller
 {
     /**
      * @var JsonApi
@@ -18,7 +18,7 @@ class CategoryBlogController extends Controller
     }
 
     /**
-     * Find specific category with all related blogs.
+     * Find specific category with all related posts.
      *
      * @param int $id
      * @return \Illuminate\Http\Response
@@ -30,7 +30,7 @@ class CategoryBlogController extends Controller
             return $this->jsonApi->respondResourceNotFound();
         }
 
-        $category->load(['blogs' => function ($query) {
+        $category->load(['posts' => function ($query) {
             $query->orderBy('created_at', 'desc');
         }]);
 

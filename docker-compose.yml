@@ -1,7 +1,7 @@
 version: '3'
 services:
   web:
-      container_name: blog_api_web
+      container_name: fullheapdeveloper_web
       image: itmayziii/nginx-php70:latest
       ports:
           - 8080:80
@@ -14,15 +14,17 @@ services:
         - backend
 
   mysql:
-      container_name: blog_api_db
+      container_name: fullheapdeveloper_db
       image: mysql:latest
       environment:
           - MYSQL_ROOT_PASSWORD=C12H22o11
-          - MYSQL_DATABASE=itmayziii
+          - MYSQL_DATABASE=fullheapdeveloper
           - MYSQL_PASSWORD=Password1
-          - MYSQL_USER=forge
+          - MYSQL_USER=itmayziii
       ports:
           - 3306:3306
+      volumes:
+        - ./data:/var/lib/mysql
       networks:
         - backend
 

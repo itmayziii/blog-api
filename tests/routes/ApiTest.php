@@ -20,19 +20,19 @@ class ApiTest extends TestCase
         $this->assertThat($response->getStatusCode(), $this->equalTo(401));
     }
 
-    public function test_blogs_store_authentication()
+    public function test_posts_store_authentication()
     {
         $_SERVER['CONTENT_TYPE'] = 'application/vnd.api+json';
         $_SERVER['HTTP_ACCEPT'] = 'application/vnd.api+json';
-        $response = $this->call('POST', 'v1/blogs', [], [], [], $_SERVER);
+        $response = $this->call('POST', 'v1/posts', [], [], [], $_SERVER);
         $this->assertThat($response->getStatusCode(), $this->equalTo(401));
     }
 
-    public function test_blogs_update_authentication()
+    public function test_posts_update_authentication()
     {
         $_SERVER['CONTENT_TYPE'] = 'application/vnd.api+json';
         $_SERVER['HTTP_ACCEPT'] = 'application/vnd.api+json';
-        $response = $this->call('PATCH', 'v1/blogs/test', [], [], [], $_SERVER);
+        $response = $this->call('PATCH', 'v1/posts/test', [], [], [], $_SERVER);
         $this->assertThat($response->getStatusCode(), $this->equalTo(401));
     }
 }

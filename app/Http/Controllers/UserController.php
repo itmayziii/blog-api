@@ -93,8 +93,8 @@ class UserController extends Controller
                 'password'   => app('hash')->make($request->input('password'))
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to create a blog with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to create the blog");
+            Log::error("Failed to create a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondBadRequest("Unable to create the user");
         }
 
         return $this->jsonApi->respondResourceCreated($user);
