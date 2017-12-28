@@ -1,15 +1,25 @@
 pipeline {
   agent {
     docker {
-      image 'php:7'
+      image 'itmayziii/nginx-php70:latest'
+      args '-v ${pwd}:/home/forge/default'
     }
     
   }
   stages {
-    stage('') {
+    stage('Install Dependencies') {
       steps {
-        echo 'Starting PHP Version'
-        sh 'php -v'
+        sh 'composer install'
+      }
+    }
+    stage('Create .env file') {
+      steps {
+        sh 'cp .env-local .env'
+      }
+    }
+    stage('DB Migrations') {
+      steps {
+        sh 'php artisan migrate:refresh --seed --force'
       }
     }
   }
