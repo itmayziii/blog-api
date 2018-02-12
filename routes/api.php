@@ -7,7 +7,7 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
     $app->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImage']);
 
-    $app->group(['middleware' => 'json-api'], function () use ($app) {
+    $app->group([''], function () use ($app) {
 
         $app->group(['prefix' => 'contacts'], function () use ($app) {
 

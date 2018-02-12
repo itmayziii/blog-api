@@ -4,17 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
-use itmayziii\Laravel\JsonApi;
 
 class PostController extends Controller
 {
-    /**
-     * @var JsonApi
-     */
-    private $jsonApi;
-
     /**
      * Validation Rules
      *
@@ -28,36 +23,40 @@ class PostController extends Controller
         'content'     => 'required|max:10000'
     ];
 
-    public function __construct(JsonApi $jsonApi)
+    public function __construct()
     {
-        $this->jsonApi = $jsonApi;
     }
 
     /**
      * List the existing posts.
      *
      * @param Request $request
-     * @return \Illuminate\Http\Response
+     * @param Response $response
+     *
+     * @return Response
      */
-    public function index(Request $request)
+    public function index(Request $request, Response $response)
     {
-        return $this->jsonApi->respondResourcesFound(new Post(), $request);
+        return $this->respondResourcesFound($request, $response, new Post);
     }
 
     /**
      * Find specific posts by slug.
      *
      * @param string $slug
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @param Response $response
+     *
+     * @return Response
      */
-    public function show($slug)
+    public function show($slug, Request $request, Response $response)
     {
-        $post = Post::find($slug);
+        $post = (new Post)->find($slug);
 
-        if ($post) {
-            return $this->jsonApi->respondResourceFound($post);
+        if (is_null($post)) {
+            return $this->respondResourceNotFound($request, $response);
         } else {
-            return $this->jsonApi->respondResourceNotFound();
+            return $this->respondResourceFound($request, $response, $post);
         }
     }
 
@@ -65,17 +64,19 @@ class PostController extends Controller
      * Creates a new post.
      *
      * @param Request $request
-     * @return \Illuminate\Http\Response
+     * @param Response $response
+     *
+     * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Response $response)
     {
         if (Gate::denies('store', new Post())) {
-            return $this->jsonApi->respondUnauthorized();
+            return $this->respondUnauthorized($request, $response);
         }
 
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+            return $this->respondValidationFailed($request, $response, $validation->getMessageBag());
         }
 
         try {
@@ -89,33 +90,35 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to create a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to create the post");
+            return $this->respondServerError($request, $response, "Unable to create the post");
         }
 
-        return $this->jsonApi->respondResourceCreated($post);
+        return $this->respondResourceCreated($request, $response, $post);
     }
+
 
     /**
      * Updates an existing post.
      *
      * @param Request $request
      * @param string $slug
+     *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $slug)
+    public function update(Request $request, Response $response, $slug)
     {
         if (Gate::denies('update', new Post())) {
-            return $this->jsonApi->respondUnauthorized();
+            return $this->respondUnauthorized($request, $response);
         }
 
         $post = Post::find($slug);
         if (!$post) {
-            return $this->jsonApi->respondResourceNotFound();
+            return $this->respondResourceNotFound($request, $response);
         }
 
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+            return $this->respondValidationFailed($request, $response, $validation->getMessageBag());
         }
 
         try {
@@ -128,36 +131,39 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error("Failed to update a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to update post");
+            return $this->respondServerError($request, $response, 'Unable to update post');
         }
 
-        return $this->jsonApi->respondResourceUpdated($post);
+        return $this->respondResourceUpdated($request, $response, $post);
     }
 
     /**
      * Deletes an existing post.
      *
+     * @param Request $request
+     * @param Response $response
      * @param string $slug
-     * @return \Illuminate\Http\Response
+     *
+     * @return Response
      */
-    public function delete($slug)
+    public function delete(Request $request, Response $response, $slug)
     {
         if (Gate::denies('delete', new Post())) {
-            return $this->jsonApi->respondUnauthorized();
+            return $this->respondUnauthorized($request, $response);
         }
 
         $post = Post::find($slug);
         if (!$post) {
-            return $this->jsonApi->respondResourceNotFound();
+            return $this->respondResourceNotFound($request, $response);
         }
 
         try {
             $post->delete();
         } catch (\Exception $e) {
             Log::error("Failed to delete a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to delete post");
+            return $this->respondServerError($request, $response, "Unable to delete post");
         }
 
-        return $this->jsonApi->respondResourceDeleted($post);
+        return $this->respondResourceDeleted($request, $response);
     }
 }

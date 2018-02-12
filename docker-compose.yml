@@ -12,6 +12,8 @@ services:
       tty: true
       networks:
         - backend
+      depends_on:
+        - mysql
 
   mysql:
       container_name: fullheapdeveloper_db

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 use Laravel\Lumen\Auth\Authorizable;
 
-class User extends Model implements AuthenticatableContract, AuthorizableContract, JsonApiModelInterface
+class User extends Model implements AuthenticatableContract, AuthorizableContract
 {
     use Authenticatable, Authorizable;
 
@@ -47,25 +47,5 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     public function isUser(User $user)
     {
         return ($this->id === $user->id);
-    }
-
-    /**
-     * Name of the resource (e.g. type = posts for http://localhost/posts/first-post).
-     *
-     * @return string
-     */
-    public function getJsonApiType()
-    {
-        return 'users';
-    }
-
-    /**
-     * Value of model's primary key.
-     *
-     * @return mixed
-     */
-    public function getJsonApiModelPrimaryKey()
-    {
-        return $this->getKey();
     }
 }

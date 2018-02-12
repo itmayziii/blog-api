@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -108,6 +109,8 @@ class CategoryController extends Controller
         }
 
         try {
+            Post::where('category_id', $id)
+                ->update(['category_id' => '']);
             $category->delete();
         } catch (\Exception $e) {
             Log::error("Failed to delete a category with exception " . $e->getMessage());

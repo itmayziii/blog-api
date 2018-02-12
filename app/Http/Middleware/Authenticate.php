@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Auth\Factory as Auth;
-use itmayziii\Laravel\JsonApi;
 
 class Authenticate
 {
@@ -35,19 +34,19 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        $jsonApi = app(JsonApi::class);
-
-        if ($this->auth->guard($guard)->guest()) {
-            return $jsonApi->respondUnauthenticated();
-        }
-
-        $currentUser = $this->auth->guard($guard)->user();
-        $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
-        $now = (new \DateTime())->getTimestamp();
-
-        if ($now > $apiTokenExpiration) {
-            return $jsonApi->respondUnauthenticated();
-        }
+//        $jsonApi = app(JsonApi::class);
+//
+//        if ($this->auth->guard($guard)->guest()) {
+//            return $jsonApi->respondUnauthenticated();
+//        }
+//
+//        $currentUser = $this->auth->guard($guard)->user();
+//        $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
+//        $now = (new \DateTime())->getTimestamp();
+//
+//        if ($now > $apiTokenExpiration) {
+//            return $jsonApi->respondUnauthenticated();
+//        }
 
         return $next($request);
     }

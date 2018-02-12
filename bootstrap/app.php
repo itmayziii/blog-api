@@ -1,5 +1,9 @@
 <?php
 
+use App\Post;
+use App\Schemas\PostSchema;
+use Neomerx\JsonApi\Encoder\EncoderOptions;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 try {
@@ -64,8 +68,7 @@ $app->middleware([
 ]);
 
 $app->routeMiddleware([
-    'auth'     => App\Http\Middleware\Authenticate::class,
-    'json-api' => itmayziii\Laravel\Middleware\JsonApiMiddleware::class
+    'auth' => App\Http\Middleware\Authenticate::class
 ]);
 
 /*
@@ -82,7 +85,6 @@ $app->routeMiddleware([
 $app->register(App\Providers\AppServiceProvider::class);
 $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
-$app->register(\itmayziii\Laravel\Providers\JsonApiProvider::class);
 $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
