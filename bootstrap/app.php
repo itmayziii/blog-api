@@ -52,6 +52,11 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton(
+    \App\Http\JsonApi::class,
+    \App\Http\JsonApi::class
+);
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware

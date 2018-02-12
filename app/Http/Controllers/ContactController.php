@@ -9,14 +9,8 @@ use itmayziii\Laravel\JsonApi;
 
 class ContactController extends Controller
 {
-    /**
-     * @var JsonApi
-     */
-    private $jsonApi;
-
-    public function __construct(JsonApi $jsonApi)
+    public function __construct()
     {
-        $this->jsonApi = $jsonApi;
     }
 
     /**
