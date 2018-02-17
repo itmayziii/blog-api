@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Http\JsonApi;
 use Illuminate\Http\Response;
-use Neomerx\JsonApi\Encoder\Parameters\EncodingParameters;
 
 class CategoryPostController extends Controller
 {
@@ -41,7 +40,6 @@ class CategoryPostController extends Controller
             }
         ]);
 
-        $encodingParameters = new EncodingParameters(['posts']);
-        return $this->jsonApi->respondResourceFound($response, $category, $encodingParameters);
+        return $this->jsonApi->respondResourceFound($response, $category);
     }
 }

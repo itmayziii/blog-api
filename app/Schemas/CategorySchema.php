@@ -2,7 +2,6 @@
 
 namespace App\Schemas;
 
-use Neomerx\JsonApi\Contracts\Document\LinkInterface;
 use Neomerx\JsonApi\Schema\BaseSchema;
 
 class CategorySchema extends BaseSchema
@@ -25,13 +24,21 @@ class CategorySchema extends BaseSchema
 
     public function getRelationships($category, bool $isPrimary, array $includeList): ?array
     {
+        $relationships = [];
+
+        if ($category->relationLoaded('posts')) {
+            $relationships['posts'] = [
+                self::DATA => $category->getRelation('posts')
+            ];
+        }
+
+        return $relationships;
+    }
+
+    public function getIncludePaths(): array
+    {
         return [
-            'posts' => [
-                self::DATA  => $category->getRelation('posts'),
-                self::LINKS => [
-                    LinkInterface::SELF => $this->getRelationshipSelfLink($category, 'posts')
-                ]
-            ]
+            'posts'
         ];
     }
 }
