@@ -3,12 +3,12 @@
 namespace App\Http;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Support\MessageBag;
+use Illuminate\Http\Response;
 use Neomerx\JsonApi\Contracts\Encoder\EncoderInterface;
 use Neomerx\JsonApi\Contracts\Encoder\Parameters\EncodingParametersInterface;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Document\Link;
-use Illuminate\Contracts\Support\MessageBag;
-use Illuminate\Http\Response;
 
 class JsonApi
 {
@@ -24,11 +24,9 @@ class JsonApi
 
     public function respondResourceFound(Response $response, $resource, EncodingParametersInterface $encodingParameters = null)
     {
-        $response = $response
-            ->setStatusCode(Response::HTTP_OK)
-            ->setContent($this->encoder->encodeData($resource, $encodingParameters));
+        $content = $this->encoder->encodeData($resource, $encodingParameters);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_OK, $content);
     }
 
     public function respondResourcesFound(Response $response, LengthAwarePaginator $paginator)
@@ -56,23 +54,18 @@ class JsonApi
             $links['next'] = new Link($nextUrl, null, true);
         }
 
-        $response = $response
-            ->setStatusCode(Response::HTTP_OK)
-            ->setContent($this->encoder
-                ->withLinks($links)
-                ->encodeData($paginator)
-            );
+        $content = $this->encoder
+            ->withLinks($links)
+            ->encodeData($paginator);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_OK, $content);
     }
 
     public function respondResourceCreated(Response $response, $resource)
     {
-        $response = $response
-            ->setStatusCode(Response::HTTP_CREATED)
-            ->setContent($this->encoder->encodeData($resource));
+        $content = $this->encoder->encodeData($resource);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_CREATED, $content);
     }
 
     public function respondResourceUpdated(Response $response, $resource)
@@ -90,21 +83,17 @@ class JsonApi
     public function respondResourceNotFound(Response $response)
     {
         $error = new Error(null, null, Response::HTTP_NOT_FOUND, null, 'Not Found');
-        $response = $response
-            ->setStatusCode(Response::HTTP_NOT_FOUND)
-            ->setContent($this->encoder->encodeError($error));
+        $content = $this->encoder->encodeError($error);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_NOT_FOUND, $content);
     }
 
     public function respondUnauthorized(Response $response)
     {
         $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Unauthorized');
-        $response = $response
-            ->setStatusCode(Response::HTTP_FORBIDDEN)
-            ->setContent($this->encoder->encodeError($error));
+        $content = $this->encoder->encodeError($error);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_FORBIDDEN, $content);
     }
 
     public function respondValidationFailed(Response $response, MessageBag $messageBag)
@@ -116,21 +105,26 @@ class JsonApi
             }
         }
 
-        $response = $response
-            ->setStatusCode(Response::HTTP_BAD_REQUEST)
-            ->setContent($this->encoder->encodeErrors($errors));
+        $content = $this->encoder->encodeErrors($errors);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_BAD_REQUEST, $content);
     }
 
 
     public function respondServerError(Response $response, $message)
     {
         $error = new Error(null, null, Response::HTTP_INTERNAL_SERVER_ERROR, 'null', 'Internal Server Error', $message);
-        $response = $response
-            ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
-            ->setContent($this->encoder->encodeError($error));
+        $content = $this->encoder->encodeError($error);
 
-        return $response;
+        return $this->respond($response, Response::HTTP_INTERNAL_SERVER_ERROR, $content);
+    }
+
+    private function respond(Response $response, int $statusCode, $content = null)
+    {
+        return $response->setStatusCode($statusCode)
+            ->setContent($content)
+            ->withHeaders([
+                'Content-Type' => 'application/vnd.api+json'
+            ]);
     }
 }
