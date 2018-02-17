@@ -2,10 +2,11 @@
 
 namespace Tests\App\Http\Controllers;
 
+use App\Http\Controllers\PostController;
 use App\Http\JsonApi;
 use App\Post;
-use App\Http\Controllers\PostController;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
@@ -56,7 +57,42 @@ class PostControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_create_authorization()
+    public function test_index_responds_with_resources()
+    {
+        $paginationMock = Mockery::mock(LengthAwarePaginator::class);
+
+        $request = Request::create('v1/posts', 'GET', ['size' => 10, 'page' => 2]);
+        $this->postMock
+            ->shouldReceive('where')
+            ->once()
+            ->withArgs(['status', 'draft'])
+            ->andReturn($this->postMock);
+
+        $this->postMock
+            ->shouldReceive('orderBy')
+            ->once()
+            ->withArgs(['created_at', 'desc'])
+            ->andReturn($this->postMock);
+
+        $this->postMock
+            ->shouldReceive('paginate')
+            ->once()
+            ->withArgs([10, null, 'page', 2])
+            ->andReturn($paginationMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourcesFound')
+            ->once()
+            ->withArgs([$this->responseMock, $paginationMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->postController->index($request, $this->responseMock, $this->postMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_store_authorization()
     {
         $this->gateMock
             ->shouldReceive('denies')
@@ -67,12 +103,14 @@ class PostControllerTest extends TestCase
         $this->jsonApiMock
             ->shouldReceive('respondUnauthorized')
             ->once()
-            ->andReturn('Post Creation Authorization Failed');
+            ->andReturn($this->responseMock);
 
         $request = Request::create('v1/posts', 'POST');
-        $response = $this->postController->store($request, $this->responseMock, $this->postMock);
 
-        $this->assertThat($response, $this->equalTo('Post Creation Authorization Failed'));
+        $actualResult = $this->postController->store($request, $this->responseMock, $this->postMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 //
 //    public function test_create_validation_failed()

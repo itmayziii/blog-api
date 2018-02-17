@@ -29,7 +29,7 @@ class JsonApi
         return $this->respond($response, Response::HTTP_OK, $content);
     }
 
-    public function respondResourcesFound(Response $response, LengthAwarePaginator $paginator)
+    public function respondResourcesFound(Response $response, LengthAwarePaginator $paginator): Response
     {
         $firstUrl = $paginator->url(1);
         $lastUrl = $paginator->url($paginator->lastPage());
@@ -61,26 +61,26 @@ class JsonApi
         return $this->respond($response, Response::HTTP_OK, $content);
     }
 
-    public function respondResourceCreated(Response $response, $resource)
+    public function respondResourceCreated(Response $response, $resource): Response
     {
         $content = $this->encoder->encodeData($resource);
 
         return $this->respond($response, Response::HTTP_CREATED, $content);
     }
 
-    public function respondResourceUpdated(Response $response, $resource)
+    public function respondResourceUpdated(Response $response, $resource): Response
     {
         return $this->respondResourceFound($response, $resource);
     }
 
-    public function respondResourceDeleted(Response $response)
+    public function respondResourceDeleted(Response $response): Response
     {
         $response = $response->setStatusCode(204);
 
         return $response;
     }
 
-    public function respondResourceNotFound(Response $response)
+    public function respondResourceNotFound(Response $response): Response
     {
         $error = new Error(null, null, Response::HTTP_NOT_FOUND, null, 'Not Found');
         $content = $this->encoder->encodeError($error);
@@ -88,7 +88,7 @@ class JsonApi
         return $this->respond($response, Response::HTTP_NOT_FOUND, $content);
     }
 
-    public function respondUnauthorized(Response $response)
+    public function respondUnauthorized(Response $response): Response
     {
         $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Unauthorized');
         $content = $this->encoder->encodeError($error);
@@ -96,7 +96,7 @@ class JsonApi
         return $this->respond($response, Response::HTTP_FORBIDDEN, $content);
     }
 
-    public function respondValidationFailed(Response $response, MessageBag $messageBag)
+    public function respondValidationFailed(Response $response, MessageBag $messageBag): Response
     {
         $errors = [];
         foreach ($messageBag->toArray() as $errorField => $errorDetails) {
@@ -111,7 +111,7 @@ class JsonApi
     }
 
 
-    public function respondServerError(Response $response, $message)
+    public function respondServerError(Response $response, $message): Response
     {
         $error = new Error(null, null, Response::HTTP_INTERNAL_SERVER_ERROR, 'null', 'Internal Server Error', $message);
         $content = $this->encoder->encodeError($error);
@@ -119,7 +119,7 @@ class JsonApi
         return $this->respond($response, Response::HTTP_INTERNAL_SERVER_ERROR, $content);
     }
 
-    private function respond(Response $response, int $statusCode, $content = null)
+    private function respond(Response $response, int $statusCode, $content = null): Response
     {
         return $response->setStatusCode($statusCode)
             ->setContent($content)
