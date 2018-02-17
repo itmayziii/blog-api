@@ -1,34 +1,48 @@
 version: '3'
 services:
   web:
-      container_name: fullheapdeveloper_web
-      image: itmayziii/nginx-php70:latest
-      ports:
-          - 8080:80
-      links:
-          - mysql
-      volumes:
-          - ./:/home/forge/default
-      tty: true
-      networks:
-        - backend
-      depends_on:
-        - mysql
+    container_name: fullheapdeveloper_web
+    image: nginx:latest
+    working_dir: /site
+    ports:
+      - 8080:80
+    volumes:
+      - ./:/site
+      - ./docker-config/nginx/site.conf:/etc/nginx/conf.d/default.conf
+    tty: true
+    networks:
+      - backend
+    depends_on:
+      - mysql
+      - php
+
+  php:
+    container_name: fullheapdeveloper_php
+    build:
+      context: ./
+      dockerfile: ./docker-config/php/Dockerfile
+    working_dir: /site
+    ports:
+      - 9000:9000
+    volumes:
+      - ./:/site
+    networks:
+      - backend
 
   mysql:
-      container_name: fullheapdeveloper_db
-      image: mysql:latest
-      environment:
-          - MYSQL_ROOT_PASSWORD=C12H22o11
-          - MYSQL_DATABASE=fullheapdeveloper
-          - MYSQL_PASSWORD=Password1
-          - MYSQL_USER=itmayziii
-      ports:
-          - 3306:3306
-      volumes:
-        - ./data:/var/lib/mysql
-      networks:
-        - backend
+    container_name: fullheapdeveloper_db
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=C12H22o11
+      - MYSQL_DATABASE=fullheapdeveloper
+      - MYSQL_PASSWORD=Password1
+      - MYSQL_USER=itmayziii
+    ports:
+      - 3306:3306
+    volumes:
+      - ./data:/var/lib/mysql
+    networks:
+      - backend
 
 networks:
   backend:

@@ -1,60 +1,60 @@
 <?php
 
-$app->group(['prefix' => 'v1'], function () use ($app) {
+$router->group(['prefix' => 'v1'], function () use ($router) {
 
-    $app->get('/authenticate', 'AuthenticateController@authenticate');
-    $app->get('/token-validation', 'AuthenticateController@validateToken');
+    $router->get('/authenticate', 'AuthenticateController@authenticate');
+    $router->get('/token-validation', 'AuthenticateController@validateToken');
 
-    $app->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImage']);
+    $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImage']);
 
-    $app->group([''], function () use ($app) {
+    $router->group([''], function () use ($router) {
 
-        $app->group(['prefix' => 'contacts'], function () use ($app) {
+        $router->group(['prefix' => 'contacts'], function () use ($router) {
 
-            $app->post('', 'ContactController@store');
-            $app->get('/{id}', ['middleware' => 'auth', 'uses' => 'ContactController@show']);
-            $app->get('', ['middleware' => 'auth', 'uses' => 'ContactController@index']);
-
-        });
-
-        $app->group(['prefix' => 'posts'], function () use ($app) {
-
-            $app->get('', 'PostController@index');
-            $app->get('/{slug}', 'PostController@show');
-            $app->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
-            $app->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
-            $app->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
+            $router->post('', 'ContactController@store');
+            $router->get('/{id}', ['middleware' => 'auth', 'uses' => 'ContactController@show']);
+            $router->get('', ['middleware' => 'auth', 'uses' => 'ContactController@index']);
 
         });
 
-        $app->group(['prefix' => 'categories'], function () use ($app) {
+        $router->group(['prefix' => 'posts'], function () use ($router) {
 
-            $app->get('', 'CategoryController@index');
-            $app->get('/{id}', 'CategoryController@show');
-            $app->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
-            $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
-            $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
-
-            $app->get('/{id}/posts', 'CategoryPostController@show');
-        });
-
-        $app->group(['prefix' => 'tags'], function () use ($app) {
-
-            $app->get('', 'TagController@index');
-            $app->get('/{id}', 'TagController@show');
-            $app->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
-            $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
-            $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
+            $router->get('', 'PostController@index');
+            $router->get('/{slug}', 'PostController@show');
+            $router->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
+            $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
+            $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
 
         });
 
-        $app->group(['prefix' => 'users'], function () use ($app) {
+        $router->group(['prefix' => 'categories'], function () use ($router) {
 
-            $app->get('', ['middleware' => 'auth', 'uses' => 'UserController@show']);
-            $app->get('', ['middleware' => 'auth', 'uses' => 'UserController@index']);
-            $app->patch('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@update']);
-            $app->post('', 'UserController@store');
-            $app->delete('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@index']);
+            $router->get('', 'CategoryController@index');
+            $router->get('/{id}', 'CategoryController@show');
+            $router->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
+            $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
+            $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
+
+            $router->get('/{id}/posts', 'CategoryPostController@show');
+        });
+
+        $router->group(['prefix' => 'tags'], function () use ($router) {
+
+            $router->get('', 'TagController@index');
+            $router->get('/{id}', 'TagController@show');
+            $router->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
+            $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
+            $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
+
+        });
+
+        $router->group(['prefix' => 'users'], function () use ($router) {
+
+            $router->get('', ['middleware' => 'auth', 'uses' => 'UserController@show']);
+            $router->get('', ['middleware' => 'auth', 'uses' => 'UserController@index']);
+            $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@update']);
+            $router->post('', 'UserController@store');
+            $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@index']);
 
         });
 
@@ -65,4 +65,4 @@ $app->group(['prefix' => 'v1'], function () use ($app) {
 
 
 // TODO add a catch all route for anything that does not match a defined route.
-//$app->addRoute(['GET', 'PUT', 'PATCH', 'POST', 'DELETE'], '', '');
+//$router->addRoute(['GET', 'PUT', 'PATCH', 'POST', 'DELETE'], '', '');

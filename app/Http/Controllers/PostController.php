@@ -48,31 +48,39 @@ class PostController extends Controller
      *
      * @param Request $request
      * @param Response $response
+     * @param Post $post
      *
      * @return Response
      */
-    public function index(Request $request, Response $response)
+    public function index(Request $request, Response $response, Post $post)
     {
-        return $this->jsonApi->respondResourcesFound($request, $response, new Post);
+        $size = $request->query('size', 15);
+        $page = $request->query('page', 1);
+
+        $paginator = $post->where('status', 'draft')
+            ->orderBy('created_at', 'desc')
+            ->paginate($size, null, 'page', $page);
+
+        return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
 
     /**
      * Find specific posts by slug.
      *
-     * @param string $slug
-     * @param Request $request
      * @param Response $response
+     * @param Post $post
+     * @param string $slug
      *
      * @return Response
      */
-    public function show($slug, Request $request, Response $response)
+    public function show(Response $response, Post $post, $slug)
     {
-        $post = (new Post)->find($slug);
+        $post = $post->find($slug);
 
         if (is_null($post)) {
-            return $this->jsonApi->respondResourceNotFound($request, $response);
+            return $this->jsonApi->respondResourceNotFound($response);
         } else {
-            return $this->jsonApi->respondResourceFound($request, $response, $post);
+            return $this->jsonApi->respondResourceFound($response, $post);
         }
     }
 
@@ -81,22 +89,23 @@ class PostController extends Controller
      *
      * @param Request $request
      * @param Response $response
+     * @param Post $post
      *
      * @return Response
      */
-    public function store(Request $request, Response $response)
+    public function store(Request $request, Response $response, Post $post)
     {
-        if ($this->gate->denies('store', new Post())) {
-            return $this->jsonApi->respondUnauthorized($request, $response);
+        if ($this->gate->denies('store', $post)) {
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $validation = $this->initializeValidation($request, $this->validationRules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($request, $response, $validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
         }
 
         try {
-            $post = (new Post)->create([
+            $post = $post->create([
                 'user_id'     => $request->input('user-id'),
                 'category_id' => $request->input('category-id'),
                 'slug'        => $request->input('slug'),
@@ -106,36 +115,36 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             $this->logger->error("Failed to create a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondServerError($request, $response, "Unable to create the post");
+            return $this->jsonApi->respondServerError($response, "Unable to create the post");
         }
 
-        return $this->jsonApi->respondResourceCreated($request, $response, $post);
+        return $this->jsonApi->respondResourceCreated($response, $post);
     }
-
 
     /**
      * Updates an existing post.
      *
      * @param Request $request
      * @param Response $response
+     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function update(Request $request, Response $response, $slug)
+    public function update(Request $request, Response $response, Post $post, $slug)
     {
-        if ($this->gate->denies('update', new Post())) {
-            return $this->jsonApi->respondUnauthorized($request, $response);
+        if ($this->gate->denies('update', $post)) {
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
-        $post = (new Post)->find($slug);
-        if (!$post) {
-            return $this->jsonApi->respondResourceNotFound($request, $response);
+        $post = $post->find($slug);
+        if (is_null($post)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         $validation = $this->initializeValidation($request, $this->validationRules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($request, $response, $validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
         }
 
         try {
@@ -148,39 +157,39 @@ class PostController extends Controller
             ]);
         } catch (\Exception $e) {
             $this->logger->error("Failed to update a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondServerError($request, $response, 'Unable to update post');
+            return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
-        return $this->jsonApi->respondResourceUpdated($request, $response, $post);
+        return $this->jsonApi->respondResourceUpdated($response, $post);
     }
 
     /**
      * Deletes an existing post.
      *
-     * @param Request $request
      * @param Response $response
+     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function delete(Request $request, Response $response, $slug)
+    public function delete(Response $response, Post $post, $slug)
     {
         if ($this->gate->denies('delete', new Post())) {
-            return $this->jsonApi->respondUnauthorized($request, $response);
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
-        $post = (new Post)->find($slug);
-        if (!$post) {
-            return $this->jsonApi->respondResourceNotFound($request, $response);
+        $post = $post->find($slug);
+        if (is_null($post)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         try {
             $post->delete();
         } catch (\Exception $e) {
             $this->logger->error("Failed to delete a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondServerError($request, $response, "Unable to delete post");
+            return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
-        return $this->jsonApi->respondResourceDeleted($request, $response);
+        return $this->jsonApi->respondResourceDeleted($response);
     }
 }

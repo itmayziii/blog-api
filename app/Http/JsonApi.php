@@ -2,48 +2,41 @@
 
 namespace App\Http;
 
-use App\Post;
-use App\Schemas\PostSchema;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Neomerx\JsonApi\Contracts\Encoder\EncoderInterface;
+use Neomerx\JsonApi\Contracts\Encoder\Parameters\EncodingParametersInterface;
 use Neomerx\JsonApi\Document\Error;
 use Neomerx\JsonApi\Document\Link;
-use Neomerx\JsonApi\Encoder\Encoder;
-use Neomerx\JsonApi\Encoder\EncoderOptions;
 use Illuminate\Contracts\Support\MessageBag;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class JsonApi
 {
-    private $schemas = [
-        Post::class => PostSchema::class
-    ];
+    /**
+     * @var EncoderInterface
+     */
+    private $encoder;
 
-    public function respondResourceFound(Request $request, Response $response, $resource)
+    public function __construct(EncoderInterface $encoder)
     {
-        $encoder = $this->createEncoder($request);
+        $this->encoder = $encoder;
+    }
 
+    public function respondResourceFound(Response $response, $resource, EncodingParametersInterface $encodingParameters = null)
+    {
         $response = $response
             ->setStatusCode(Response::HTTP_OK)
-            ->setContent($encoder->encodeData($resource));
+            ->setContent($this->encoder->encodeData($resource, $encodingParameters));
 
         return $response;
     }
 
-    public function respondResourcesFound(Request $request, Response $response, Model $model)
+    public function respondResourcesFound(Response $response, LengthAwarePaginator $paginator)
     {
-        $encoder = $this->createEncoder($request);
-
-        $size = $request->query('size', 15);
-        $page = $request->query('page', 1);
-        $resources = $model->where('status', 'draft')
-            ->orderBy('created_at', 'desc')
-            ->paginate($size, null, 'page', $page);
-
-        $firstUrl = $resources->url(1);
-        $lastUrl = $resources->url($resources->lastPage());
-        $previousUrl = $resources->previousPageUrl();
-        $nextUrl = $resources->nextPageUrl();
+        $firstUrl = $paginator->url(1);
+        $lastUrl = $paginator->url($paginator->lastPage());
+        $previousUrl = $paginator->previousPageUrl();
+        $nextUrl = $paginator->nextPageUrl();
 
         $links = [];
 
@@ -65,63 +58,57 @@ class JsonApi
 
         $response = $response
             ->setStatusCode(Response::HTTP_OK)
-            ->setContent($encoder
+            ->setContent($this->encoder
                 ->withLinks($links)
-                ->encodeData($resources)
+                ->encodeData($paginator)
             );
 
         return $response;
     }
 
-    public function respondResourceCreated(Request $request, Response $response, $resource)
+    public function respondResourceCreated(Response $response, $resource)
     {
-        $encoder = $this->createEncoder($request);
         $response = $response
             ->setStatusCode(Response::HTTP_CREATED)
-            ->setContent($encoder->encodeData($resource));
+            ->setContent($this->encoder->encodeData($resource));
 
         return $response;
     }
 
-    public function respondResourceUpdated(Request $request, Response $response, $resource)
+    public function respondResourceUpdated(Response $response, $resource)
     {
-        return $this->respondResourceFound($request, $response, $resource);
+        return $this->respondResourceFound($response, $resource);
     }
 
-    public function respondResourceDeleted(Request $request, Response $response)
+    public function respondResourceDeleted(Response $response)
     {
         $response = $response->setStatusCode(204);
 
         return $response;
     }
 
-    public function respondResourceNotFound(Request $request, Response $response)
+    public function respondResourceNotFound(Response $response)
     {
-        $encoder = $this->createEncoder($request);
         $error = new Error(null, null, Response::HTTP_NOT_FOUND, null, 'Not Found');
-
         $response = $response
             ->setStatusCode(Response::HTTP_NOT_FOUND)
-            ->setContent($encoder->encodeError($error));
+            ->setContent($this->encoder->encodeError($error));
 
         return $response;
     }
 
-    public function respondUnauthorized(Request $request, Response $response)
+    public function respondUnauthorized(Response $response)
     {
-        $encoder = $this->createEncoder($request);
         $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Unauthorized');
         $response = $response
             ->setStatusCode(Response::HTTP_FORBIDDEN)
-            ->setContent($encoder->encodeError($error));
+            ->setContent($this->encoder->encodeError($error));
 
         return $response;
     }
 
-    public function respondValidationFailed(Request $request, Response $response, MessageBag $messageBag)
+    public function respondValidationFailed(Response $response, MessageBag $messageBag)
     {
-        $encoder = $this->createEncoder($request);
-
         $errors = [];
         foreach ($messageBag->toArray() as $errorField => $errorDetails) {
             foreach ($errorDetails as $errorDetail) {
@@ -131,34 +118,19 @@ class JsonApi
 
         $response = $response
             ->setStatusCode(Response::HTTP_BAD_REQUEST)
-            ->setContent($encoder->encodeErrors($errors));
+            ->setContent($this->encoder->encodeErrors($errors));
 
         return $response;
     }
 
 
-    public function respondServerError(Request $request, Response $response, $message)
+    public function respondServerError(Response $response, $message)
     {
-        $encoder = $this->createEncoder($request);
         $error = new Error(null, null, Response::HTTP_INTERNAL_SERVER_ERROR, 'null', 'Internal Server Error', $message);
-
         $response = $response
             ->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
-            ->setContent($encoder->encodeError($error));
+            ->setContent($this->encoder->encodeError($error));
 
         return $response;
-    }
-
-    private function createEncoder(Request $request)
-    {
-        $prettyPrintQueryString = $request->query('pretty');
-        ($prettyPrintQueryString === 'false') ? $prettyPrintInt = 0 : $prettyPrintInt = JSON_PRETTY_PRINT;
-
-        $encoder = Encoder::instance(
-            $this->schemas,
-            new EncoderOptions(JSON_UNESCAPED_SLASHES | $prettyPrintInt, env('API_URI') . '/v1'))
-            ->withJsonApiVersion();
-
-        return $encoder;
     }
 }

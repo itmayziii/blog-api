@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Category;
-use itmayziii\Laravel\JsonApi;
+use App\Http\JsonApi;
+use Illuminate\Http\Response;
+use Neomerx\JsonApi\Encoder\Parameters\EncodingParameters;
 
 class CategoryPostController extends Controller
 {
@@ -20,20 +22,26 @@ class CategoryPostController extends Controller
     /**
      * Find specific category with all related posts.
      *
+     * @param Response $response
+     * @param Category $category
      * @param int $id
-     * @return \Illuminate\Http\Response
+     *
+     * @return Response
      */
-    public function show($id)
+    public function show(Response $response, Category $category, $id)
     {
-        $category = Category::find($id);
+        $category = $category->find($id);
         if (!$category) {
-            return $this->jsonApi->respondResourceNotFound();
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
-        $category->load(['posts' => function ($query) {
-            $query->orderBy('created_at', 'desc');
-        }]);
+        $category->load([
+            'posts' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ]);
 
-        return $this->jsonApi->respondResourceFound($category);
+        $encodingParameters = new EncodingParameters(['posts']);
+        return $this->jsonApi->respondResourceFound($response, $category, $encodingParameters);
     }
 }

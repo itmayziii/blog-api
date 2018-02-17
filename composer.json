@@ -10,14 +10,14 @@
   "type": "project",
   "require": {
     "php": ">=5.6.4",
-    "laravel/lumen-framework": "5.4.*",
+    "laravel/lumen-framework": "^5.6",
     "vlucas/phpdotenv": "~2.2",
     "nordsoftware/lumen-cors": "^2.1",
-    "neomerx/json-api": "^1.0"
+    "neomerx/json-api": "^2.0"
   },
   "require-dev": {
     "fzaninotto/faker": "~1.4",
-    "phpunit/phpunit": "~5.0",
+    "phpunit/phpunit": "~7.0",
     "mockery/mockery": "~0.9"
   },
   "autoload": {
@@ -29,10 +29,9 @@
     ]
   },
   "autoload-dev": {
-    "classmap": [
-      "tests/",
-      "database/"
-    ]
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
   },
   "scripts": {
     "post-root-package-install": [
@@ -40,5 +39,10 @@
     ]
   },
   "minimum-stability": "dev",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "config": {
+    "platform": {
+      "php": "7.2.2"
+    }
+  }
 }

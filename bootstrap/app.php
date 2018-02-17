@@ -1,9 +1,5 @@
 <?php
 
-use App\Post;
-use App\Schemas\PostSchema;
-use Neomerx\JsonApi\Encoder\EncoderOptions;
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 try {
@@ -57,6 +53,25 @@ $app->singleton(
     \App\Http\JsonApi::class
 );
 
+$app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, function ($app) {
+    $request = $app->request;
+
+    $prettyPrintQueryString = $request->query('pretty');
+    ($prettyPrintQueryString === 'false') ? $prettyPrintInt = 0 : $prettyPrintInt = JSON_PRETTY_PRINT;
+
+    $schemas = [
+        \App\Post::class     => App\Schemas\PostSchema::class,
+        \App\Category::class => App\Schemas\CategorySchema::class
+    ];
+
+    $encoder = \Neomerx\JsonApi\Encoder\Encoder::instance(
+        $schemas,
+        new \Neomerx\JsonApi\Encoder\EncoderOptions(JSON_UNESCAPED_SLASHES | $prettyPrintInt, env('API_URI') . '/v1'))
+        ->withJsonApiVersion();
+
+    return $encoder;
+});
+
 /*
 |--------------------------------------------------------------------------
 | Register Middleware
@@ -104,7 +119,7 @@ $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
 |
 */
 
-$app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
+$app->router->group(['namespace' => 'App\Http\Controllers'], function ($router) {
     require __DIR__ . '/../routes/api.php';
 });
 

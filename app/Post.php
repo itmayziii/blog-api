@@ -12,7 +12,6 @@ class Post extends Model
      */
     protected $primaryKey = 'slug';
 
-
     /**
      * @inheritDoc
      */

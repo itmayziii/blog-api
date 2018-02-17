@@ -2,18 +2,18 @@
 
 namespace App\Schemas;
 
-use Neomerx\JsonApi\Schema\SchemaProvider;
+use Neomerx\JsonApi\Schema\BaseSchema;
 
-class PostSchema extends SchemaProvider
+class PostSchema extends BaseSchema
 {
     protected $resourceType = 'posts';
 
-    public function getId($post)
+    public function getId($post): ?string
     {
         return $post->getAttribute('slug');
     }
 
-    public function getAttributes($post)
+    public function getAttributes($post, array $fieldKeysFilter = null): ?array
     {
         return [
             'createdAt' => $post->getAttribute('created_at')->toIso8601String(),
