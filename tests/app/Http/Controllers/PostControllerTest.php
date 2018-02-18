@@ -92,6 +92,46 @@ class PostControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
+    public function test_show_responds_with_a_resource_when_one_exists()
+    {
+        $this->postMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs(['a-slug'])
+            ->andReturn($this->postMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceFound')
+            ->once()
+            ->withArgs([$this->responseMock, $this->postMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_show_responds_not_found_when_no_resource_exists()
+    {
+        $this->postMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs(['a-slug'])
+            ->andReturn(null);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceNotFound')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
     public function test_store_authorization()
     {
         $this->gateMock
