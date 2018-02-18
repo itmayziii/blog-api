@@ -126,6 +126,11 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
+        $this->loggerMock
+            ->shouldReceive('debug')
+            ->once()
+            ->withArgs([PostController::class . ' unable to find post with slug: a-slug']);
+
         $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
@@ -192,7 +197,7 @@ class PostControllerTest extends TestCase
         $this->loggerMock
             ->shouldReceive('error')
             ->once()
-            ->withArgs(['Failed to create a post with exception: an error happened']);
+            ->withArgs([Postcontroller::class . ' Failed to create a post with exception: an error happened']);
 
         $this->postMock
             ->shouldReceive('create')

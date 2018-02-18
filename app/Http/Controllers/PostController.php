@@ -79,6 +79,7 @@ class PostController extends Controller
         $post = $post->find($slug);
 
         if (is_null($post)) {
+            $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
             return $this->jsonApi->respondResourceNotFound($response);
         } else {
             return $this->jsonApi->respondResourceFound($response, $post);
@@ -115,7 +116,7 @@ class PostController extends Controller
                 'image_path'  => $request->input('image-path')
             ]);
         } catch (Exception $e) {
-            $this->logger->error("Failed to create a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " Failed to create a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to create the post");
         }
 
@@ -157,7 +158,7 @@ class PostController extends Controller
                 'content'     => $request->input('content')
             ]);
         } catch (Exception $e) {
-            $this->logger->error("Failed to update a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " Failed to update a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
@@ -187,7 +188,7 @@ class PostController extends Controller
         try {
             $post->delete();
         } catch (Exception $e) {
-            $this->logger->error("Failed to delete a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " Failed to delete a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
