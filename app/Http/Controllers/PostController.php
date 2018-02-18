@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Post;
+use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -113,7 +114,7 @@ class PostController extends Controller
                 'content'     => $request->input('content'),
                 'image_path'  => $request->input('image-path')
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Failed to create a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to create the post");
         }
@@ -155,7 +156,7 @@ class PostController extends Controller
                 'title'       => $request->input('title'),
                 'content'     => $request->input('content')
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Failed to update a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
@@ -185,7 +186,7 @@ class PostController extends Controller
 
         try {
             $post->delete();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Failed to delete a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
