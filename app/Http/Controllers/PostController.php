@@ -116,7 +116,7 @@ class PostController extends Controller
                 'image_path'  => $request->input('image-path')
             ]);
         } catch (Exception $e) {
-            $this->logger->error(PostController::class . " Failed to create a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " failed to create a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to create the post");
         }
 
@@ -158,7 +158,7 @@ class PostController extends Controller
                 'content'     => $request->input('content')
             ]);
         } catch (Exception $e) {
-            $this->logger->error(PostController::class . " Failed to update a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " failed to update a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
@@ -176,7 +176,7 @@ class PostController extends Controller
      */
     public function delete(Response $response, Post $post, $slug)
     {
-        if ($this->gate->denies('delete', new Post())) {
+        if ($this->gate->denies('delete', $post)) {
             return $this->jsonApi->respondUnauthorized($response);
         }
 
@@ -188,7 +188,7 @@ class PostController extends Controller
         try {
             $post->delete();
         } catch (Exception $e) {
-            $this->logger->error(PostController::class . " Failed to delete a post with exception: " . $e->getMessage());
+            $this->logger->error(PostController::class . " failed to delete a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
