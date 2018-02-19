@@ -3,7 +3,6 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use itmayziii\Laravel\Contracts\JsonApiModelInterface;
 
 class Post extends Model
 {

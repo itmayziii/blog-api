@@ -5,8 +5,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->get('/authenticate', 'AuthenticateController@authenticate');
     $router->get('/token-validation', 'AuthenticateController@validateToken');
 
-    $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImage']);
-
     $router->group([''], function () use ($router) {
 
         $router->group(['prefix' => 'contacts'], function () use ($router) {
@@ -58,6 +56,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         });
 
+        $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
     });
 
 

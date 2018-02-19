@@ -68,6 +68,13 @@ class JsonApi
         return $this->respond($response, Response::HTTP_CREATED, $content);
     }
 
+    public function respondImagesUploaded(Response $response, $images)
+    {
+        $content = $this->encoder->encodeData($images);
+
+        return $this->respond($response, Response::HTTP_CREATED, $content);
+    }
+
     public function respondResourceUpdated(Response $response, $resource): Response
     {
         return $this->respondResourceFound($response, $resource);
@@ -110,6 +117,13 @@ class JsonApi
         return $this->respond($response, Response::HTTP_BAD_REQUEST, $content);
     }
 
+    public function respondBadRequest(Response $response, $errorDetail)
+    {
+        $error = new Error(null, null, Response::HTTP_BAD_REQUEST, null, 'Bad Request', $errorDetail);
+        $content = $this->encoder->encodeError($error);
+
+        return $this->respond($response, Response::HTTP_BAD_REQUEST, $content);
+    }
 
     public function respondServerError(Response $response, $message): Response
     {

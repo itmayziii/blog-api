@@ -127,6 +127,22 @@ class JsonApiTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
+    public function test_respondImagesUploaded_encodes_content_and_returns_a_201_status_code()
+    {
+        $this->setupResponseMock(201);
+
+        $this->encoderMock
+            ->shouldReceive('encodeData')
+            ->once()
+            ->withArgs(['Encode This'])
+            ->andReturn('Encoded Data');
+
+        $actualResult = $this->jsonApi->respondImagesUploaded($this->responseMock, 'Encode This');
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
     public function test_respondResourceUpdated_encodes_content_and_returns_a_200_status_code()
     {
         $this->setupResponseMock(200);
@@ -203,6 +219,21 @@ class JsonApiTest extends TestCase
             ->andReturn('Encoded Data');
 
         $actualResult = $this->jsonApi->respondValidationFailed($this->responseMock, $messageBagMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_respondBadRequest_encodes_error_and_returns_a_400_status_code()
+    {
+        $this->setupResponseMock(400);
+
+        $this->encoderMock
+            ->shouldReceive('encodeError')
+            ->once()
+            ->andReturn('Encoded Data');
+
+        $actualResult = $this->jsonApi->respondBadRequest($this->responseMock, 'An Error Occurred');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));

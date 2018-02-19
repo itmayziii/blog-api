@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonApi;
+use App\Image;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 
 class FileController extends Controller
 {
@@ -14,23 +16,37 @@ class FileController extends Controller
      * @var Filesystem
      */
     private $fileSystem;
+    /**
+     * @var JsonApi
+     */
+    private $jsonApi;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+    /**
+     * @var Gate
+     */
+    private $gate;
     private $imagePath = 'assets/images/';
 
-    public function __construct(Filesystem $filesystem)
+    public function __construct(FileSystem $filesystem, JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
     {
         $this->fileSystem = $filesystem;
+        $this->jsonApi = $jsonApi;
+        $this->gate = $gate;
+        $this->logger = $logger;
     }
 
-    public function uploadImage(Request $request)
+    public function uploadImages(Request $request, Response $response)
     {
-        if (Gate::denies('store', $this->fileSystem)) {
-            return new Response('Unauthorized', Response::HTTP_UNAUTHORIZED);
+        if ($this->gate->denies('store', $this->fileSystem)) {
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $files = $request->allFiles();
-
         if (empty($files)) {
-            return new Response('No file given to upload', Response::HTTP_BAD_REQUEST);
+            return $this->jsonApi->respondBadRequest($response, 'No file given to upload');
         }
 
         $uploadedImages = [];
@@ -38,14 +54,17 @@ class FileController extends Controller
             $uploadedFile = $request->file($fileName);
             $isImageUploaded = $this->fileSystem->put($this->imagePath . $uploadedFile->getClientOriginalName(), $uploadedFile);
 
-            if (!$isImageUploaded) {
-                Log::error(FileController::class . " failed to upload file $fileName");
+            if ($isImageUploaded === false) {
+                $this->logger->error(FileController::class . " failed to upload file $fileName");
                 continue;
             }
 
-            $uploadedImages[] = $this->imagePath . $uploadedFile->getClientOriginalName();
+            $image = new Image();
+            $image->path = $this->imagePath . $uploadedFile->getClientOriginalName();
+            $image->filename = $uploadedFile->getClientOriginalName();
+            $uploadedImages[] = $image;
         }
 
-        return new Response(json_encode($uploadedImages, JSON_UNESCAPED_SLASHES), Response::HTTP_OK);
+        return $this->jsonApi->respondImagesUploaded($response, $uploadedImages);
     }
 }
