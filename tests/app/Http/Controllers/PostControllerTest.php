@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\App\Http\Controllers;
+namespace Tests\Http\Controllers;
 
 use App\Http\Controllers\PostController;
 use App\Http\JsonApi;

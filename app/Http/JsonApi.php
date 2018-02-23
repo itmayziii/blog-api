@@ -119,6 +119,16 @@ class JsonApi
 
     public function respondBadRequest(Response $response, $errorDetail)
     {
+        if (is_array($errorDetail)) {
+            $errors = [];
+            foreach ($errorDetail as $error) {
+                $errors[] = new Error(null, null, Response::HTTP_BAD_REQUEST, null, 'Bad Request', $error);
+            }
+
+            $content = $this->encoder->encodeErrors($errors);
+            return $this->respond($response, Response::HTTP_BAD_REQUEST, $content);
+        }
+
         $error = new Error(null, null, Response::HTTP_BAD_REQUEST, null, 'Bad Request', $errorDetail);
         $content = $this->encoder->encodeError($error);
 

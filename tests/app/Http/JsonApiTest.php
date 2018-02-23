@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\App\Http;
+namespace Tests\Http;
 
 use App\Http\JsonApi;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -234,6 +234,21 @@ class JsonApiTest extends TestCase
             ->andReturn('Encoded Data');
 
         $actualResult = $this->jsonApi->respondBadRequest($this->responseMock, 'An Error Occurred');
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_respondBadRequest_encodes_multiple_errors_and_returns_a_400_status_code()
+    {
+        $this->setupResponseMock(400);
+
+        $this->encoderMock
+            ->shouldReceive('encodeErrors')
+            ->once()
+            ->andReturn('Encoded Data');
+
+        $actualResult = $this->jsonApi->respondBadRequest($this->responseMock, []);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));

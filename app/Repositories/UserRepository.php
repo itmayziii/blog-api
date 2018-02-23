@@ -8,52 +8,57 @@ use Illuminate\Contracts\Hashing\Hasher;
 class UserRepository
 {
     /**
+     * @var User
+     */
+    private $user;
+    /**
      * @var Hasher
      */
     private $hasher;
 
-    public function __construct(Hasher $hasher)
+    public function __construct(User $user, Hasher $hasher)
     {
+        $this->user = $user;
         $this->hasher = $hasher;
     }
 
     /**
      * @param string $username
      * @param string $password
-     * @return User|bool
+     *
+     * @return User|null
      */
     public function retrieveUserByCredentials($username, $password)
     {
-        $user = (new User())
+        $user = $this->user
             ->where('email', $username)
             ->get()
             ->first();
 
-        $successfulAuthentication = false;
-        if ($user) {
-            if ($this->hasher->check($password, $user->password)) {
-                $successfulAuthentication = true;
-            }
+        if (is_null($user)) {
+            return null;
         }
 
-        if ($successfulAuthentication) {
+        $isPasswordValid = $this->hasher->check($password, $user->password);
+        if ($isPasswordValid === true) {
             return $user;
-        } else {
-            return false;
         }
+
+        return null;
     }
 
     /**
      * @param $apiToken
-     * @return User|bool
+     *
+     * @return User|null
      */
     public function retrieveUserByToken($apiToken)
     {
-        $user = (new User())
+        $user = $this->user
             ->where('api_token', $apiToken)
             ->get()
             ->first();
 
-        return ($user) ? $user : false;
+        return $user;
     }
 }

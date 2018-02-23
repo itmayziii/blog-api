@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonApi;
 use App\Repositories\UserRepository;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
-use itmayziii\Laravel\JsonApi;
+use Psr\Log\LoggerInterface;
 
 class AuthenticateController extends Controller
 {
@@ -14,36 +15,46 @@ class AuthenticateController extends Controller
      * @var UserRepository
      */
     private $userRepository;
-
     /**
      * @var JsonApi
      */
     private $jsonApi;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+    /**
+     * @var Hasher
+     */
+    private $hasher;
 
-    public function __construct(JsonApi $jsonApi, UserRepository $userRepository)
+    public function __construct(JsonApi $jsonApi, UserRepository $userRepository, LoggerInterface $logger, Hasher $hasher)
     {
         $this->userRepository = $userRepository;
         $this->jsonApi = $jsonApi;
+        $this->logger = $logger;
+        $this->hasher = $hasher;
     }
 
     /**
      * @param Request $request
+     * @param Response $response
+     *
      * @return Response
      */
-    public function authenticate(Request $request)
+    public function authenticate(Request $request, Response $response)
     {
         $authorizationHeader = $request->header('Authorization');
 
-        $validityMessage = $this->validateAuthorizationHeader($authorizationHeader);
-        if (key_exists('error', $validityMessage)) {
-            return new Response($validityMessage, Response::HTTP_BAD_REQUEST);
+        $authorizationHeaderErrors = $this->validateAuthorizationHeader($authorizationHeader);
+        if (!empty($authorizationHeaderErrors)) {
+            return $this->jsonApi->respondBadRequest($response, $authorizationHeaderErrors);
         }
 
-        $decodedAuthorizationHeaderValue = urldecode($validityMessage['value']);
-        $splitDecodedHeader = explode(':', $decodedAuthorizationHeaderValue);
+        $splitAuthorizationHeader = explode(':', base64_decode($authorizationHeader));
 
-        $username = $splitDecodedHeader[0];
-        $password = $splitDecodedHeader[1];
+        $username = $splitAuthorizationHeader[0];
+        $password = $splitAuthorizationHeader[1];
 
         $user = $this->userRepository->retrieveUserByCredentials($username, $password);
         if (!$user) {
@@ -57,7 +68,7 @@ class AuthenticateController extends Controller
             $user->setAttribute('api_token_expiration', $twentyFourHoursFromNow);
             $user->save();
         } catch (\Exception $e) {
-            Log::error("Failed to update user with API Token with exception: " . $e->getMessage());
+            $this->logger->error("Failed to update user with API Token with exception: " . $e->getMessage());
             return new Response(['error' => 'There was a problem generating an API Token, please try again'], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
@@ -96,25 +107,26 @@ class AuthenticateController extends Controller
     private function validateAuthorizationHeader($authorizationHeader)
     {
         if (!$authorizationHeader) {
-            return ['error' => 'No authorization header set.'];
+            return ['No authorization header set.'];
         }
 
+        $errors = [];
         $splitAuthorizationHeader = explode(' ', $authorizationHeader);
 
         $authorizationHeaderType = $splitAuthorizationHeader[0];
         if ($authorizationHeaderType !== 'Basic') {
-            return ['error' => 'Authorization header must be of "Basic" type.'];
+            $errors[] = 'Authorization header must be of "Basic" type.';
         }
 
         if (!key_exists(1, $splitAuthorizationHeader)) {
-            return ['error' => 'Authorization header must have a value'];
+            $errors[] = 'Authorization header must have a value';
         }
 
-        $splitCredentials = explode(':', $splitAuthorizationHeader[1]);
+        $splitCredentials = explode(':', base64_decode($splitAuthorizationHeader[1]));
         if (!key_exists(0, $splitCredentials) || !key_exists(1, $splitCredentials)) {
-            return ['error' => 'Username and Password must be set'];
+            $errors[] = 'Username and Password must be set';
         }
 
-        return ['type' => $authorizationHeaderType, 'value' => $splitAuthorizationHeader[1]];
+        return $errors;
     }
 }

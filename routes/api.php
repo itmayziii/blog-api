@@ -2,7 +2,7 @@
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
-    $router->get('/authenticate', 'AuthenticateController@authenticate');
+    $router->post('/authenticate', 'AuthenticateController@authenticate');
     $router->get('/token-validation', 'AuthenticateController@validateToken');
 
     $router->group([''], function () use ($router) {
