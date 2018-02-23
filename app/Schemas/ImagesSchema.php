@@ -15,7 +15,7 @@ class ImagesSchema extends BaseSchema
 
     public function getSelfSubUrl($image = null): string
     {
-        return '/assets/images/' . $image->filename;
+        return '/images/' . $image->filename;
     }
 
     public function getAttributes($image, array $fieldKeysFilter = null): ?array

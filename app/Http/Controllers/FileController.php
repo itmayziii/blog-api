@@ -28,7 +28,7 @@ class FileController extends Controller
      * @var Gate
      */
     private $gate;
-    private $imagePath = 'assets/images/';
+    private $imagePath = 'images/';
 
     public function __construct(FileSystem $filesystem, JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
     {
