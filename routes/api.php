@@ -1,5 +1,9 @@
 <?php
 
+$router->get('/test', function () {
+    dd('HELLO WORLD');
+});
+
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/authenticate', 'AuthenticateController@authenticate');
