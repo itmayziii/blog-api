@@ -30,7 +30,7 @@ pipeline {
       }
       steps {
         sh 'ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233'
-        pwd()
+        sh 'pwd'
       }
     }
   }
