@@ -1,25 +1,26 @@
 pipeline {
-  agent {
-    docker {
-      image 'itmayziii/nginx-php70:latest'
-      args '-v ${pwd}:/home/forge/default'
-    }
-    
-  }
+  agent any
   stages {
     stage('Install Dependencies') {
+      agent {
+        docker {
+          image 'composer/composer:latest'
+        }
+        
+      }
       steps {
-        sh 'composer install'
+        sh 'composer install --no-interaction'
       }
     }
-    stage('Create .env file') {
-      steps {
-        sh 'cp .env-local .env'
+    stage('Run Unit Tests') {
+      agent {
+        docker {
+          image 'itmayziii/fullheapdeveloper-php:v1'
+        }
+        
       }
-    }
-    stage('DB Migrations') {
       steps {
-        sh 'php artisan migrate:refresh --seed --force'
+        sh 'vendor/bin/phpunit'
       }
     }
   }
