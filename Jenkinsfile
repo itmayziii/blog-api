@@ -25,11 +25,13 @@ pipeline {
     }
     stage('Deploy') {
       agent any
-        when {
-          branch 'master'
-        }
+      when {
+        branch 'master'
+      }
       steps {
-        sh 'echo hello'
+        sh 'ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233'
+        sh 'cd /Sites/blog/blog-api'
+        sh 'git pull'
       }
     }
   }
