@@ -29,7 +29,7 @@ pipeline {
           branch 'master'
         }
       steps {
-        
+        sh 'echo hello'
       }
     }
   }
