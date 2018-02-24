@@ -18,9 +18,7 @@ services:
 
   php:
     container_name: fullheapdeveloper_php
-    build:
-      context: ./
-      dockerfile: ./docker-config/php/Dockerfile
+    image: itmayziii/fullheapdeveloper-php:v1
     working_dir: /site
     ports:
       - 9000:9000
