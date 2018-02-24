@@ -23,5 +23,14 @@ pipeline {
         sh 'vendor/bin/phpunit'
       }
     }
+    stage('Deploy') {
+      agent any
+        when {
+          branch 'master'
+        }
+      steps {
+        
+      }
+    }
   }
 }
