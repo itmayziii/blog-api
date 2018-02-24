@@ -29,9 +29,10 @@ pipeline {
         branch 'master'
       }
       steps {
-        sh 'ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233'
-        sh 'cd /Sites/blog/blog-api'
-        sh 'git pull'
+        sh '''ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233 \\
+&& cd /Sites/blog/blog-api \\
+&& git pull
+'''
       }
     }
   }
