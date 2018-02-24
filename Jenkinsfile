@@ -15,7 +15,7 @@ pipeline {
     stage('Run Unit Tests') {
       agent {
         docker {
-          image 'itmayziii/fullheapdeveloper:v1'
+          image 'itmayziii/fullheapdeveloper-php:v1'
         }
         
       }
