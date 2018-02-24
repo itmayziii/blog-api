@@ -29,7 +29,7 @@ pipeline {
         branch 'master'
       }
       steps {
-        sh 'ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233 "cd /Sites/blog/blog-api && git pull && docker run --rm --interactive --tty -v /Sites/blog/blog-api:/app composer install --no-dev"'
+        sh 'ssh -i /var/jenkins_home/.ssh/fullheapdeveloper root@165.227.217.233 "cd /Sites/blog/blog-api && git pull && docker run --rm -v /Sites/blog/blog-api:/app composer install --no-dev"'
       }
     }
   }
