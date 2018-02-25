@@ -4,18 +4,13 @@ namespace App\Schemas;
 
 use Neomerx\JsonApi\Schema\BaseSchema;
 
-class ImagesSchema extends BaseSchema
+class ApiTokenSchema extends BaseSchema
 {
-    protected $resourceType = 'images';
+    protected $resourceType = 'api-token';
 
     public function getId($apiToken): ?string
     {
-        return $apiToken->path;
-    }
-
-    public function getSelfSubUrl($image = null): string
-    {
-        return '/images/' . $image->filename;
+        return $apiToken->token;
     }
 
     public function getAttributes($image, array $fieldKeysFilter = null): ?array

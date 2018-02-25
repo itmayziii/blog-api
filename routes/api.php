@@ -32,6 +32,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
         $router->get('/{id}/posts', 'CategoryPostController@show');
+
     });
 
     $router->group(['prefix' => 'tags'], function () use ($router) {

@@ -146,7 +146,7 @@ class PostControllerTest extends TestCase
             ->andReturn(true);
 
         $this->jsonApiMock
-            ->shouldReceive('respondUnauthorized')
+            ->shouldReceive('respondForbidden')
             ->once()
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
@@ -253,7 +253,7 @@ class PostControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_update_responds_unauthorized_when_authorization_fails()
+    public function test_update_responds_forbidden_when_authorization_fails()
     {
         $this->gateMock
             ->shouldReceive('denies')
@@ -262,7 +262,7 @@ class PostControllerTest extends TestCase
             ->andReturn(true);
 
         $this->jsonApiMock
-            ->shouldReceive('respondUnauthorized')
+            ->shouldReceive('respondForbidden')
             ->once()
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
@@ -416,7 +416,7 @@ class PostControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_delete_responds_unauthorized_when_authorization_fails()
+    public function test_delete_responds_forbidden_when_authorization_fails()
     {
         $this->gateMock
             ->shouldReceive('denies')
@@ -425,7 +425,7 @@ class PostControllerTest extends TestCase
             ->andReturn(true);
 
         $this->jsonApiMock
-            ->shouldReceive('respondUnauthorized')
+            ->shouldReceive('respondForbidden')
             ->once()
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);

@@ -68,7 +68,7 @@ class FileControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_uploadImages_authorization_failure_responds_unauthorized()
+    public function test_uploadImages_authorization_failure_responds_forbidden()
     {
         $this->gateMock
             ->shouldReceive('denies')
@@ -77,7 +77,7 @@ class FileControllerTest extends TestCase
             ->andReturn(true);
 
         $this->jsonApiMock
-            ->shouldReceive('respondUnauthorized')
+            ->shouldReceive('respondForbidden')
             ->once()
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);

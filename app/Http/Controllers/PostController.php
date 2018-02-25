@@ -98,7 +98,7 @@ class PostController extends Controller
     public function store(Request $request, Response $response, Post $post)
     {
         if ($this->gate->denies('store', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $validation = $this->initializeValidation($request, $this->validationRules);
@@ -136,7 +136,7 @@ class PostController extends Controller
     public function update(Request $request, Response $response, Post $post, $slug)
     {
         if ($this->gate->denies('update', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $post = $post->find($slug);
@@ -177,7 +177,7 @@ class PostController extends Controller
     public function delete(Response $response, Post $post, $slug)
     {
         if ($this->gate->denies('delete', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $post = $post->find($slug);

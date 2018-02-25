@@ -188,7 +188,22 @@ class JsonApiTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_respondUnauthorized_encodes_error_and_returns_403_status_code()
+    public function test_respondUnauthorized_encodes_error_and_returns_401_status_code()
+    {
+        $this->setupResponseMock(401);
+
+        $this->encoderMock
+            ->shouldReceive('encodeError')
+            ->once()
+            ->andReturn('Encoded Data');
+
+        $actualResult = $this->jsonApi->respondUnauthorized($this->responseMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_respondForbidden_encodes_error_and_returns_403_status_code()
     {
         $this->setupResponseMock(403);
 
@@ -197,7 +212,7 @@ class JsonApiTest extends TestCase
             ->once()
             ->andReturn('Encoded Data');
 
-        $actualResult = $this->jsonApi->respondUnauthorized($this->responseMock);
+        $actualResult = $this->jsonApi->respondForbidden($this->responseMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
