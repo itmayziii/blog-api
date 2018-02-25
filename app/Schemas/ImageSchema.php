@@ -4,7 +4,7 @@ namespace App\Schemas;
 
 use Neomerx\JsonApi\Schema\BaseSchema;
 
-class ImagesSchema extends BaseSchema
+class ImageSchema extends BaseSchema
 {
     protected $resourceType = 'images';
 
