@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\ApiToken;
 use App\Http\JsonApi;
 use App\Repositories\UserRepository;
 use Carbon\Carbon;
@@ -62,7 +61,7 @@ class AuthenticateController extends Controller
 
         $user = $this->userRepository->retrieveUserByEmail($username);
         if (is_null($user)) {
-            return $this->jsonApi->respondBadRequest($response, 'User does not exist');
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         if (!$this->hasher->check($password, $user->getAttribute('password'))) {
@@ -79,9 +78,7 @@ class AuthenticateController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to create token.');
         }
 
-        $apiToken = new ApiToken();
-        $apiToken->token = $user->getAttribute('api_token');
-        return $this->jsonApi->respondResourceCreated($response, $apiToken);
+        return $this->jsonApi->respondResourceCreated($response, $user);
     }
 
     /**

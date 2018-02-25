@@ -114,7 +114,7 @@ class AuthenticateControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_authenticate_responds_bad_request_if_user_does_not_exist()
+    public function test_authenticate_responds_not_found_if_user_does_not_exist()
     {
         $this->requestMock
             ->shouldReceive('header')
@@ -129,9 +129,9 @@ class AuthenticateControllerTest extends TestCase
             ->andReturn(null);
 
         $this->jsonApiMock
-            ->shouldReceive('respondBadRequest')
+            ->shouldReceive('respondResourceNotFound')
             ->once()
-            ->withArgs([$this->responseMock, 'User does not exist'])
+            ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
         $actualResult = $this->authenticateController->authenticate($this->requestMock, $this->responseMock, $this->carbonMock);
@@ -258,11 +258,6 @@ class AuthenticateControllerTest extends TestCase
             ->once()
             ->withArgs(['password'])
             ->andReturn('ThisPass1');
-
-        $this->userMock
-            ->shouldReceive('getAttribute')
-            ->once()
-            ->withArgs(['api_token']);
 
         $this->userMock
             ->shouldReceive('setAttribute')
