@@ -18,7 +18,8 @@ class CategorySchema extends BaseSchema
         return [
             'createdAt' => $category->getAttribute('created_at')->toIso8601String(),
             'updatedAt' => $category->getAttribute('updated_at')->toIso8601String(),
-            'name'      => $category->getAttribute('name')
+            'name'      => $category->getAttribute('name'),
+            'posts'     => $category->getAttribute('posts_count')
         ];
     }
 

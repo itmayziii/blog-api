@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Category;
+use App\Http\JsonApi;
 use App\Post;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
-use itmayziii\Laravel\JsonApi;
+use Illuminate\Http\Response;
+use Psr\Log\LoggerInterface;
 
 class CategoryController extends Controller
 {
@@ -15,7 +16,14 @@ class CategoryController extends Controller
      * @var JsonApi
      */
     private $jsonApi;
-
+    /**
+     * @var Gate
+     */
+    private $gate;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
     /**
      * Validation Rules
      *
@@ -25,64 +33,74 @@ class CategoryController extends Controller
         'name' => 'required'
     ];
 
-    public function __construct(JsonApi $jsonApi)
+    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
     {
         $this->jsonApi = $jsonApi;
+        $this->gate = $gate;
+        $this->logger = $logger;
     }
 
-    public function index(Request $request)
+    public function index(Request $request, Response $response, Category $category)
     {
-        return $this->jsonApi->respondResourcesFound(new Category(), $request);
+        $size = $request->query('size', 15);
+        $page = $request->query('page', 1);
+
+        $paginator = $category
+            ->withCount('posts')
+            ->orderBy('created_at', 'desc')
+            ->paginate($size, null, 'page', $page);
+
+        return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
 
-    public function show($id)
+    public function show(Response $response, Category $category, $id)
     {
-        $category = Category::find($id);
+        $category = $category->find($id);
 
-        if ($category) {
-            return $this->jsonApi->respondResourceFound($category);
-        } else {
-            return $this->jsonApi->respondResourceNotFound();
+        if (is_null($category)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
+
+        return $this->jsonApi->respondResourceFound($response, $category);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Response $response, Category $category)
     {
-        if (Gate::denies('store', new Category())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('store', $category)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
         }
 
         try {
-            $category = (new Category())->create([
+            $category = $category->create([
                 'name' => $request->input('name'),
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to create a category with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to create the category");
+            $this->logger->error("Failed to create a category with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to create the category");
         }
 
-        return $this->jsonApi->respondResourceCreated($category);
+        return $this->jsonApi->respondResourceCreated($response, $category);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Response $response, Category $category, $id)
     {
-        if (Gate::denies('update', new Category())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('update', $category)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        $category = Category::find($id);
-        if (!$category) {
-            return $this->jsonApi->respondResourceNotFound();
+        $category = $category->find($id);
+        if (is_null($category)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
         }
 
         try {
@@ -90,34 +108,34 @@ class CategoryController extends Controller
                 'name' => $request->input('name'),
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to update a category with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to update category");
+            $this->logger->error("Failed to update a category with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to update category.");
         }
 
-        return $this->jsonApi->respondResourceUpdated($category);
+        return $this->jsonApi->respondResourceUpdated($response, $category);
     }
 
-    public function delete($id)
+    public function delete(Response $response, Category $category, Post $post, $id)
     {
-        if (Gate::denies('update', new Category())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('delete', $category)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        $category = Category::find($id);
-        if (!$category) {
-            return $this->jsonApi->respondResourceNotFound();
+        $category = $category->find($id);
+        if (is_null($category)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         try {
-            Post::where('category_id', $id)
-                ->update(['category_id' => '']);
+            $post->where('category_id', $id)
+                ->update(['category_id' => null]);
             $category->delete();
         } catch (\Exception $e) {
-            Log::error("Failed to delete a category with exception " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to delete category");
+            $this->logger->error("Failed to delete a category with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to delete category.");
         }
 
-        return $this->jsonApi->respondResourceDeleted($category);
+        return $this->jsonApi->respondResourceDeleted($response);
     }
 
 }
