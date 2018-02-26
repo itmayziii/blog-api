@@ -31,7 +31,7 @@ class CategoryController extends Controller
      * @var array
      */
     private $rules = [
-        'name' => 'required'
+        'name' => 'required|unique:categories'
     ];
 
     public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)

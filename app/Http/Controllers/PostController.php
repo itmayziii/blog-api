@@ -34,7 +34,7 @@ class PostController extends Controller
         'user-id'     => 'required',
         'category-id' => 'required',
         'title'       => 'required|max:200',
-        'slug'        => 'required|max:255',
+        'slug'        => 'required|max:255|unique:posts',
         'content'     => 'required|max:10000'
     ];
 
