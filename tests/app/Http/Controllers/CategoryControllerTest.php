@@ -8,6 +8,9 @@ use App\Http\JsonApi;
 use App\Post;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Support\MessageBag;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
@@ -42,6 +45,18 @@ class CategoryControllerTest extends TestCase
      */
     private $gateMock;
     /**
+     * @var ValidationFactory | Mock
+     */
+    private $validationFactoryMock;
+    /**
+     * @var Validator | Mock
+     */
+    private $validatorMock;
+    /**
+     * @var MessageBag
+     */
+    private $messageBagMock;
+    /**
      * @var LoggerInterface | Mock
      */
     private $loggerMock;
@@ -63,10 +78,13 @@ class CategoryControllerTest extends TestCase
         $this->categoryMock = Mockery::mock(Category::class);
         $this->postMock = Mockery::mock(Post::class);
         $this->gateMock = Mockery::mock(Gate::class);
+        $this->validationFactoryMock = Mockery::mock(ValidationFactory::class);
+        $this->validatorMock = Mockery::mock(Validator::class);
+        $this->messageBagMock = Mockery::mock(MessageBag::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
 
-        $this->categoryController = new CategoryController($this->jsonApiMock, $this->gateMock, $this->loggerMock);
+        $this->categoryController = new CategoryController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
     }
 
     public function tearDown()
@@ -160,22 +178,20 @@ class CategoryControllerTest extends TestCase
 
     public function test_store_responds_validation_failed_if_validation_fails()
     {
+        $this->setUpValidationMock(true);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
             ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
 
-        $request = Request::create('/v1/categories', 'POST', [
-            'name' => null
-        ]);
-
         $this->jsonApiMock
             ->shouldReceive('respondValidationFailed')
             ->once()
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->store($request, $this->responseMock, $this->categoryMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -183,21 +199,22 @@ class CategoryControllerTest extends TestCase
 
     public function test_store_responds_server_error_if_category_can_not_be_created()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
             ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
 
-        $request = Request::create('/v1/categories', 'POST', [
-            'name' => 'test-name'
-        ]);
-
         $this->categoryMock
             ->shouldReceive('create')
             ->once()
-            ->withArgs([['name' => 'test-name']])
             ->andThrow(new \Exception('an error occurred'));
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -210,7 +227,7 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock, 'Unable to create the category'])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->store($request, $this->responseMock, $this->categoryMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -218,21 +235,22 @@ class CategoryControllerTest extends TestCase
 
     public function test_store_responds_with_created_resource_on_success()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
             ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
 
-        $request = Request::create('/v1/categories', 'POST', [
-            'name' => 'test-name'
-        ]);
-
         $this->categoryMock
             ->shouldReceive('create')
             ->once()
-            ->withArgs([['name' => 'test-name']])
             ->andReturn($this->categoryMock);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceCreated')
@@ -240,7 +258,7 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->categoryMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->store($request, $this->responseMock, $this->categoryMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -294,6 +312,8 @@ class CategoryControllerTest extends TestCase
 
     public function test_update_responds_validation_failed_when_validation_fails()
     {
+        $this->setUpValidationMock(true);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -306,16 +326,12 @@ class CategoryControllerTest extends TestCase
             ->withArgs([4])
             ->andReturn($this->categoryMock);
 
-        $request = Request::create('v1/categories/4', 'PUT', [
-            'name' => null
-        ]);
-
         $this->jsonApiMock
             ->shouldReceive('respondValidationFailed')
             ->once()
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->update($request, $this->responseMock, $this->categoryMock, 4);
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -323,21 +339,23 @@ class CategoryControllerTest extends TestCase
 
     public function test_update_responds_with_server_error_on_failed_update()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
             ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
 
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
+
         $this->categoryMock
             ->shouldReceive('find')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);
-
-        $request = Request::create('v1/categories/4', 'PUT', [
-            'name' => 'Test Category'
-        ]);
 
         $this->jsonApiMock
             ->shouldReceive('respondServerError')
@@ -348,7 +366,6 @@ class CategoryControllerTest extends TestCase
         $this->categoryMock
             ->shouldReceive('update')
             ->once()
-            ->withArgs([['name' => 'Test Category']])
             ->andThrow(new \Exception('an error occurred'));
 
         $this->loggerMock
@@ -356,7 +373,7 @@ class CategoryControllerTest extends TestCase
             ->once()
             ->withArgs(['Failed to update a category with exception: an error occurred']);
 
-        $actualResult = $this->categoryController->update($request, $this->responseMock, $this->categoryMock, 4);
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -364,6 +381,8 @@ class CategoryControllerTest extends TestCase
 
     public function test_update_responds_resource_updated_if_everything_is_successful()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -376,9 +395,9 @@ class CategoryControllerTest extends TestCase
             ->withArgs([4])
             ->andReturn($this->categoryMock);
 
-        $request = Request::create('v1/categories/4', 'PUT', [
-            'name' => 'Test Category'
-        ]);
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceUpdated')
@@ -389,10 +408,9 @@ class CategoryControllerTest extends TestCase
         $this->categoryMock
             ->shouldReceive('update')
             ->once()
-            ->withArgs([['name' => 'Test Category']])
             ->andReturn($this->categoryMock);
 
-        $actualResult = $this->categoryController->update($request, $this->responseMock, $this->categoryMock, 4);
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -532,5 +550,33 @@ class CategoryControllerTest extends TestCase
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    /**
+     * @param boolean $doesValidationFail
+     */
+    private function setUpValidationMock($doesValidationFail)
+    {
+        $this->requestMock
+            ->shouldReceive('all')
+            ->once()
+            ->andReturn([]);
+
+        $this->validationFactoryMock
+            ->shouldReceive('make')
+            ->once()
+            ->andReturn($this->validatorMock);
+
+        $this->validatorMock
+            ->shouldReceive('fails')
+            ->once()
+            ->andReturn($doesValidationFail);
+
+        if ($doesValidationFail) {
+            $this->validatorMock
+                ->shouldReceive('getMessageBag')
+                ->once()
+                ->andReturn($this->messageBagMock);
+        }
     }
 }

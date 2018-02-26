@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
 
-class AuthenticateController extends Controller
+class AuthenticateController
 {
     /**
      * @var UserRepository

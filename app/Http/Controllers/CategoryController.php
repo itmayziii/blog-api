@@ -6,6 +6,7 @@ use App\Category;
 use App\Http\JsonApi;
 use App\Post;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
@@ -33,8 +34,9 @@ class CategoryController extends Controller
         'name' => 'required'
     ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
+    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
     {
+        parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;
