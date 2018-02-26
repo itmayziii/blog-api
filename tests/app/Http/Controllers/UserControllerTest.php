@@ -458,6 +458,118 @@ class UserControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
+    public function test_delete_responds_forbidden_if_user_is_not_authorized()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['delete', $this->userMock])
+            ->andReturn(true);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondForbidden')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->userController->delete($this->responseMock, $this->userMock, 2);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_delete_responds_not_found_if_user_does_not_exist()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['delete', $this->userMock])
+            ->andReturn(false);
+
+        $this->userMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([2])
+            ->andReturn(null);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceNotFound')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->userController->delete($this->responseMock, $this->userMock, 2);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_delete_responds_with_server_error_if_user_could_not_be_deleted()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['delete', $this->userMock])
+            ->andReturn(false);
+
+        $this->userMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([2])
+            ->andReturn($this->userMock);
+
+        $this->userMock
+            ->shouldReceive('delete')
+            ->once()
+            ->andThrow(new \Exception('an error occurred'));
+
+        $this->loggerMock
+            ->shouldReceive('error')
+            ->once()
+            ->withArgs(['Failed to delete a user with exception: an error occurred']);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondServerError')
+            ->once()
+            ->withArgs([$this->responseMock, 'Unable to delete user.'])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->userController->delete($this->responseMock, $this->userMock, 2);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_delete_user_deleted_successfully()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['delete', $this->userMock])
+            ->andReturn(false);
+
+        $this->userMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([2])
+            ->andReturn($this->userMock);
+
+        $this->userMock
+            ->shouldReceive('delete')
+            ->once();
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceDeleted')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->userController->delete($this->responseMock, $this->userMock, 2);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
     /**
      * @param boolean $doesValidationFail
      */
