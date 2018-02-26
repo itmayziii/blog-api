@@ -7,6 +7,9 @@ use App\Http\JsonApi;
 use App\Post;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Support\MessageBag;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
@@ -29,6 +32,10 @@ class PostControllerTest extends TestCase
      */
     private $responseMock;
     /**
+     * @var Request | Mock
+     */
+    private $requestMock;
+    /**
      * @var LoggerInterface | Mock
      */
     private $loggerMock;
@@ -36,6 +43,22 @@ class PostControllerTest extends TestCase
      * @var Post | Mock
      */
     private $postMock;
+    /**
+     * @var ValidationFactory | Mock
+     */
+    private $validationFactoryMock;
+    /**
+     * @var Validator | Mock
+     */
+    private $validatorMock;
+    /**
+     * @var MessageBag
+     */
+    private $messageBagMock;
+    /**
+     * @var LengthAwarePaginator | Mock
+     */
+    private $paginatorMock;
     /**
      * @var JsonApi | Mock;
      */
@@ -47,9 +70,14 @@ class PostControllerTest extends TestCase
         $this->jsonApiMock = $this->jsonApiMock = Mockery::mock(JsonApi::class);
         $this->gateMock = Mockery::mock(Gate::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
+        $this->requestMock = Mockery::mock(Request::class);
         $this->responseMock = Mockery::mock(Response::class);
         $this->postMock = Mockery::mock(Post::class);
-        $this->postController = new PostController($this->jsonApiMock, $this->gateMock, $this->loggerMock);
+        $this->validationFactoryMock = Mockery::mock(ValidationFactory::class);
+        $this->validatorMock = Mockery::mock(Validator::class);
+        $this->messageBagMock = Mockery::mock(MessageBag::class);
+        $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
+        $this->postController = new PostController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
     }
 
     public function tearDown()
@@ -59,9 +87,18 @@ class PostControllerTest extends TestCase
 
     public function test_index_responds_with_resources()
     {
-        $paginationMock = Mockery::mock(LengthAwarePaginator::class);
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['size', 15])
+            ->andReturn(20);
 
-        $request = Request::create('v1/posts', 'GET', ['size' => 10, 'page' => 2]);
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['page', 1])
+            ->andReturn(2);
+
         $this->postMock
             ->shouldReceive('where')
             ->once()
@@ -77,16 +114,16 @@ class PostControllerTest extends TestCase
         $this->postMock
             ->shouldReceive('paginate')
             ->once()
-            ->withArgs([10, null, 'page', 2])
-            ->andReturn($paginationMock);
+            ->withArgs([20, null, 'page', 2])
+            ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourcesFound')
             ->once()
-            ->withArgs([$this->responseMock, $paginationMock])
+            ->withArgs([$this->responseMock, $this->paginatorMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->index($request, $this->responseMock, $this->postMock);
+        $actualResult = $this->postController->index($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -151,9 +188,7 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $request = Request::create('v1/posts', 'POST');
-
-        $actualResult = $this->postController->store($request, $this->responseMock, $this->postMock);
+        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -161,6 +196,8 @@ class PostControllerTest extends TestCase
 
     public function test_store_responds_validation_failed_when_validation_fails()
     {
+        $this->setUpValidationMock(true);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -172,9 +209,7 @@ class PostControllerTest extends TestCase
             ->once()
             ->andReturn($this->responseMock);
 
-        $request = Request::create('v1/posts', 'POST');
-
-        $actualResult = $this->postController->store($request, $this->responseMock, $this->postMock);
+        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -182,6 +217,8 @@ class PostControllerTest extends TestCase
 
     public function test_store_responds_with_server_error_on_create_exception()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -191,8 +228,12 @@ class PostControllerTest extends TestCase
         $this->jsonApiMock
             ->shouldReceive('respondServerError')
             ->once()
-            ->withArgs([$this->responseMock, 'Unable to create the post'])
+            ->withArgs([$this->responseMock, 'Unable to create the post.'])
             ->andReturn($this->responseMock);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(6);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -204,16 +245,7 @@ class PostControllerTest extends TestCase
             ->once()
             ->andThrow(new \Exception('an error happened'));
 
-        $request = Request::create('v1/posts', 'POST', [
-            'user-id'     => 1,
-            'category-id' => 2,
-            'slug'        => 'a-slug',
-            'title'       => 'A Title',
-            'content'     => 'Some Content',
-            'image-path'  => '/path/to/images'
-        ]);
-
-        $actualResult = $this->postController->store($request, $this->responseMock, $this->postMock);
+        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -221,6 +253,8 @@ class PostControllerTest extends TestCase
 
     public function test_store_responds_with_resource_on_successful_creation()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -233,21 +267,16 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->postMock])
             ->andReturn($this->responseMock);
 
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(6);
+
         $this->postMock
             ->shouldReceive('create')
             ->once()
             ->andReturn($this->postMock);
 
-        $request = Request::create('v1/posts', 'POST', [
-            'user-id'     => 1,
-            'category-id' => 2,
-            'slug'        => 'a-slug',
-            'title'       => 'A Title',
-            'content'     => 'Some Content',
-            'image-path'  => '/path/to/images'
-        ]);
-
-        $actualResult = $this->postController->store($request, $this->responseMock, $this->postMock);
+        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -267,10 +296,7 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-
-        $request = Request::create('v1/posts', 'PUT');
-
-        $actualResult = $this->postController->update($request, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -278,6 +304,8 @@ class PostControllerTest extends TestCase
 
     public function test_update_responds_validation_failed_when_validation_fails()
     {
+        $this->setUpValidationMock(true);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -295,9 +323,7 @@ class PostControllerTest extends TestCase
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
 
-        $request = Request::create('v1/posts', 'PUT');
-
-        $actualResult = $this->postController->update($request, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -323,9 +349,7 @@ class PostControllerTest extends TestCase
             ->withArgs(['a-slug'])
             ->andReturn(null);
 
-        $request = Request::create('v1/posts', 'PUT');
-
-        $actualResult = $this->postController->update($request, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -333,6 +357,8 @@ class PostControllerTest extends TestCase
 
     public function test_update_responds_with_server_error_on_update_exception()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -351,6 +377,10 @@ class PostControllerTest extends TestCase
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
 
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(5);
+
         $this->loggerMock
             ->shouldReceive('error')
             ->once()
@@ -361,16 +391,7 @@ class PostControllerTest extends TestCase
             ->once()
             ->andThrow(new \Exception('an error happened'));
 
-        $request = Request::create('v1/posts', 'PUT', [
-            'user-id'     => 1,
-            'category-id' => 2,
-            'slug'        => 'a-slug',
-            'title'       => 'A Title',
-            'content'     => 'Some Content',
-            'image-path'  => '/path/to/images'
-        ]);
-
-        $actualResult = $this->postController->update($request, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -378,6 +399,8 @@ class PostControllerTest extends TestCase
 
     public function test_update_responds_with_resource_on_successful_update()
     {
+        $this->setUpValidationMock(false);
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -390,6 +413,10 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->postMock])
             ->andReturn($this->responseMock);
 
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(5);
+
         $this->postMock
             ->shouldReceive('update')
             ->once()
@@ -401,16 +428,7 @@ class PostControllerTest extends TestCase
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
 
-        $request = Request::create('v1/posts', 'PUT', [
-            'user-id'     => 1,
-            'category-id' => 2,
-            'slug'        => 'a-slug',
-            'title'       => 'A Title',
-            'content'     => 'Some Content',
-            'image-path'  => '/path/to/images'
-        ]);
-
-        $actualResult = $this->postController->update($request, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -526,5 +544,33 @@ class PostControllerTest extends TestCase
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    /**
+     * @param boolean $doesValidationFail
+     */
+    private function setUpValidationMock($doesValidationFail)
+    {
+        $this->requestMock
+            ->shouldReceive('all')
+            ->once()
+            ->andReturn([]);
+
+        $this->validationFactoryMock
+            ->shouldReceive('make')
+            ->once()
+            ->andReturn($this->validatorMock);
+
+        $this->validatorMock
+            ->shouldReceive('fails')
+            ->once()
+            ->andReturn($doesValidationFail);
+
+        if ($doesValidationFail) {
+            $this->validatorMock
+                ->shouldReceive('getMessageBag')
+                ->once()
+                ->andReturn($this->messageBagMock);
+        }
     }
 }

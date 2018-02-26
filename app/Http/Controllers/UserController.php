@@ -29,7 +29,6 @@ class UserController extends Controller
      * @var Hasher
      */
     private $hasher;
-
     /**
      * Creation Validation Rules
      *
