@@ -47,7 +47,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->group(['prefix' => 'users'], function () use ($router) {
 
-        $router->get('', ['middleware' => 'auth', 'uses' => 'UserController@show']);
+        $router->get('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@show']);
         $router->get('', ['middleware' => 'auth', 'uses' => 'UserController@index']);
         $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@update']);
         $router->post('', 'UserController@store');
