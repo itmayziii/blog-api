@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
 
-class FileController extends Controller
+class FileController
 {
     /**
      * @var Filesystem

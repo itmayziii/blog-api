@@ -6,7 +6,7 @@ use App\Category;
 use App\Http\JsonApi;
 use Illuminate\Http\Response;
 
-class CategoryPostController extends Controller
+class CategoryPostController
 {
     /**
      * @var JsonApi

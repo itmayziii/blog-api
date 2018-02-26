@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Contact;
 use App\Http\JsonApi;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
@@ -30,8 +31,9 @@ class ContactController extends Controller
         'comments'   => 'required|max:4000'
     ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
+    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
     {
+        parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;

@@ -7,6 +7,9 @@ use App\Http\Controllers\ContactController;
 use App\Http\JsonApi;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Contracts\Support\MessageBag;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Mockery;
@@ -33,6 +36,18 @@ class ContactControllerTest extends TestCase
      */
     private $gateMock;
     /**
+     * @var ValidationFactory | Mock
+     */
+    private $validationFactoryMock;
+    /**
+     * @var Validator | Mock
+     */
+    private $validatorMock;
+    /**
+     * @var MessageBag
+     */
+    private $messageBagMock;
+    /**
      * @var LoggerInterface | Mock
      */
     private $loggerMock;
@@ -56,11 +71,14 @@ class ContactControllerTest extends TestCase
         $this->responseMock = Mockery::mock(Response::class);
         $this->jsonApiMock = Mockery::mock(JsonApi::class);
         $this->gateMock = Mockery::mock(Gate::class);
+        $this->validationFactoryMock = Mockery::mock(ValidationFactory::class);
+        $this->validatorMock = Mockery::mock(Validator::class);
+        $this->messageBagMock = Mockery::mock(MessageBag::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->contactMock = Mockery::mock(Contact::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
 
-        $this->contactController = new ContactController($this->jsonApiMock, $this->gateMock, $this->loggerMock);
+        $this->contactController = new ContactController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
     }
 
     public function tearDown()
@@ -134,16 +152,14 @@ class ContactControllerTest extends TestCase
 
     public function test_store_responds_validation_failed_on_validation_failure()
     {
-        $request = Request::create('v1/contacts', 'POST', [
-            'first-name' => null
-        ]);
+        $this->setUpValidationMock(true);
 
         $this->jsonApiMock
             ->shouldReceive('respondValidationFailed')
             ->once()
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->contactController->store($request, $this->responseMock, $this->contactMock);
+        $actualResult = $this->contactController->store($this->requestMock, $this->responseMock, $this->contactMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -151,17 +167,16 @@ class ContactControllerTest extends TestCase
 
     public function test_store_responds_with_server_error_when_contact_will_not_create()
     {
-        $request = Request::create('v1/contacts', 'POST', [
-            'first-name' => 'Tommy',
-            'last-name'  => 'May',
-            'email'      => 'tommymay37@gmail.com',
-            'comments'   => 'Hello World'
-        ]);
+        $this->setUpValidationMock(false);
 
         $this->contactMock
             ->shouldReceive('create')
             ->once()
             ->andThrow(new \Exception('an error occurred'));
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(4);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -174,7 +189,7 @@ class ContactControllerTest extends TestCase
             ->withArgs([$this->responseMock, 'Unable to create contact.'])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->contactController->store($request, $this->responseMock, $this->contactMock);
+        $actualResult = $this->contactController->store($this->requestMock, $this->responseMock, $this->contactMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -182,17 +197,16 @@ class ContactControllerTest extends TestCase
 
     public function test_store_responds_contact_was_created_when_everything_is_successful()
     {
-        $request = Request::create('v1/contacts', 'POST', [
-            'first-name' => 'Tommy',
-            'last-name'  => 'May',
-            'email'      => 'tommymay37@gmail.com',
-            'comments'   => 'Hello World'
-        ]);
+        $this->setUpValidationMock(false);
 
         $this->contactMock
             ->shouldReceive('create')
             ->once()
             ->andReturn($this->contactMock);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(4);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceCreated')
@@ -200,7 +214,7 @@ class ContactControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->contactMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->contactController->store($request, $this->responseMock, $this->contactMock);
+        $actualResult = $this->contactController->store($this->requestMock, $this->responseMock, $this->contactMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -276,5 +290,33 @@ class ContactControllerTest extends TestCase
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    /**
+     * @param boolean $doesValidationFail
+     */
+    private function setUpValidationMock($doesValidationFail)
+    {
+        $this->requestMock
+            ->shouldReceive('all')
+            ->once()
+            ->andReturn([]);
+
+        $this->validationFactoryMock
+            ->shouldReceive('make')
+            ->once()
+            ->andReturn($this->validatorMock);
+
+        $this->validatorMock
+            ->shouldReceive('fails')
+            ->once()
+            ->andReturn($doesValidationFail);
+
+        if ($doesValidationFail) {
+            $this->validatorMock
+                ->shouldReceive('getMessageBag')
+                ->once()
+                ->andReturn($this->messageBagMock);
+        }
     }
 }
