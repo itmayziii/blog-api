@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\JsonApi;
 use App\User;
+use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
-use itmayziii\Laravel\JsonApi;
+use Illuminate\Http\Response;
+use Psr\Log\LoggerInterface;
 
 class UserController extends Controller
 {
@@ -14,7 +17,18 @@ class UserController extends Controller
      * @var JsonApi
      */
     private $jsonApi;
-
+    /**
+     * @var Gate
+     */
+    private $gate;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+    /**
+     * @var Hasher
+     */
+    private $hasher;
     /**
      * Creation Validation Rules
      *
@@ -38,82 +52,106 @@ class UserController extends Controller
         'email'      => 'required|max:100|email|unique:users'
     ];
 
-    public function __construct(JsonApi $jsonApi)
+    public function __construct(JsonApi $jsonApi, ValidationFactory $validationFactory, Gate $gate, LoggerInterface $logger, Hasher $hasher)
     {
+        parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
+        $this->gate = $gate;
+        $this->logger = $logger;
+        $this->hasher = $hasher;
     }
 
     /**
      * List the existing users.
      *
      * @param Request $request
-     * @return \Illuminate\Http\Response
+     * @param Response $response
+     * @param User $user
+     *
+     * @return Response
      */
-    public function index(Request $request)
+    public function index(Request $request, Response $response, User $user)
     {
-        if (Gate::denies('index', new User())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('index', $user)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        return $this->jsonApi->respondResourcesFound(new User(), $request);
+        $size = $request->query('size', 15);
+        $page = $request->query('page', 1);
+
+        $paginator = $user
+            ->orderBy('created_at', 'desc')
+            ->paginate($size, null, 'page', $page);
+
+        return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
 
-    public function show($id)
+    /**
+     * @param Response $response
+     * @param User $user
+     * @param $id
+     *
+     * @return Response
+     */
+    public function show(Response $response, User $user, $id)
     {
-        if (Gate::denies('show', new User())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('show', $user)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        $user = User::find($id);
-        if ($user) {
-            return $this->jsonApi->respondResourceFound($user);
-        } else {
-            return $this->jsonApi->respondResourceNotFound();
+        $user = $user->find($id);
+        if (is_null($user)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
+
+        return $this->jsonApi->respondResourceFound($response, $user);
     }
 
     /**
      * Creates a new user.
      *
      * @param Request $request
+     * @param Response $response
+     * @param User $user
+     *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, Response $response, User $user)
     {
-        $validation = $this->initializeValidation($request, $this->creationRules);
-        if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+        $validator = $this->initializeValidation($request, $this->creationRules);
+        if ($validator->fails()) {
+            return $this->jsonApi->respondValidationFailed($response, $validator->getMessageBag());
         }
 
         try {
-            $user = (new User())->create([
+            $user = $user->create([
                 'first_name' => $request->input('first-name'),
                 'last_name'  => $request->input('last-name'),
                 'email'      => $request->input('email'),
-                'password'   => app('hash')->make($request->input('password'))
+                'password'   => $this->hasher->make($request->input('password'))
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to create a user with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to create the user");
+            $this->logger->error("Failed to create a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to create the user.");
         }
 
-        return $this->jsonApi->respondResourceCreated($user);
+        return $this->jsonApi->respondResourceCreated($response, $user);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Response $response, User $user, $id)
     {
-        if (Gate::denies('update', new User())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('update', $user)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        $user = User::find($id);
-        if (!$user) {
-            return $this->jsonApi->respondResourceNotFound();
+        $user = $user->find($id);
+        if (is_null($user)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         $validation = $this->initializeValidation($request, $this->updateRules);
         if ($validation->fails()) {
-            return $this->jsonApi->respondValidationFailed($validation->getMessageBag());
+            return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
         }
 
         try {
@@ -123,37 +161,40 @@ class UserController extends Controller
                 'email'      => $request->input('email'),
             ]);
         } catch (\Exception $e) {
-            Log::error("Failed to update a user with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to update user");
+            $this->logger->error("Failed to update a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to update user.");
         }
 
-        return $this->jsonApi->respondResourceUpdated($user);
+        return $this->jsonApi->respondResourceUpdated($response, $user);
     }
 
     /**
      * Deletes a user.
      *
+     * @param Response $response
+     * @param User $user
      * @param int $id
-     * @return \Illuminate\Http\Response
+     *
+     * @return Response
      */
-    public function delete($id)
+    public function delete(Response $response, User $user, $id)
     {
-        if (Gate::denies('delete', new User())) {
-            return $this->jsonApi->respondUnauthorized();
+        if ($this->gate->denies('delete', $user)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
-        $user = User::find($id);
-        if (!$user) {
-            return $this->jsonApi->respondResourceNotFound();
+        $user = $user->find($id);
+        if (is_null($user)) {
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         try {
             $user->delete();
         } catch (\Exception $e) {
-            Log::error("Failed to delete a user with exception: " . $e->getMessage());
-            return $this->jsonApi->respondBadRequest("Unable to delete user");
+            $this->logger->error("Failed to delete a user with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, "Unable to delete user.");
         }
 
-        return $this->jsonApi->respondResourceDeleted($user);
+        return $this->jsonApi->respondResourceDeleted($response);
     }
 }

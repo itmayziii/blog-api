@@ -6,24 +6,13 @@ use App\Http\JsonApi;
 use App\Post;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
 
 class PostController extends Controller
 {
-    /**
-     * Validation Rules
-     *
-     * @var array
-     */
-    private $validationRules = [
-        'user-id'     => 'required',
-        'category-id' => 'required',
-        'title'       => 'required|max:200',
-        'slug'        => 'required|max:255',
-        'content'     => 'required|max:10000'
-    ];
     /**
      * @var JsonApi
      */
@@ -36,9 +25,22 @@ class PostController extends Controller
      * @var Gate
      */
     private $gate;
+    /**
+     * Validation Rules
+     *
+     * @var array
+     */
+    private $validationRules = [
+        'user-id'     => 'required',
+        'category-id' => 'required',
+        'title'       => 'required|max:200',
+        'slug'        => 'required|max:255|unique:posts',
+        'content'     => 'required|max:10000'
+    ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger)
+    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
     {
+        parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;
@@ -58,7 +60,7 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $post->where('status', 'draft')
+        $paginator = $post->where('status', 'live')
             ->orderBy('created_at', 'desc')
             ->paginate($size, null, 'page', $page);
 
@@ -77,13 +79,12 @@ class PostController extends Controller
     public function show(Response $response, Post $post, $slug)
     {
         $post = $post->find($slug);
-
         if (is_null($post)) {
             $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
             return $this->jsonApi->respondResourceNotFound($response);
-        } else {
-            return $this->jsonApi->respondResourceFound($response, $post);
         }
+
+        return $this->jsonApi->respondResourceFound($response, $post);
     }
 
     /**
@@ -98,7 +99,7 @@ class PostController extends Controller
     public function store(Request $request, Response $response, Post $post)
     {
         if ($this->gate->denies('store', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $validation = $this->initializeValidation($request, $this->validationRules);
@@ -117,7 +118,7 @@ class PostController extends Controller
             ]);
         } catch (Exception $e) {
             $this->logger->error(PostController::class . " failed to create a post with exception: " . $e->getMessage());
-            return $this->jsonApi->respondServerError($response, "Unable to create the post");
+            return $this->jsonApi->respondServerError($response, "Unable to create the post.");
         }
 
         return $this->jsonApi->respondResourceCreated($response, $post);
@@ -136,7 +137,7 @@ class PostController extends Controller
     public function update(Request $request, Response $response, Post $post, $slug)
     {
         if ($this->gate->denies('update', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $post = $post->find($slug);
@@ -177,7 +178,7 @@ class PostController extends Controller
     public function delete(Response $response, Post $post, $slug)
     {
         if ($this->gate->denies('delete', $post)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $post = $post->find($slug);

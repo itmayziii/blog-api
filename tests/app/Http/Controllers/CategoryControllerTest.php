@@ -2,7 +2,8 @@
 
 namespace Tests\Http\Controllers;
 
-use App\Http\Controllers\PostController;
+use App\Category;
+use App\Http\Controllers\CategoryController;
 use App\Http\JsonApi;
 use App\Post;
 use Illuminate\Contracts\Auth\Access\Gate;
@@ -17,32 +18,32 @@ use Mockery\Mock;
 use Psr\Log\LoggerInterface;
 use Tests\TestCase;
 
-class PostControllerTest extends TestCase
+class CategoryControllerTest extends TestCase
 {
-    /**
-     * @var PostController
-     */
-    private $postController;
-    /**
-     * @var Gate | Mock;
-     */
-    private $gateMock;
-    /**
-     * @var Response | Mock
-     */
-    private $responseMock;
     /**
      * @var Request | Mock
      */
     private $requestMock;
     /**
-     * @var LoggerInterface | Mock
+     * @var Response | Mock
      */
-    private $loggerMock;
+    private $responseMock;
+    /**
+     * @var JsonApi | Mock
+     */
+    private $jsonApiMock;
+    /**
+     * @var Category | Mock
+     */
+    private $categoryMock;
     /**
      * @var Post | Mock
      */
     private $postMock;
+    /**
+     * @var Gate | Mock
+     */
+    private $gateMock;
     /**
      * @var ValidationFactory | Mock
      */
@@ -56,28 +57,34 @@ class PostControllerTest extends TestCase
      */
     private $messageBagMock;
     /**
+     * @var LoggerInterface | Mock
+     */
+    private $loggerMock;
+    /**
      * @var LengthAwarePaginator | Mock
      */
     private $paginatorMock;
     /**
-     * @var JsonApi | Mock;
+     * @var CategoryController
      */
-    protected $jsonApiMock;
+    private $categoryController;
 
     public function setUp()
     {
         parent::setUp();
-        $this->jsonApiMock = $this->jsonApiMock = Mockery::mock(JsonApi::class);
-        $this->gateMock = Mockery::mock(Gate::class);
-        $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->requestMock = Mockery::mock(Request::class);
         $this->responseMock = Mockery::mock(Response::class);
+        $this->jsonApiMock = Mockery::mock(JsonApi::class);
+        $this->categoryMock = Mockery::mock(Category::class);
         $this->postMock = Mockery::mock(Post::class);
+        $this->gateMock = Mockery::mock(Gate::class);
         $this->validationFactoryMock = Mockery::mock(ValidationFactory::class);
         $this->validatorMock = Mockery::mock(Validator::class);
         $this->messageBagMock = Mockery::mock(MessageBag::class);
+        $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
-        $this->postController = new PostController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
+
+        $this->categoryController = new CategoryController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
     }
 
     public function tearDown()
@@ -85,13 +92,13 @@ class PostControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_index_responds_with_resources()
+    public function test_index_returns_categories()
     {
         $this->requestMock
             ->shouldReceive('query')
             ->once()
             ->withArgs(['size', 15])
-            ->andReturn(20);
+            ->andReturn(30);
 
         $this->requestMock
             ->shouldReceive('query')
@@ -99,22 +106,22 @@ class PostControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
-        $this->postMock
-            ->shouldReceive('where')
+        $this->categoryMock
+            ->shouldReceive('withCount')
             ->once()
-            ->withArgs(['status', 'live'])
-            ->andReturn($this->postMock);
+            ->withArgs(['posts'])
+            ->andReturn($this->categoryMock);
 
-        $this->postMock
+        $this->categoryMock
             ->shouldReceive('orderBy')
             ->once()
             ->withArgs(['created_at', 'desc'])
-            ->andReturn($this->postMock);
+            ->andReturn($this->categoryMock);
 
-        $this->postMock
+        $this->categoryMock
             ->shouldReceive('paginate')
             ->once()
-            ->withArgs([20, null, 'page', 2])
+            ->withArgs([30, null, 'page', 2])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock
@@ -123,38 +130,18 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->paginatorMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->index($this->requestMock, $this->responseMock, $this->postMock);
+        $actualResult = $this->categoryController->index($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_show_responds_with_a_resource_when_one_exists()
+    public function test_show_responds_not_found_if_category_does_not_exist()
     {
-        $this->postMock
+        $this->categoryMock
             ->shouldReceive('find')
             ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn($this->postMock);
-
-        $this->jsonApiMock
-            ->shouldReceive('respondResourceFound')
-            ->once()
-            ->withArgs([$this->responseMock, $this->postMock])
-            ->andReturn($this->responseMock);
-
-        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
-        $expectedResult = $this->responseMock;
-
-        $this->assertThat($actualResult, $this->equalTo($expectedResult));
-    }
-
-    public function test_show_responds_not_found_when_no_resource_exists()
-    {
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs([2])
             ->andReturn(null);
 
         $this->jsonApiMock
@@ -163,23 +150,18 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $this->loggerMock
-            ->shouldReceive('debug')
-            ->once()
-            ->withArgs([PostController::class . ' unable to find post with slug: a-slug']);
-
-        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->show($this->responseMock, $this->categoryMock, 2);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_store_responds_unauthorized_when_authorization_fails()
+    public function test_store_responds_forbidden_if_not_allowed()
     {
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['store', $this->postMock])
+            ->withArgs(['store', $this->categoryMock])
             ->andReturn(true);
 
         $this->jsonApiMock
@@ -188,20 +170,20 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_store_responds_validation_failed_when_validation_fails()
+    public function test_store_responds_validation_failed_if_validation_fails()
     {
         $this->setUpValidationMock(true);
 
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['store', $this->postMock])
+            ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
 
         $this->jsonApiMock
@@ -209,85 +191,85 @@ class PostControllerTest extends TestCase
             ->once()
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_store_responds_with_server_error_on_create_exception()
+    public function test_store_responds_server_error_if_category_can_not_be_created()
     {
         $this->setUpValidationMock(false);
 
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['store', $this->postMock])
+            ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
 
-        $this->jsonApiMock
-            ->shouldReceive('respondServerError')
+        $this->categoryMock
+            ->shouldReceive('create')
             ->once()
-            ->withArgs([$this->responseMock, 'Unable to create the post.'])
-            ->andReturn($this->responseMock);
+            ->andThrow(new \Exception('an error occurred'));
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(6);
+            ->once();
 
         $this->loggerMock
             ->shouldReceive('error')
             ->once()
-            ->withArgs([Postcontroller::class . ' failed to create a post with exception: an error happened']);
+            ->withArgs(['Failed to create a category with exception: an error occurred']);
 
-        $this->postMock
-            ->shouldReceive('create')
+        $this->jsonApiMock
+            ->shouldReceive('respondServerError')
             ->once()
-            ->andThrow(new \Exception('an error happened'));
+            ->withArgs([$this->responseMock, 'Unable to create the category'])
+            ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_store_responds_with_resource_on_successful_creation()
+    public function test_store_responds_with_created_resource_on_success()
     {
         $this->setUpValidationMock(false);
 
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['store', $this->postMock])
+            ->withArgs(['store', $this->categoryMock])
             ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('create')
+            ->once()
+            ->andReturn($this->categoryMock);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceCreated')
             ->once()
-            ->withArgs([$this->responseMock, $this->postMock])
+            ->withArgs([$this->responseMock, $this->categoryMock])
             ->andReturn($this->responseMock);
 
-        $this->requestMock
-            ->shouldReceive('input')
-            ->times(6);
-
-        $this->postMock
-            ->shouldReceive('create')
-            ->once()
-            ->andReturn($this->postMock);
-
-        $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
+        $actualResult = $this->categoryController->store($this->requestMock, $this->responseMock, $this->categoryMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_update_responds_forbidden_when_authorization_fails()
+    public function test_update_responds_forbidden_if_user_is_not_allowed()
     {
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['update', $this->postMock])
+            ->withArgs(['update', $this->categoryMock])
             ->andReturn(true);
 
         $this->jsonApiMock
@@ -296,7 +278,33 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_update_responds_not_found_if_category_does_not_exist()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['update', $this->categoryMock])
+            ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn(null);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceNotFound')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -309,137 +317,111 @@ class PostControllerTest extends TestCase
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['update', $this->postMock])
+            ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
             ->shouldReceive('respondValidationFailed')
             ->once()
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn($this->postMock);
-
-        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_update_responds_not_found_when_no_resource_exists()
-    {
-        $this->gateMock
-            ->shouldReceive('denies')
-            ->once()
-            ->withArgs(['update', $this->postMock])
-            ->andReturn(false);
-
-        $this->jsonApiMock
-            ->shouldReceive('respondResourceNotFound')
-            ->once()
-            ->withArgs([$this->responseMock])
-            ->andReturn($this->responseMock);
-
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn(null);
-
-        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
-        $expectedResult = $this->responseMock;
-
-        $this->assertThat($actualResult, $this->equalTo($expectedResult));
-    }
-
-    public function test_update_responds_with_server_error_on_update_exception()
+    public function test_update_responds_with_server_error_on_failed_update()
     {
         $this->setUpValidationMock(false);
 
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['update', $this->postMock])
+            ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
             ->shouldReceive('respondServerError')
             ->once()
-            ->withArgs([$this->responseMock, 'Unable to update post'])
+            ->withArgs([$this->responseMock, 'Unable to update category.'])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->categoryMock
+            ->shouldReceive('update')
             ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn($this->postMock);
-
-        $this->requestMock
-            ->shouldReceive('input')
-            ->times(5);
+            ->andThrow(new \Exception('an error occurred'));
 
         $this->loggerMock
             ->shouldReceive('error')
             ->once()
-            ->withArgs([Postcontroller::class . ' failed to update a post with exception: an error happened']);
+            ->withArgs(['Failed to update a category with exception: an error occurred']);
 
-        $this->postMock
-            ->shouldReceive('update')
-            ->once()
-            ->andThrow(new \Exception('an error happened'));
-
-        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_update_responds_with_resource_on_successful_update()
+    public function test_update_responds_resource_updated_if_everything_is_successful()
     {
         $this->setUpValidationMock(false);
 
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['update', $this->postMock])
+            ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn($this->categoryMock);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->once();
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceUpdated')
             ->once()
-            ->withArgs([$this->responseMock, $this->postMock])
+            ->withArgs([$this->responseMock, $this->categoryMock])
             ->andReturn($this->responseMock);
 
-        $this->requestMock
-            ->shouldReceive('input')
-            ->times(5);
-
-        $this->postMock
+        $this->categoryMock
             ->shouldReceive('update')
             ->once()
-            ->andReturn($this->postMock);
+            ->andReturn($this->categoryMock);
 
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn($this->postMock);
-
-        $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_delete_responds_forbidden_when_authorization_fails()
+    public function test_delete_responds_forbidden_if_user_is_not_allowed()
     {
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['delete', $this->postMock])
+            ->withArgs(['delete', $this->categoryMock])
             ->andReturn(true);
 
         $this->jsonApiMock
@@ -448,19 +430,25 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_delete_responds_not_found_when_post_does_not_exist()
+    public function test_delete_responds_not_found_if_category_does_not_exist()
     {
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['delete', $this->postMock])
+            ->withArgs(['delete', $this->categoryMock])
             ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn(null);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceNotFound')
@@ -468,25 +456,73 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn(null);
-
-        $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_delete_responds_that_post_was_deleted()
+    public function test_delete_responds_server_error_if_category_can_not_be_deleted()
     {
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['delete', $this->postMock])
+            ->withArgs(['delete', $this->categoryMock])
             ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn($this->categoryMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondServerError')
+            ->once()
+            ->withArgs([$this->responseMock, 'Unable to delete category.'])
+            ->andReturn($this->responseMock);
+
+        $this->postMock
+            ->shouldReceive('where')
+            ->once()
+            ->withArgs(['category_id', 4])
+            ->andReturn($this->postMock);
+
+        $this->postMock
+            ->shouldReceive('update')
+            ->once()
+            ->withArgs([['category_id' => null]])
+            ->andReturn($this->postMock);
+
+        $this->categoryMock
+            ->shouldReceive('delete')
+            ->once()
+            ->andThrow(new \Exception('an error occurred'));
+
+        $this->loggerMock
+            ->shouldReceive('error')
+            ->once()
+            ->withArgs(['Failed to delete a category with exception: an error occurred']);
+
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_delete_responds_category_deleted_if_everything_is_successful()
+    {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['delete', $this->categoryMock])
+            ->andReturn(false);
+
+        $this->categoryMock
+            ->shouldReceive('find')
+            ->once()
+            ->withArgs([4])
+            ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceDeleted')
@@ -495,52 +531,22 @@ class PostControllerTest extends TestCase
             ->andReturn($this->responseMock);
 
         $this->postMock
-            ->shouldReceive('find')
+            ->shouldReceive('where')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['category_id', 4])
             ->andReturn($this->postMock);
 
         $this->postMock
+            ->shouldReceive('update')
+            ->once()
+            ->withArgs([['category_id' => null]])
+            ->andReturn($this->postMock);
+
+        $this->categoryMock
             ->shouldReceive('delete')
             ->once();
 
-        $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
-        $expectedResult = $this->responseMock;
-
-        $this->assertThat($actualResult, $this->equalTo($expectedResult));
-    }
-
-    public function test_delete_responds_with_server_error_on_delete_failure()
-    {
-        $this->gateMock
-            ->shouldReceive('denies')
-            ->once()
-            ->withArgs(['delete', $this->postMock])
-            ->andReturn(false);
-
-        $this->jsonApiMock
-            ->shouldReceive('respondServerError')
-            ->once()
-            ->withArgs([$this->responseMock, 'Unable to delete post'])
-            ->andReturn($this->responseMock);
-
-        $this->postMock
-            ->shouldReceive('find')
-            ->once()
-            ->withArgs(['a-slug'])
-            ->andReturn($this->postMock);
-
-        $this->postMock
-            ->shouldReceive('delete')
-            ->once()
-            ->andThrow(new \Exception('an error happened'));
-
-        $this->loggerMock
-            ->shouldReceive('error')
-            ->once()
-            ->withArgs([PostController::class . ' failed to delete a post with exception: an error happened']);
-
-        $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));

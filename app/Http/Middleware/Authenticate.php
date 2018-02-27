@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\JsonApi;
 use Closure;
 use Illuminate\Contracts\Auth\Factory as Auth;
 
@@ -34,19 +35,25 @@ class Authenticate
      */
     public function handle($request, Closure $next, $guard = null)
     {
-//        $jsonApi = app(JsonApi::class);
-//
-//        if ($this->auth->guard($guard)->guest()) {
-//            return $jsonApi->respondUnauthenticated();
-//        }
-//
-//        $currentUser = $this->auth->guard($guard)->user();
-//        $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
-//        $now = (new \DateTime())->getTimestamp();
-//
-//        if ($now > $apiTokenExpiration) {
-//            return $jsonApi->respondUnauthenticated();
-//        }
+        $jsonApi = app(JsonApi::class);
+        $response = $next($request);
+
+        if ($this->auth->guard($guard)->guest()) {
+            return $jsonApi->respondUnauthorized($response);
+        }
+
+        $currentUser = $this->auth->guard($guard)->user();
+
+        if (is_null($currentUser->getAttribute('api_token_expiration')) || is_null($currentUser->getAttribute('api_token'))) {
+            return $jsonApi->respondUnauthorized($response);
+        }
+
+        $apiTokenExpiration = strtotime($currentUser->getAttribute('api_token_expiration'));
+        $now = (new \DateTime())->getTimestamp();
+
+        if ($now > $apiTokenExpiration) {
+            return $jsonApi->respondUnauthorized($response);
+        }
 
         return $next($request);
     }

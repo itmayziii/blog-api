@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
 
-class FileController extends Controller
+class FileController
 {
     /**
      * @var Filesystem
@@ -41,7 +41,7 @@ class FileController extends Controller
     public function uploadImages(Request $request, Response $response)
     {
         if ($this->gate->denies('store', $this->fileSystem)) {
-            return $this->jsonApi->respondUnauthorized($response);
+            return $this->jsonApi->respondForbidden($response);
         }
 
         $files = $request->allFiles();

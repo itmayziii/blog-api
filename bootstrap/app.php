@@ -60,9 +60,10 @@ $app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, func
     ($prettyPrintQueryString === 'false') ? $prettyPrintInt = 0 : $prettyPrintInt = JSON_PRETTY_PRINT;
 
     $schemas = [
-        \App\Post::class     => App\Schemas\PostSchema::class,
-        \App\Category::class => App\Schemas\CategorySchema::class,
-        \App\Image::class    => App\Schemas\ImagesSchema::class
+        \App\Post::class     => \App\Schemas\PostSchema::class,
+        \App\Category::class => \App\Schemas\CategorySchema::class,
+        \App\Image::class    => \App\Schemas\ImageSchema::class,
+        \App\User::class     => \App\Schemas\UserSchema::class
     ];
 
     $encoder = \Neomerx\JsonApi\Encoder\Encoder::instance(

@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Repositories\UserRepository;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
 
-class AuthenticateController extends Controller
+class AuthenticateController
 {
     /**
      * @var UserRepository
@@ -39,10 +41,11 @@ class AuthenticateController extends Controller
     /**
      * @param Request $request
      * @param Response $response
+     * @param Carbon $carbon
      *
      * @return Response
      */
-    public function authenticate(Request $request, Response $response)
+    public function authenticate(Request $request, Response $response, Carbon $carbon)
     {
         $authorizationHeader = $request->header('Authorization');
 
@@ -51,80 +54,83 @@ class AuthenticateController extends Controller
             return $this->jsonApi->respondBadRequest($response, $authorizationHeaderErrors);
         }
 
-        $splitAuthorizationHeader = explode(':', base64_decode($authorizationHeader));
+        $splitAuthorizationHeader = explode(' ', $authorizationHeader);
+        $splitCredentials = explode(':', base64_decode($splitAuthorizationHeader[1]));
+        $username = $splitCredentials[0];
+        $password = $splitCredentials[1];
 
-        $username = $splitAuthorizationHeader[0];
-        $password = $splitAuthorizationHeader[1];
+        $user = $this->userRepository->retrieveUserByEmail($username);
+        if (is_null($user)) {
+            return $this->jsonApi->respondResourceNotFound($response);
+        }
 
-        $user = $this->userRepository->retrieveUserByCredentials($username, $password);
-        if (!$user) {
-            return new Response(['error' => 'Authentication failed.'], Response::HTTP_UNAUTHORIZED);
+        if (!$this->hasher->check($password, $user->getAttribute('password'))) {
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $apiToken = sha1(str_random());
-        $twentyFourHoursFromNow = (new \DateTime())->modify("+1 day");
+        $user->setAttribute('api_token', $apiToken);
+        $user->setAttribute('api_token_expiration', $carbon->addDay());
         try {
-            $user->setAttribute('api_token', $apiToken);
-            $user->setAttribute('api_token_expiration', $twentyFourHoursFromNow);
             $user->save();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->error("Failed to update user with API Token with exception: " . $e->getMessage());
-            return new Response(['error' => 'There was a problem generating an API Token, please try again'], Response::HTTP_SERVICE_UNAVAILABLE);
+            return $this->jsonApi->respondServerError($response, 'Unable to create token.');
         }
 
-        return new Response(['API-Token' => $apiToken]);
+        return $this->jsonApi->respondResourceCreated($response, $user);
     }
 
     /**
      * @param Request $request
+     * @param Response $response
+     * @param Carbon $carbon
+     *
      * @return Response
      */
-    public function validateToken(Request $request)
+    public function validateToken(Request $request, Response $response, Carbon $carbon)
     {
         $apiTokenHeader = $request->header('API-Token');
-        if (!$apiTokenHeader) {
-            return $this->jsonApi->respondBadRequest('API-Token header is not set');
+        if (is_null($apiTokenHeader)) {
+            return $this->jsonApi->respondBadRequest($response, 'API-Token header is not set.');
         }
 
         $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
-        if (!$user) {
-            return $this->jsonApi->respondUnauthenticated();
+        if (is_null($user)) {
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $tokenExpiration = strtotime($user->getAttribute('api_token_expiration'));
-        $now = (new \DateTime())->getTimestamp();
+        $now = $carbon->getTimestamp();
         if ($now > $tokenExpiration) {
-            return $this->jsonApi->respondUnauthenticated();
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
-        return $this->jsonApi->respondResourceFound($user);
+        return $this->jsonApi->respondResourceFound($response, $user);
     }
 
     /**
-     * @param $authorizationHeader
+     * @param string $authorizationHeader
+     *
      * @return array
      */
     private function validateAuthorizationHeader($authorizationHeader)
     {
-        if (!$authorizationHeader) {
-            return ['No authorization header set.'];
+        $splitAuthorizationHeader = explode(' ', $authorizationHeader);
+        if (!key_exists(0, $splitAuthorizationHeader) || !key_exists(1, $splitAuthorizationHeader)) {
+            return ['Authorization header must have a type and value defined.'];
         }
 
         $errors = [];
-        $splitAuthorizationHeader = explode(' ', $authorizationHeader);
 
         $authorizationHeaderType = $splitAuthorizationHeader[0];
         if ($authorizationHeaderType !== 'Basic') {
             $errors[] = 'Authorization header must be of "Basic" type.';
         }
 
-        if (!key_exists(1, $splitAuthorizationHeader)) {
-            $errors[] = 'Authorization header must have a value';
-        }
-
         $splitCredentials = explode(':', base64_decode($splitAuthorizationHeader[1]));
         if (!key_exists(0, $splitCredentials) || !key_exists(1, $splitCredentials)) {
-            $errors[] = 'Username and Password must be set';
+            $errors[] = 'Authorization header value has an invalid username:password format.';
         }
 
         return $errors;

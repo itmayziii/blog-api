@@ -5,7 +5,7 @@ use App\Tag;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class TaggablesTableSeeder extends Seeder
+class TaggableTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.

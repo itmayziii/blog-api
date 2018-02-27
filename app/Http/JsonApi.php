@@ -95,12 +95,20 @@ class JsonApi
         return $this->respond($response, Response::HTTP_NOT_FOUND, $content);
     }
 
+    public function respondForbidden(Response $response): Response
+    {
+        $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Forbidden');
+        $content = $this->encoder->encodeError($error);
+
+        return $this->respond($response, Response::HTTP_FORBIDDEN, $content);
+    }
+
     public function respondUnauthorized(Response $response): Response
     {
         $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Unauthorized');
         $content = $this->encoder->encodeError($error);
 
-        return $this->respond($response, Response::HTTP_FORBIDDEN, $content);
+        return $this->respond($response, Response::HTTP_UNAUTHORIZED, $content);
     }
 
     public function respondValidationFailed(Response $response, MessageBag $messageBag): Response

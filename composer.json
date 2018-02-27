@@ -31,7 +31,10 @@
   "autoload-dev": {
     "psr-4": {
       "Tests\\": "tests/"
-    }
+    },
+    "classmap": [
+      "database/"
+    ]
   },
   "scripts": {
     "post-root-package-install": [
