@@ -58,7 +58,3 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
 });
-
-
-// TODO add a catch all route for anything that does not match a defined route, this does not seem to be possible with Lumen
-//$router->addRoute(['GET', 'PUT', 'PATCH', 'POST', 'DELETE'], '(.*)', '');
