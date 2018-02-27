@@ -102,7 +102,7 @@ class PostControllerTest extends TestCase
         $this->postMock
             ->shouldReceive('where')
             ->once()
-            ->withArgs(['status', 'draft'])
+            ->withArgs(['status', 'live'])
             ->andReturn($this->postMock);
 
         $this->postMock
