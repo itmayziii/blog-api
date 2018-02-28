@@ -10,17 +10,24 @@ class CategorySchema extends BaseSchema
 
     public function getId($post): ?string
     {
-        return $post->getAttribute('id');
+        return $post->getAttribute('slug');
     }
 
     public function getAttributes($category, array $fieldKeysFilter = null): ?array
     {
-        return [
+        $attributes = [
             'createdAt' => $category->getAttribute('created_at')->toIso8601String(),
             'updatedAt' => $category->getAttribute('updated_at')->toIso8601String(),
             'name'      => $category->getAttribute('name'),
-            'posts'     => $category->getAttribute('posts_count')
+            'slug'      => $category->getAttribute('slug'),
         ];
+
+        $postsCount = $category->getAttribute('posts_count');
+        if (!is_null($postsCount)) {
+            $attributes['posts'] = $postsCount;
+        }
+
+        return $attributes;
     }
 
     public function getRelationships($category, bool $isPrimary, array $includeList): ?array

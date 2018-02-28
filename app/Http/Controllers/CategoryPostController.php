@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Category;
 use App\Http\JsonApi;
+use App\Repositories\CategoryRepository;
 use Illuminate\Http\Response;
 
 class CategoryPostController
@@ -12,25 +12,29 @@ class CategoryPostController
      * @var JsonApi
      */
     private $jsonApi;
+    /**
+     * @var CategoryRepository
+     */
+    private $categoryRepository;
 
-    public function __construct(JsonApi $jsonApi)
+    public function __construct(JsonApi $jsonApi, CategoryRepository $categoryRepository)
     {
         $this->jsonApi = $jsonApi;
+        $this->categoryRepository = $categoryRepository;
     }
 
     /**
      * Find specific category with all related posts.
      *
      * @param Response $response
-     * @param Category $category
-     * @param int $id
+     * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, Category $category, $id)
+    public function show(Response $response, $slug)
     {
-        $category = $category->find($id);
-        if (!$category) {
+        $category = $this->categoryRepository->findBySlug($slug);
+        if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
 

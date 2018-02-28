@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
@@ -13,6 +14,10 @@ use Psr\Log\LoggerInterface;
 
 class CategoryController extends Controller
 {
+    /**
+     * @var CategoryRepository
+     */
+    private $categoryRepository;
     /**
      * @var JsonApi
      */
@@ -31,12 +36,14 @@ class CategoryController extends Controller
      * @var array
      */
     private $rules = [
-        'name' => 'required|unique:categories'
+        'name' => 'required|unique:categories',
+        'slug' => 'required|unique:categories'
     ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
+    public function __construct(CategoryRepository $categoryRepository, JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
     {
         parent::__construct($validationFactory);
+        $this->categoryRepository = $categoryRepository;
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;
@@ -55,9 +62,9 @@ class CategoryController extends Controller
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
 
-    public function show(Response $response, Category $category, $id)
+    public function show(Response $response, $slug)
     {
-        $category = $category->find($id);
+        $category = $this->categoryRepository->findBySlug($slug);
 
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
@@ -89,13 +96,13 @@ class CategoryController extends Controller
         return $this->jsonApi->respondResourceCreated($response, $category);
     }
 
-    public function update(Request $request, Response $response, Category $category, $id)
+    public function update(Request $request, Response $response, Category $category, $slug)
     {
         if ($this->gate->denies('update', $category)) {
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $category = $category->find($id);
+        $category = $this->categoryRepository->findBySlug($slug);
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -117,19 +124,19 @@ class CategoryController extends Controller
         return $this->jsonApi->respondResourceUpdated($response, $category);
     }
 
-    public function delete(Response $response, Category $category, Post $post, $id)
+    public function delete(Response $response, Category $category, Post $post, $slug)
     {
         if ($this->gate->denies('delete', $category)) {
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $category = $category->find($id);
+        $category = $this->categoryRepository->findBySlug($slug);
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
         try {
-            $post->where('category_id', $id)
+            $post->where('category_id', $slug)
                 ->update(['category_id' => null]);
             $category->delete();
         } catch (\Exception $e) {

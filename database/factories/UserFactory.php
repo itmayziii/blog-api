@@ -12,7 +12,7 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'api_token'            => null,
         'api_token_expiration' => null,
         'api_limit'            => 1000,
-//        'role' => 'Standard' // Default in DB
+        'role'                 => $faker->randomElement(['Standard', 'Administrator'])
     ];
 
 });
