@@ -22,7 +22,7 @@ class UserSchema extends BaseSchema
             'firstName' => $user->getAttribute('first_name'),
             'lastName'  => $user->getAttribute('last_name'),
             'email'     => $user->getAttribute('email'),
-            'imagePath' => $user->getAttribute('image_path'),
+            'role'      => $user->getAttribute('role'),
             'apiToken'  => $user->getAttribute('api_token')
         ];
     }
