@@ -11,7 +11,7 @@ class PostSchema extends BaseSchema
 
     public function getId($post): ?string
     {
-        return $post->getAttribute('slug');
+        return $post->getAttribute('id');
     }
 
     public function getAttributes($post, array $fieldKeysFilter = null): ?array
@@ -21,6 +21,7 @@ class PostSchema extends BaseSchema
             'updatedAt' => $post->getAttribute('updated_at')->toIso8601String(),
             'status'    => $post->getAttribute('status'),
             'title'     => $post->getAttribute('title'),
+            'slug'      => $post->getAttribute('slug'),
             'content'   => $post->getAttribute('content'),
             'imagePath' => $post->getAttribute('image_path')
         ];
