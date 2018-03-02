@@ -25,6 +25,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->group(['prefix' => 'categories'], function () use ($router) {
 
+        $router->get('/test', 'CategoryController@test');
+
         $router->get('', 'CategoryController@index');
         $router->get('/{slug}', 'CategoryController@show');
         $router->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);

@@ -42,5 +42,16 @@ services:
     networks:
       - backend
 
+  redis:
+    container_name: fullheapdeveloper_redis
+    image: redis:4.0.8
+    volumes:
+      - ./docker-config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+    command: redis-server --requirepass Password1
+    networks:
+      - backend
+
 networks:
   backend:

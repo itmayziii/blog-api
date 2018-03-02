@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Redis;
 use Psr\Log\LoggerInterface;
 
 class CategoryController extends Controller
@@ -60,6 +61,12 @@ class CategoryController extends Controller
             ->paginate($size, null, 'page', $page);
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
+    }
+
+    public function test(Response $response)
+    {
+        Redis::set('name', 'tommy');
+        return $response->setContent(Redis::get('name'))->setStatusCode(401);
     }
 
     public function show(Response $response, $slug)
