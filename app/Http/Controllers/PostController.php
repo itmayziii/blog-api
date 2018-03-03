@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\PostRepository;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,6 +20,10 @@ class PostController extends Controller
      */
     private $jsonApi;
     /**
+     * @var PostRepository
+     */
+    private $postRepository;
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -25,6 +31,10 @@ class PostController extends Controller
      * @var Gate
      */
     private $gate;
+    /**
+     * @var Cache
+     */
+    private $cache;
     /**
      * Validation Rules
      *
@@ -38,12 +48,21 @@ class PostController extends Controller
         'content'     => 'required|max:10000'
     ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
+    public function __construct(
+        JsonApi $jsonApi,
+        PostRepository $postRepository,
+        Gate $gate,
+        LoggerInterface $logger,
+        ValidationFactory $validationFactory,
+        Cache $cache
+    )
     {
         parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
+        $this->postRepository = $postRepository;
         $this->gate = $gate;
         $this->logger = $logger;
+        $this->cache = $cache;
     }
 
     /**
@@ -60,9 +79,14 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $post->where('status', 'live')
-            ->orderBy('created_at', 'desc')
-            ->paginate($size, null, 'page', $page);
+        $paginator = $this->cache->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
+            $paginator = $post->where('status', 'live')
+                ->orderBy('created_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+
+            return $paginator;
+        });
+
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
@@ -71,14 +95,16 @@ class PostController extends Controller
      * Find specific posts by slug.
      *
      * @param Response $response
-     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, Post $post, $slug)
+    public function show(Response $response, $slug)
     {
-        $post = $post->find($slug);
+        $post = $this->cache->remember("post.$slug", 60, function () use ($slug) {
+            return $this->postRepository->findBySlug($slug, true);
+        });
+
         if (is_null($post)) {
             $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
             return $this->jsonApi->respondResourceNotFound($response);
@@ -140,7 +166,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $post->find($slug);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -163,6 +189,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
+        $this->cache->forget("post.$slug");
+
         return $this->jsonApi->respondResourceUpdated($response, $post);
     }
 
@@ -181,7 +209,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $post->find($slug);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -192,6 +220,8 @@ class PostController extends Controller
             $this->logger->error(PostController::class . " failed to delete a post with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
+
+        $this->cache->forget("post.$slug");
 
         return $this->jsonApi->respondResourceDeleted($response);
     }
