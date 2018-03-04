@@ -6,6 +6,7 @@ use App\Category;
 use App\Http\Controllers\CategoryController;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Support\MessageBag;
@@ -68,6 +69,10 @@ class CategoryControllerTest extends TestCase
      * @var CategoryController
      */
     private $categoryController;
+    /**
+     * @var CategoryRepository | Mock
+     */
+    private $categoryRepositoryMock;
 
     public function setUp()
     {
@@ -75,6 +80,7 @@ class CategoryControllerTest extends TestCase
         $this->requestMock = Mockery::mock(Request::class);
         $this->responseMock = Mockery::mock(Response::class);
         $this->jsonApiMock = Mockery::mock(JsonApi::class);
+        $this->categoryRepositoryMock = Mockery::mock(CategoryRepository::class);
         $this->categoryMock = Mockery::mock(Category::class);
         $this->postMock = Mockery::mock(Post::class);
         $this->gateMock = Mockery::mock(Gate::class);
@@ -84,7 +90,7 @@ class CategoryControllerTest extends TestCase
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
 
-        $this->categoryController = new CategoryController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
+        $this->categoryController = new CategoryController($this->categoryRepositoryMock, $this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
     }
 
     public function tearDown()
@@ -138,8 +144,8 @@ class CategoryControllerTest extends TestCase
 
     public function test_show_responds_not_found_if_category_does_not_exist()
     {
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([2])
             ->andReturn(null);
@@ -150,7 +156,27 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->show($this->responseMock, $this->categoryMock, 2);
+        $actualResult = $this->categoryController->show($this->responseMock, 2);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_show_responds_with_category()
+    {
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
+            ->once()
+            ->withArgs([2])
+            ->andReturn($this->categoryMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceFound', $this->categoryMock)
+            ->once()
+            ->withArgs([$this->responseMock, $this->categoryMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->categoryController->show($this->responseMock, 2);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -292,8 +318,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn(null);
@@ -320,8 +346,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);
@@ -351,8 +377,8 @@ class CategoryControllerTest extends TestCase
             ->shouldReceive('input')
             ->once();
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);
@@ -389,8 +415,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);
@@ -444,8 +470,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['delete', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn(null);
@@ -470,8 +496,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['delete', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);
@@ -518,8 +544,8 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['delete', $this->categoryMock])
             ->andReturn(false);
 
-        $this->categoryMock
-            ->shouldReceive('find')
+        $this->categoryRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs([4])
             ->andReturn($this->categoryMock);

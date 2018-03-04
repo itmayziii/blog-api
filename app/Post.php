@@ -9,16 +9,6 @@ class Post extends Model
     /**
      * @inheritDoc
      */
-    protected $primaryKey = 'slug';
-
-    /**
-     * @inheritDoc
-     */
-    public $incrementing = false;
-
-    /**
-     * @inheritDoc
-     */
     protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'image_path'];
 
     /**

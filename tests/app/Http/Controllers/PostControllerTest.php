@@ -5,6 +5,8 @@ namespace Tests\Http\Controllers;
 use App\Http\Controllers\PostController;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
+use App\Repositories\PostRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Support\MessageBag;
@@ -24,6 +26,10 @@ class PostControllerTest extends TestCase
      */
     private $postController;
     /**
+     * @var PostRepository | Mock
+     */
+    private $postRepositoryMock;
+    /**
      * @var Gate | Mock;
      */
     private $gateMock;
@@ -39,6 +45,10 @@ class PostControllerTest extends TestCase
      * @var LoggerInterface | Mock
      */
     private $loggerMock;
+    /**
+     * @var CacheRepository | Mock
+     */
+    private $cacheRepositoryMock;
     /**
      * @var Post | Mock
      */
@@ -62,14 +72,16 @@ class PostControllerTest extends TestCase
     /**
      * @var JsonApi | Mock;
      */
-    protected $jsonApiMock;
+    private $jsonApiMock;
 
     public function setUp()
     {
         parent::setUp();
-        $this->jsonApiMock = $this->jsonApiMock = Mockery::mock(JsonApi::class);
+        $this->jsonApiMock = Mockery::mock(JsonApi::class);
+        $this->postRepositoryMock = Mockery::mock(PostRepository::class);
         $this->gateMock = Mockery::mock(Gate::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
+        $this->cacheRepositoryMock = Mockery::mock(CacheRepository::class);
         $this->requestMock = Mockery::mock(Request::class);
         $this->responseMock = Mockery::mock(Response::class);
         $this->postMock = Mockery::mock(Post::class);
@@ -77,7 +89,8 @@ class PostControllerTest extends TestCase
         $this->validatorMock = Mockery::mock(Validator::class);
         $this->messageBagMock = Mockery::mock(MessageBag::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
-        $this->postController = new PostController($this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
+        $this->postController = new PostController($this->jsonApiMock, $this->postRepositoryMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock,
+            $this->cacheRepositoryMock);
     }
 
     public function tearDown()
@@ -99,22 +112,9 @@ class PostControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
-        $this->postMock
-            ->shouldReceive('where')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs(['status', 'live'])
-            ->andReturn($this->postMock);
-
-        $this->postMock
-            ->shouldReceive('orderBy')
-            ->once()
-            ->withArgs(['created_at', 'desc'])
-            ->andReturn($this->postMock);
-
-        $this->postMock
-            ->shouldReceive('paginate')
-            ->once()
-            ->withArgs([20, null, 'page', 2])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock
@@ -131,10 +131,9 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_with_a_resource_when_one_exists()
     {
-        $this->postMock
-            ->shouldReceive('find')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
 
         $this->jsonApiMock
@@ -143,7 +142,7 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->postMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->show($this->responseMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -151,10 +150,9 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_not_found_when_no_resource_exists()
     {
-        $this->postMock
-            ->shouldReceive('find')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs(['a-slug'])
             ->andReturn(null);
 
         $this->jsonApiMock
@@ -168,7 +166,7 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs([PostController::class . ' unable to find post with slug: a-slug']);
 
-        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
+        $actualResult = $this->postController->show($this->responseMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -276,6 +274,28 @@ class PostControllerTest extends TestCase
             ->once()
             ->andReturn($this->postMock);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
+
         $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
@@ -317,8 +337,8 @@ class PostControllerTest extends TestCase
             ->once()
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
@@ -343,8 +363,8 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn(null);
@@ -371,8 +391,8 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, 'Unable to update post'])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
@@ -422,11 +442,38 @@ class PostControllerTest extends TestCase
             ->once()
             ->andReturn($this->postMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['post.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
 
         $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
@@ -468,8 +515,8 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn(null);
@@ -494,8 +541,8 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
@@ -503,6 +550,33 @@ class PostControllerTest extends TestCase
         $this->postMock
             ->shouldReceive('delete')
             ->once();
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['post.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
 
         $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
@@ -524,8 +598,8 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, 'Unable to delete post'])
             ->andReturn($this->responseMock);
 
-        $this->postMock
-            ->shouldReceive('find')
+        $this->postRepositoryMock
+            ->shouldReceive('findBySlug')
             ->once()
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);

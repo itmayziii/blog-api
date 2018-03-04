@@ -9,12 +9,12 @@ class Category extends Model
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'name'];
+    protected $visible = ['created_at', 'updated_at', 'name', 'slug'];
 
     /**
      * @inheritDoc
      */
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'slug'];
 
     /**
      * @inheritDoc

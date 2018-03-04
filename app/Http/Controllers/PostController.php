@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
+use App\Repositories\PostRepository;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
@@ -18,6 +20,10 @@ class PostController extends Controller
      */
     private $jsonApi;
     /**
+     * @var PostRepository
+     */
+    private $postRepository;
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -26,6 +32,10 @@ class PostController extends Controller
      */
     private $gate;
     /**
+     * @var CacheRepository
+     */
+    private $cacheRepository;
+    /**
      * Validation Rules
      *
      * @var array
@@ -33,17 +43,25 @@ class PostController extends Controller
     private $validationRules = [
         'user-id'     => 'required',
         'category-id' => 'required',
-        'title'       => 'required|max:200',
+        'title'       => 'required|max:200|unique:posts',
         'slug'        => 'required|max:255|unique:posts',
         'content'     => 'required|max:10000'
     ];
 
-    public function __construct(JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
-    {
+    public function __construct(
+        JsonApi $jsonApi,
+        PostRepository $postRepository,
+        Gate $gate,
+        LoggerInterface $logger,
+        ValidationFactory $validationFactory,
+        CacheRepository $cacheRepository
+    ) {
         parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
+        $this->postRepository = $postRepository;
         $this->gate = $gate;
         $this->logger = $logger;
+        $this->cacheRepository = $cacheRepository;
     }
 
     /**
@@ -60,9 +78,14 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $post->where('status', 'live')
-            ->orderBy('created_at', 'desc')
-            ->paginate($size, null, 'page', $page);
+        $paginator = $this->cacheRepository->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
+            $paginator = $post->where('status', 'live')
+                ->orderBy('created_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+
+            return $paginator;
+        });
+
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
@@ -71,14 +94,16 @@ class PostController extends Controller
      * Find specific posts by slug.
      *
      * @param Response $response
-     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, Post $post, $slug)
+    public function show(Response $response, $slug)
     {
-        $post = $post->find($slug);
+        $post = $this->cacheRepository->remember("post.$slug", 60, function () use ($slug) {
+            return $this->postRepository->findBySlug($slug, true);
+        });
+
         if (is_null($post)) {
             $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
             return $this->jsonApi->respondResourceNotFound($response);
@@ -121,6 +146,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to create the post.");
         }
 
+        $this->clearPostsCache();
+
         return $this->jsonApi->respondResourceCreated($response, $post);
     }
 
@@ -140,7 +167,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $post->find($slug);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -163,6 +190,9 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
+        $this->cacheRepository->forget("post.$slug");
+        $this->clearPostsCache();
+
         return $this->jsonApi->respondResourceUpdated($response, $post);
     }
 
@@ -181,7 +211,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $post->find($slug);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -193,6 +223,18 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
+        $this->cacheRepository->forget("post.$slug");
+        $this->clearPostsCache();
+
         return $this->jsonApi->respondResourceDeleted($response);
+    }
+
+    private function clearPostsCache()
+    {
+        $postKeys = $this->cacheRepository->keys('posts*');
+        $this->cacheRepository->deleteMultiple($postKeys);
+
+        $categoryPostKeys = $this->cacheRepository->keys('categories-posts*');
+        $this->cacheRepository->deleteMultiple($categoryPostKeys);
     }
 }

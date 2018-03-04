@@ -26,12 +26,12 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->group(['prefix' => 'categories'], function () use ($router) {
 
         $router->get('', 'CategoryController@index');
-        $router->get('/{id}', 'CategoryController@show');
+        $router->get('/{slug}', 'CategoryController@show');
         $router->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
-        $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
-        $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
+        $router->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
+        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
-        $router->get('/{id}/posts', 'CategoryPostController@show');
+        $router->get('/{slug}/posts', 'CategoryPostController@show');
 
     });
 
