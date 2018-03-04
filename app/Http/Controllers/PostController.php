@@ -231,7 +231,10 @@ class PostController extends Controller
 
     private function clearPostsCache()
     {
-        $keys = $this->cacheRepository->keys('posts*');
-        $this->cacheRepository->deleteMultiple($keys);
+        $postKeys = $this->cacheRepository->keys('posts*');
+        $this->cacheRepository->deleteMultiple($postKeys);
+
+        $categoryPostKeys = $this->cacheRepository->keys('categories-posts*');
+        $this->cacheRepository->deleteMultiple($categoryPostKeys);
     }
 }

@@ -285,6 +285,17 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs([['laravel:posts.page1.size5']]);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
+
         $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
@@ -453,6 +464,17 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs([['laravel:posts.page1.size5']]);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
+
         $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
@@ -544,6 +566,17 @@ class PostControllerTest extends TestCase
             ->shouldReceive('deleteMultiple')
             ->once()
             ->withArgs([['laravel:posts.page1.size5']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['laravel:categories-posts.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:categories-posts.a-slug']]);
 
         $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
