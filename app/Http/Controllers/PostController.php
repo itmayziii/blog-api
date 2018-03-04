@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
 use App\Repositories\PostRepository;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
-use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -32,9 +32,9 @@ class PostController extends Controller
      */
     private $gate;
     /**
-     * @var Cache
+     * @var CacheRepository
      */
-    private $cache;
+    private $cacheRepository;
     /**
      * Validation Rules
      *
@@ -43,7 +43,7 @@ class PostController extends Controller
     private $validationRules = [
         'user-id'     => 'required',
         'category-id' => 'required',
-        'title'       => 'required|max:200',
+        'title'       => 'required|max:200|unique:posts',
         'slug'        => 'required|max:255|unique:posts',
         'content'     => 'required|max:10000'
     ];
@@ -54,15 +54,14 @@ class PostController extends Controller
         Gate $gate,
         LoggerInterface $logger,
         ValidationFactory $validationFactory,
-        Cache $cache
-    )
-    {
+        CacheRepository $cacheRepository
+    ) {
         parent::__construct($validationFactory);
         $this->jsonApi = $jsonApi;
         $this->postRepository = $postRepository;
         $this->gate = $gate;
         $this->logger = $logger;
-        $this->cache = $cache;
+        $this->cacheRepository = $cacheRepository;
     }
 
     /**
@@ -79,7 +78,7 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $this->cache->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
+        $paginator = $this->cacheRepository->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
             $paginator = $post->where('status', 'live')
                 ->orderBy('created_at', 'desc')
                 ->paginate($size, null, 'page', $page);
@@ -101,7 +100,7 @@ class PostController extends Controller
      */
     public function show(Response $response, $slug)
     {
-        $post = $this->cache->remember("post.$slug", 60, function () use ($slug) {
+        $post = $this->cacheRepository->remember("post.$slug", 60, function () use ($slug) {
             return $this->postRepository->findBySlug($slug, true);
         });
 
@@ -147,6 +146,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to create the post.");
         }
 
+        $this->clearPostsCache();
+
         return $this->jsonApi->respondResourceCreated($response, $post);
     }
 
@@ -189,7 +190,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
-        $this->cache->forget("post.$slug");
+        $this->cacheRepository->forget("post.$slug");
+        $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceUpdated($response, $post);
     }
@@ -221,8 +223,14 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
-        $this->cache->forget("post.$slug");
+        $this->cacheRepository->forget("post.$slug");
 
         return $this->jsonApi->respondResourceDeleted($response);
+    }
+
+    private function clearPostsCache()
+    {
+        $keys = $this->cacheRepository->keys('posts*');
+        $this->cacheRepository->deleteMultiple($keys);
     }
 }

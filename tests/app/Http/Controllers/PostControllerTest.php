@@ -5,9 +5,9 @@ namespace Tests\Http\Controllers;
 use App\Http\Controllers\PostController;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
 use App\Repositories\PostRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
-use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Support\MessageBag;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
@@ -46,9 +46,9 @@ class PostControllerTest extends TestCase
      */
     private $loggerMock;
     /**
-     * @var Cache | Mock
+     * @var CacheRepository | Mock
      */
-    private $cacheMock;
+    private $cacheRepositoryMock;
     /**
      * @var Post | Mock
      */
@@ -81,7 +81,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock = Mockery::mock(PostRepository::class);
         $this->gateMock = Mockery::mock(Gate::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
-        $this->cacheMock = Mockery::mock(Cache::class);
+        $this->cacheRepositoryMock = Mockery::mock(CacheRepository::class);
         $this->requestMock = Mockery::mock(Request::class);
         $this->responseMock = Mockery::mock(Response::class);
         $this->postMock = Mockery::mock(Post::class);
@@ -90,7 +90,7 @@ class PostControllerTest extends TestCase
         $this->messageBagMock = Mockery::mock(MessageBag::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
         $this->postController = new PostController($this->jsonApiMock, $this->postRepositoryMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock,
-            $this->cacheMock);
+            $this->cacheRepositoryMock);
     }
 
     public function tearDown()
@@ -112,7 +112,7 @@ class PostControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
-        $this->cacheMock
+        $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
             ->andReturn($this->paginatorMock);
@@ -131,7 +131,7 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_with_a_resource_when_one_exists()
     {
-        $this->cacheMock
+        $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
             ->andReturn($this->postMock);
@@ -150,7 +150,7 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_not_found_when_no_resource_exists()
     {
-        $this->cacheMock
+        $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
             ->andReturn(null);
@@ -273,6 +273,17 @@ class PostControllerTest extends TestCase
             ->shouldReceive('create')
             ->once()
             ->andReturn($this->postMock);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
 
         $actualResult = $this->postController->store($this->requestMock, $this->responseMock, $this->postMock);
         $expectedResult = $this->responseMock;
@@ -426,10 +437,21 @@ class PostControllerTest extends TestCase
             ->withArgs(['a-slug'])
             ->andReturn($this->postMock);
 
-        $this->cacheMock
+        $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
             ->withArgs(['post.a-slug']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
 
         $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
@@ -507,7 +529,7 @@ class PostControllerTest extends TestCase
             ->shouldReceive('delete')
             ->once();
 
-        $this->cacheMock
+        $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
             ->withArgs(['post.a-slug']);
