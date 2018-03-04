@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
+use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
 use Illuminate\Http\Response;
 
@@ -16,11 +17,16 @@ class CategoryPostController
      * @var CategoryRepository
      */
     private $categoryRepository;
+    /**
+     * @var CacheRepository
+     */
+    private $cacheRepository;
 
-    public function __construct(JsonApi $jsonApi, CategoryRepository $categoryRepository)
+    public function __construct(JsonApi $jsonApi, CategoryRepository $categoryRepository, CacheRepository $cacheRepository)
     {
         $this->jsonApi = $jsonApi;
         $this->categoryRepository = $categoryRepository;
+        $this->cacheRepository = $cacheRepository;
     }
 
     /**
@@ -33,16 +39,12 @@ class CategoryPostController
      */
     public function show(Response $response, $slug)
     {
-        $category = $this->categoryRepository->findBySlug($slug);
+        $category = $this->cacheRepository->remember("categories-posts.$slug", 60, function () use ($slug) {
+            return $this->categoryRepository->findBySlugWithPosts($slug);
+        });
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
-
-        $category->load([
-            'posts' => function ($query) {
-                $query->orderBy('created_at', 'desc');
-            }
-        ]);
 
         return $this->jsonApi->respondResourceFound($response, $category);
     }

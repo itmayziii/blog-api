@@ -28,4 +28,22 @@ class CategoryRepository
             ->get()
             ->first();
     }
+
+    /**
+     * @param string $slug
+     *
+     * @return Category | null
+     */
+    public function findBySlugWithPosts($slug)
+    {
+        return $this->category
+            ->where('slug', $slug)
+            ->with([
+                'posts' => function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                }
+            ])
+            ->get()
+            ->first();
+    }
 }
