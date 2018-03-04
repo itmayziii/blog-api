@@ -224,6 +224,7 @@ class PostController extends Controller
         }
 
         $this->cacheRepository->forget("post.$slug");
+        $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceDeleted($response);
     }

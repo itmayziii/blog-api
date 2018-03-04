@@ -534,6 +534,17 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs(['post.a-slug']);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['posts*'])
+            ->andReturn(['laravel:posts.page1.size5']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['laravel:posts.page1.size5']]);
+
         $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
