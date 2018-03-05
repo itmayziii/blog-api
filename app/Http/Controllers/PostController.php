@@ -46,7 +46,7 @@ class PostController extends Controller
         'title'       => 'required|max:200|unique:posts',
         'status'      => 'required',
         'slug'        => 'required|max:255|unique:posts',
-        'content'     => 'required|max:10000'
+        'content'     => 'max:10000'
     ];
 
     public function __construct(
