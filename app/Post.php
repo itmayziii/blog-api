@@ -9,12 +9,12 @@ class Post extends Model
     /**
      * @inheritDoc
      */
-    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'image_path'];
+    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'preview', 'image_path'];
 
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'slug', 'content', 'image_path'];
+    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'slug', 'content', 'preview', 'image_path'];
 
     /**
      * Get all of the tags for the post.
