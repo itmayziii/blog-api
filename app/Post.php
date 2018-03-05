@@ -14,7 +14,7 @@ class Post extends Model
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'status', 'title', 'slug', 'content', 'preview', 'image_path_sm', 'image_path_md', 'image_path_lg'];
+    protected $visible = ['created_at', 'updated_at', 'category_id', 'user_id', 'status', 'title', 'slug', 'content', 'preview', 'image_path_sm', 'image_path_md', 'image_path_lg'];
 
     /**
      * Get all of the tags for the post.

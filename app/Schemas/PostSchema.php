@@ -26,7 +26,9 @@ class PostSchema extends BaseSchema
             'preview'     => $post->getAttribute('preview'),
             'imagePathSm' => $post->getAttribute('image_path_sm'),
             'imagePathMd' => $post->getAttribute('image_path_md'),
-            'imagePathLg' => $post->getAttribute('image_path_lg')
+            'imagePathLg' => $post->getAttribute('image_path_lg'),
+            'categoryId'  => $post->getAttribute('category_id'),
+            'userId'      => $post->getAttribute('user_id')
         ];
     }
 
