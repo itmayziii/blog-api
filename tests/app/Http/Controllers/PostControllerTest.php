@@ -231,7 +231,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(6);
+            ->times(10);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -267,7 +267,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(6);
+            ->times(10);
 
         $this->postMock
             ->shouldReceive('create')
@@ -399,7 +399,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(5);
+            ->times(10);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -435,7 +435,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(5);
+            ->times(10);
 
         $this->postMock
             ->shouldReceive('update')
