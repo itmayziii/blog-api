@@ -177,6 +177,13 @@ class PostController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
+        if ($post->getAttribute('slug') === $request->input('slug')) {
+            $this->validationRules['slug'] = 'required|max:255';
+        }
+        if ($post->getAttribute('title') === $request->input('title')) {
+            $this->validationRules['title'] = 'required|max:200';
+        }
+
         $validation = $this->initializeValidation($request, $this->validationRules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());

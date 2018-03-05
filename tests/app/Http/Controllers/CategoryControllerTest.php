@@ -240,7 +240,7 @@ class CategoryControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->once();
+            ->times(2);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -276,7 +276,7 @@ class CategoryControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->once();
+            ->times(2);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceCreated')
@@ -346,6 +346,14 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['update', $this->categoryMock])
             ->andReturn(false);
 
+        $this->categoryMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(2);
+
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
@@ -375,7 +383,11 @@ class CategoryControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->once();
+            ->times(4);
+
+        $this->categoryMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
 
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
@@ -423,7 +435,11 @@ class CategoryControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->once();
+            ->times(4);
+
+        $this->categoryMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceUpdated')
