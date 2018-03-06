@@ -63,7 +63,8 @@ $app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, func
         \App\Post::class     => \App\Schemas\PostSchema::class,
         \App\Category::class => \App\Schemas\CategorySchema::class,
         \App\Image::class    => \App\Schemas\ImageSchema::class,
-        \App\User::class     => \App\Schemas\UserSchema::class
+        \App\User::class     => \App\Schemas\UserSchema::class,
+        \App\Contact::class  => \App\Schemas\ContactSchema::class
     ];
 
     $encoder = \Neomerx\JsonApi\Encoder\Encoder::instance(

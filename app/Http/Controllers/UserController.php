@@ -149,6 +149,10 @@ class UserController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
+        if ($user->getAttribute('email') === $request->input('email')) {
+            $this->updateRules['email'] = 'required|max:100|email';
+        }
+
         $validation = $this->initializeValidation($request, $this->updateRules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());

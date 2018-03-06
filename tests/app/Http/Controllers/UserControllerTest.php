@@ -366,6 +366,14 @@ class UserControllerTest extends TestCase
             ->withArgs([2])
             ->andReturn($this->userMock);
 
+        $this->userMock
+            ->shouldReceive('getAttribute')
+            ->times(1);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(1);
+
         $this->setUpValidationMock(true);
 
         $this->jsonApiMock
@@ -400,9 +408,13 @@ class UserControllerTest extends TestCase
             ->once()
             ->andThrow(new \Exception('an error occurred'));
 
+        $this->userMock
+            ->shouldReceive('getAttribute')
+            ->times(1);
+
         $this->requestMock
             ->shouldReceive('input')
-            ->times(3);
+            ->times(4);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -442,9 +454,13 @@ class UserControllerTest extends TestCase
             ->once()
             ->andReturn($this->userMock);
 
+        $this->userMock
+            ->shouldReceive('getAttribute')
+            ->times(1);
+
         $this->requestMock
             ->shouldReceive('input')
-            ->times(3);
+            ->times(4);
 
         $this->jsonApiMock
             ->shouldReceive('respondResourceUpdated')

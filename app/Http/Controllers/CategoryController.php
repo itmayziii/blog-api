@@ -87,6 +87,7 @@ class CategoryController extends Controller
         try {
             $category = $category->create([
                 'name' => $request->input('name'),
+                'slug' => $request->input('slug')
             ]);
         } catch (\Exception $e) {
             $this->logger->error("Failed to create a category with exception: " . $e->getMessage());
@@ -107,6 +108,13 @@ class CategoryController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
+        if ($category->getAttribute('name') === $request->input('name')) {
+            $this->rules['name'] = 'required';
+        }
+        if ($category->getAttribute('slug') === $request->input('slug')) {
+            $this->rules['slug'] = 'required';
+        }
+
         $validation = $this->initializeValidation($request, $this->rules);
         if ($validation->fails()) {
             return $this->jsonApi->respondValidationFailed($response, $validation->getMessageBag());
@@ -115,6 +123,7 @@ class CategoryController extends Controller
         try {
             $category->update([
                 'name' => $request->input('name'),
+                'slug' => $request->input('slug')
             ]);
         } catch (\Exception $e) {
             $this->logger->error("Failed to update a category with exception: " . $e->getMessage());

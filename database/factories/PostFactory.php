@@ -10,15 +10,18 @@ $factory->define(App\Post::class, function (Faker\Generator $faker) {
     $sentence = $faker->unique()->sentence;
     \Illuminate\Support\Facades\Log::info($sentence);
     return [
-        'slug'        => str_slug($sentence),
-        'created_at'  => $faker->unixTime,
-        'updated_at'  => $faker->unixTime,
-        'user_id'     => $user->id,
-        'category_id' => $category->id,
-        'status'      => $faker->randomElement(['draft', 'live']),
-        'title'       => $sentence,
-        'content'     => $faker->paragraphs(5, true),
-        'image_path'  => $faker->imageUrl(183, 183)
+        'slug'          => str_slug($sentence),
+        'created_at'    => $faker->unixTime,
+        'updated_at'    => $faker->unixTime,
+        'user_id'       => $user->id,
+        'category_id'   => $category->id,
+        'status'        => $faker->randomElement(['draft', 'live']),
+        'title'         => $sentence,
+        'content'       => $faker->paragraphs(5, true),
+        'preview'       => $faker->paragraph(),
+        'image_path_sm' => $faker->imageUrl(768, 300),
+        'image_path_md' => $faker->imageUrl(992, 400),
+        'image_path_lg' => $faker->imageUrl(1920, 500)
     ];
 
 });

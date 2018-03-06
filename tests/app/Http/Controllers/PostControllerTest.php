@@ -231,7 +231,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(6);
+            ->times(10);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -267,7 +267,7 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(6);
+            ->times(10);
 
         $this->postMock
             ->shouldReceive('create')
@@ -331,6 +331,14 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs(['update', $this->postMock])
             ->andReturn(false);
+
+        $this->requestMock
+            ->shouldReceive('input')
+            ->times(2);
+
+        $this->postMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
 
         $this->jsonApiMock
             ->shouldReceive('respondValidationFailed')
@@ -399,7 +407,11 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(5);
+            ->times(12);
+
+        $this->postMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
 
         $this->loggerMock
             ->shouldReceive('error')
@@ -435,7 +447,11 @@ class PostControllerTest extends TestCase
 
         $this->requestMock
             ->shouldReceive('input')
-            ->times(5);
+            ->times(12);
+
+        $this->postMock
+            ->shouldReceive('getAttribute')
+            ->times(2);
 
         $this->postMock
             ->shouldReceive('update')
