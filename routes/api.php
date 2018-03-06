@@ -28,7 +28,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('', 'CategoryController@index');
         $router->get('/{slug}', 'CategoryController@show');
         $router->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
-        $router->patch('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
+        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
         $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
 
         $router->get('/{slug}/posts', 'CategoryPostController@show');
@@ -40,7 +40,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('', 'TagController@index');
         $router->get('/{id}', 'TagController@show');
         $router->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
-        $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
+        $router->put('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
         $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
 
     });
@@ -49,7 +49,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
         $router->get('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@show']);
         $router->get('', ['middleware' => 'auth', 'uses' => 'UserController@index']);
-        $router->patch('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@update']);
+        $router->put('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@update']);
         $router->post('', 'UserController@store');
         $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'UserController@index']);
 
