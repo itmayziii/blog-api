@@ -10,7 +10,7 @@ class CategorySchema extends BaseSchema
 
     public function getId($post): ?string
     {
-        return $post->getAttribute('id');
+        return $post->getAttribute('slug');
     }
 
     public function getAttributes($category, array $fieldKeysFilter = null): ?array
