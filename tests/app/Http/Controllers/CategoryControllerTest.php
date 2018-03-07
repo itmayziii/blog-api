@@ -6,6 +6,7 @@ use App\Category;
 use App\Http\Controllers\CategoryController;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -73,6 +74,10 @@ class CategoryControllerTest extends TestCase
      * @var CategoryRepository | Mock
      */
     private $categoryRepositoryMock;
+    /**
+     * @var CacheRepository | Mock
+     */
+    private $cacheRepositoryMock;
 
     public function setUp()
     {
@@ -89,8 +94,16 @@ class CategoryControllerTest extends TestCase
         $this->messageBagMock = Mockery::mock(MessageBag::class);
         $this->loggerMock = Mockery::mock(LoggerInterface::class);
         $this->paginatorMock = Mockery::mock(LengthAwarePaginator::class);
+        $this->cacheRepositoryMock = Mockery::mock(CacheRepository::class);
 
-        $this->categoryController = new CategoryController($this->categoryRepositoryMock, $this->jsonApiMock, $this->gateMock, $this->loggerMock, $this->validationFactoryMock);
+        $this->categoryController = new CategoryController(
+            $this->categoryRepositoryMock,
+            $this->jsonApiMock,
+            $this->gateMock,
+            $this->loggerMock,
+            $this->validationFactoryMock,
+            $this->cacheRepositoryMock
+        );
     }
 
     public function tearDown()
@@ -112,22 +125,9 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
-        $this->categoryMock
-            ->shouldReceive('withCount')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs(['posts'])
-            ->andReturn($this->categoryMock);
-
-        $this->categoryMock
-            ->shouldReceive('orderBy')
-            ->once()
-            ->withArgs(['created_at', 'desc'])
-            ->andReturn($this->categoryMock);
-
-        $this->categoryMock
-            ->shouldReceive('paginate')
-            ->once()
-            ->withArgs([30, null, 'page', 2])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock

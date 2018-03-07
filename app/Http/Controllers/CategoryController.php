@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
@@ -31,6 +32,10 @@ class CategoryController extends Controller
      */
     private $logger;
     /**
+     * @var CacheRepository
+     */
+    private $cacheRepository;
+    /**
      * Validation Rules
      *
      * @var array
@@ -40,13 +45,21 @@ class CategoryController extends Controller
         'slug' => 'required|unique:categories'
     ];
 
-    public function __construct(CategoryRepository $categoryRepository, JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
+    public function __construct(
+        CategoryRepository $categoryRepository,
+        JsonApi $jsonApi,
+        Gate $gate,
+        LoggerInterface $logger,
+        ValidationFactory $validationFactory,
+        CacheRepository $cacheRepository
+    )
     {
         parent::__construct($validationFactory);
         $this->categoryRepository = $categoryRepository;
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;
+        $this->cacheRepository = $cacheRepository;
     }
 
     public function index(Request $request, Response $response, Category $category)
@@ -54,10 +67,14 @@ class CategoryController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $category
-            ->withCount('posts')
-            ->orderBy('created_at', 'desc')
-            ->paginate($size, null, 'page', $page);
+        $paginator = $this->cacheRepository->remember("categories.page$page.size$size", 60, function () use ($size, $page, $category) {
+            $paginator = $category
+                ->withCount('posts')
+                ->orderBy('created_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+
+            return $paginator;
+        });
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
