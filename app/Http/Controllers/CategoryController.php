@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Http\JsonApi;
 use App\Post;
+use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
@@ -31,6 +32,10 @@ class CategoryController extends Controller
      */
     private $logger;
     /**
+     * @var CacheRepository
+     */
+    private $cacheRepository;
+    /**
      * Validation Rules
      *
      * @var array
@@ -40,13 +45,21 @@ class CategoryController extends Controller
         'slug' => 'required|unique:categories'
     ];
 
-    public function __construct(CategoryRepository $categoryRepository, JsonApi $jsonApi, Gate $gate, LoggerInterface $logger, ValidationFactory $validationFactory)
+    public function __construct(
+        CategoryRepository $categoryRepository,
+        JsonApi $jsonApi,
+        Gate $gate,
+        LoggerInterface $logger,
+        ValidationFactory $validationFactory,
+        CacheRepository $cacheRepository
+    )
     {
         parent::__construct($validationFactory);
         $this->categoryRepository = $categoryRepository;
         $this->jsonApi = $jsonApi;
         $this->gate = $gate;
         $this->logger = $logger;
+        $this->cacheRepository = $cacheRepository;
     }
 
     public function index(Request $request, Response $response, Category $category)
@@ -54,17 +67,23 @@ class CategoryController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $category
-            ->withCount('posts')
-            ->orderBy('created_at', 'desc')
-            ->paginate($size, null, 'page', $page);
+        $paginator = $this->cacheRepository->remember("categories.page$page.size$size", 60, function () use ($size, $page, $category) {
+            $paginator = $category
+                ->withCount('posts')
+                ->orderBy('created_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+
+            return $paginator;
+        });
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
 
     public function show(Response $response, $slug)
     {
-        $category = $this->categoryRepository->findBySlug($slug);
+        $category = $this->cacheRepository->remember("category.$slug", 60, function () use ($slug) {
+            return $this->categoryRepository->findBySlug($slug);
+        });
 
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
@@ -93,6 +112,8 @@ class CategoryController extends Controller
             $this->logger->error("Failed to create a category with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to create the category");
         }
+
+        $this->clearCategoriesCache();
 
         return $this->jsonApi->respondResourceCreated($response, $category);
     }
@@ -130,6 +151,9 @@ class CategoryController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to update category.");
         }
 
+        $this->cacheRepository->forget("category.$slug");
+        $this->clearCategoriesCache();
+
         return $this->jsonApi->respondResourceUpdated($response, $category);
     }
 
@@ -145,7 +169,7 @@ class CategoryController extends Controller
         }
 
         try {
-            $post->where('category_id', $slug)
+            $post->where('category_id', $category->getAttribute('id'))
                 ->update(['category_id' => null]);
             $category->delete();
         } catch (\Exception $e) {
@@ -153,7 +177,18 @@ class CategoryController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete category.");
         }
 
+        $this->cacheRepository->forget("category.$slug");
+        $this->clearCategoriesCache();
+
         return $this->jsonApi->respondResourceDeleted($response);
     }
 
+    private function clearCategoriesCache()
+    {
+        $categoryKeys = $this->cacheRepository->keys('categories*');
+        $this->cacheRepository->deleteMultiple($categoryKeys);
+
+        $categoryPostKeys = $this->cacheRepository->keys('categories-posts*');
+        $this->cacheRepository->deleteMultiple($categoryPostKeys);
+    }
 }
