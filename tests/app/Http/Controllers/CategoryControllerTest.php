@@ -144,10 +144,9 @@ class CategoryControllerTest extends TestCase
 
     public function test_show_responds_not_found_if_category_does_not_exist()
     {
-        $this->categoryRepositoryMock
-            ->shouldReceive('findBySlug')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs([2])
             ->andReturn(null);
 
         $this->jsonApiMock
@@ -164,10 +163,9 @@ class CategoryControllerTest extends TestCase
 
     public function test_show_responds_with_category()
     {
-        $this->categoryRepositoryMock
-            ->shouldReceive('findBySlug')
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
             ->once()
-            ->withArgs([2])
             ->andReturn($this->categoryMock);
 
         $this->jsonApiMock

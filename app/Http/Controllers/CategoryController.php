@@ -81,7 +81,9 @@ class CategoryController extends Controller
 
     public function show(Response $response, $slug)
     {
-        $category = $this->categoryRepository->findBySlug($slug);
+        $category = $this->cacheRepository->remember("category.$slug", 60, function () use ($slug) {
+            return $this->categoryRepository->findBySlug($slug);
+        });
 
         if (is_null($category)) {
             return $this->jsonApi->respondResourceNotFound($response);
