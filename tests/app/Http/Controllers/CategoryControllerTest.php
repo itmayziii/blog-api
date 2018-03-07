@@ -391,7 +391,7 @@ class CategoryControllerTest extends TestCase
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs([4])
+            ->withArgs(['a-slug'])
             ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
@@ -410,7 +410,7 @@ class CategoryControllerTest extends TestCase
             ->once()
             ->withArgs(['Failed to update a category with exception: an error occurred']);
 
-        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -477,7 +477,7 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -494,7 +494,7 @@ class CategoryControllerTest extends TestCase
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs([4])
+            ->withArgs(['a-slug'])
             ->andReturn(null);
 
         $this->jsonApiMock
@@ -503,7 +503,7 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -520,7 +520,7 @@ class CategoryControllerTest extends TestCase
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs([4])
+            ->withArgs(['a-slug'])
             ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
@@ -546,12 +546,18 @@ class CategoryControllerTest extends TestCase
             ->once()
             ->andThrow(new \Exception('an error occurred'));
 
+        $this->categoryMock
+            ->shouldReceive('getAttribute')
+            ->once()
+            ->withArgs(['id'])
+            ->andReturn(4);
+
         $this->loggerMock
             ->shouldReceive('error')
             ->once()
             ->withArgs(['Failed to delete a category with exception: an error occurred']);
 
-        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -559,6 +565,8 @@ class CategoryControllerTest extends TestCase
 
     public function test_delete_responds_category_deleted_if_everything_is_successful()
     {
+        $this->setUpCacheMock();
+
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
@@ -568,7 +576,7 @@ class CategoryControllerTest extends TestCase
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs([4])
+            ->withArgs(['a-slug'])
             ->andReturn($this->categoryMock);
 
         $this->jsonApiMock
@@ -589,11 +597,22 @@ class CategoryControllerTest extends TestCase
             ->withArgs([['category_id' => null]])
             ->andReturn($this->postMock);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['category.a-slug']);
+
+        $this->categoryMock
+            ->shouldReceive('getAttribute')
+            ->once()
+            ->withArgs(['id'])
+            ->andReturn(4);
+
         $this->categoryMock
             ->shouldReceive('delete')
             ->once();
 
-        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 4);
+        $actualResult = $this->categoryController->delete($this->responseMock, $this->categoryMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));

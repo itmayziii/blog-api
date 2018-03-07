@@ -169,13 +169,16 @@ class CategoryController extends Controller
         }
 
         try {
-            $post->where('category_id', $slug)
+            $post->where('category_id', $category->getAttribute('id'))
                 ->update(['category_id' => null]);
             $category->delete();
         } catch (\Exception $e) {
             $this->logger->error("Failed to delete a category with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, "Unable to delete category.");
         }
+
+        $this->cacheRepository->forget("category.$slug");
+        $this->clearCategoriesCache();
 
         return $this->jsonApi->respondResourceDeleted($response);
     }
