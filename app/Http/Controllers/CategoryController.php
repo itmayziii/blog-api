@@ -113,6 +113,8 @@ class CategoryController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to create the category");
         }
 
+        $this->clearCategoriesCache();
+
         return $this->jsonApi->respondResourceCreated($response, $category);
     }
 
@@ -175,4 +177,12 @@ class CategoryController extends Controller
         return $this->jsonApi->respondResourceDeleted($response);
     }
 
+    private function clearCategoriesCache()
+    {
+        $categoryKeys = $this->cacheRepository->keys('categories*');
+        $this->cacheRepository->deleteMultiple($categoryKeys);
+
+        $categoryPostKeys = $this->cacheRepository->keys('categories-posts*');
+        $this->cacheRepository->deleteMultiple($categoryPostKeys);
+    }
 }

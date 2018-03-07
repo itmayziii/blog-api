@@ -260,6 +260,7 @@ class CategoryControllerTest extends TestCase
     public function test_store_responds_with_created_resource_on_success()
     {
         $this->setUpValidationMock(false);
+        $this->setUpCacheMock();
 
         $this->gateMock
             ->shouldReceive('denies')
@@ -618,5 +619,30 @@ class CategoryControllerTest extends TestCase
                 ->once()
                 ->andReturn($this->messageBagMock);
         }
+    }
+
+    private function setUpCacheMock()
+    {
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories*'])
+            ->andReturn(['categories.page1.size2']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['categories.page1.size2']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories-posts*'])
+            ->andReturn(['categories-posts.test']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['categories-posts.test']]);
     }
 }
