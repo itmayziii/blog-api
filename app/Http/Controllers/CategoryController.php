@@ -151,6 +151,9 @@ class CategoryController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to update category.");
         }
 
+        $this->cacheRepository->forget("category.$slug");
+        $this->clearCategoriesCache();
+
         return $this->jsonApi->respondResourceUpdated($response, $category);
     }
 

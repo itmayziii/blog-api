@@ -419,6 +419,7 @@ class CategoryControllerTest extends TestCase
     public function test_update_responds_resource_updated_if_everything_is_successful()
     {
         $this->setUpValidationMock(false);
+        $this->setUpCacheMock();
 
         $this->gateMock
             ->shouldReceive('denies')
@@ -429,7 +430,7 @@ class CategoryControllerTest extends TestCase
         $this->categoryRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs([4])
+            ->withArgs(['a-slug'])
             ->andReturn($this->categoryMock);
 
         $this->requestMock
@@ -446,12 +447,17 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->categoryMock])
             ->andReturn($this->responseMock);
 
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['category.a-slug']);
+
         $this->categoryMock
             ->shouldReceive('update')
             ->once()
             ->andReturn($this->categoryMock);
 
-        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 4);
+        $actualResult = $this->categoryController->update($this->requestMock, $this->responseMock, $this->categoryMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
