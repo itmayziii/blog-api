@@ -14,6 +14,11 @@ class PostSchema extends BaseSchema
         return $post->getAttribute('id');
     }
 
+    public function getSelfSubUrl($post = null): string
+    {
+        return $this->selfSubUrl . '/' . $post->getAttribute('slug');
+    }
+
     public function getAttributes($post, array $fieldKeysFilter = null): ?array
     {
         return [

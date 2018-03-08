@@ -37,7 +37,7 @@ class CategoryPostController
      *
      * @return Response
      */
-    public function show(Response $response, $slug)
+    public function show(Response $response, $slug) // TODO figure out how we can paginate included JSON API resources
     {
         $category = $this->cacheRepository->remember("categories-posts.$slug", 60, function () use ($slug) {
             return $this->categoryRepository->findBySlugWithPosts($slug);
