@@ -4,7 +4,7 @@ pipeline {
     stage('Install Dependencies') {
       agent {
         docker {
-          image 'composer/composer:latest'
+          image 'composer:latest'
         }
         
       }
