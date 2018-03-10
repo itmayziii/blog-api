@@ -79,14 +79,23 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $this->cacheRepository->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
-            $paginator = $post->where('status', 'live')
-                ->orderBy('created_at', 'desc')
-                ->paginate($size, null, 'page', $page);
+        if ($this->gate->denies('indexAllPosts', $post)) {
+            $paginator = $this->cacheRepository->remember("posts.live.page$page.size$size", 60, function () use ($size, $page, $post) {
+                $paginator = $post->where('status', 'live')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
 
-            return $paginator;
-        });
+                return $paginator;
+            });
+        } else {
+            $paginator = $this->cacheRepository->remember("posts.all.page$page.size$size", 60, function () use ($size, $page, $post) {
+                $paginator = $post
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
 
+                return $paginator;
+            });
+        }
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
@@ -95,15 +104,22 @@ class PostController extends Controller
      * Find specific posts by slug.
      *
      * @param Response $response
+     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, $slug)
+    public function show(Response $response, Post $post, $slug)
     {
-        $post = $this->cacheRepository->remember("post.$slug", 60, function () use ($slug) {
-            return $this->postRepository->findBySlug($slug, true);
-        });
+        if ($this->gate->denies('showAllPosts', $post)) {
+            $post = $this->cacheRepository->remember("post.$slug.live", 60, function () use ($slug) {
+                return $this->postRepository->findBySlug($slug, true);
+            });
+        } else {
+            $post = $this->cacheRepository->remember("post.$slug.any", 60, function () use ($slug) {
+                return $this->postRepository->findBySlug($slug, false);
+            });
+        }
 
         if (is_null($post)) {
             $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
@@ -207,7 +223,7 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
-        $this->cacheRepository->forget("post.$slug");
+        $this->cacheRepository->forget("post.{$slug}.*");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceUpdated($response, $post);
@@ -240,7 +256,7 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
-        $this->cacheRepository->forget("post.$slug");
+        $this->cacheRepository->forget("post.$slug.*");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceDeleted($response);

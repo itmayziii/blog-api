@@ -150,10 +150,9 @@ class FileControllerTest extends TestCase
             ->shouldReceive('getClientOriginalName')
             ->times(6);
 
-        $this->fileSystemMock
-            ->shouldReceive('put')
-            ->twice()
-            ->andReturn(200);
+        $this->fileMock
+            ->shouldReceive('move')
+            ->twice();
 
         $actualResult = $this->fileController->uploadImages($this->requestMock, $this->responseMock);
         $expectedResult = $this->responseMock;

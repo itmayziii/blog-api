@@ -12,6 +12,7 @@ class PostPolicy
      *
      * @param  User $user
      * @param  Post $post
+     *
      * @return bool
      */
     public function store(User $user, Post $post)
@@ -24,6 +25,7 @@ class PostPolicy
      *
      * @param User $user
      * @param Post $post
+     *
      * @return bool
      */
     public function update(User $user, Post $post)
@@ -36,9 +38,36 @@ class PostPolicy
      *
      * @param User $user
      * @param Post $post
+     *
      * @return bool
      */
     public function delete(User $user, Post $post)
+    {
+        return $user->isAdmin();
+    }
+
+    /**
+     * Determine if a user can view all posts, or only live posts.
+     *
+     * @param User $user
+     * @param Post $post
+     *
+     * @return bool
+     */
+    public function indexAllPosts(User $user, Post $post)
+    {
+        return $user->isAdmin();
+    }
+
+    /**
+     * Determine if a user can show all posts, or only live posts.
+     *
+     * @param User $user
+     * @param Post $post
+     *
+     * @return bool
+     */
+    public function showAllPosts(User $user, Post $post)
     {
         return $user->isAdmin();
     }

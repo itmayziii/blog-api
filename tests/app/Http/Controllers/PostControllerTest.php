@@ -98,7 +98,7 @@ class PostControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_index_responds_with_resources()
+    public function test_index_responds_with_live_posts()
     {
         $this->requestMock
             ->shouldReceive('query')
@@ -112,9 +112,54 @@ class PostControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexAllPosts', $this->postMock])
+            ->andReturn(true);
+
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
+            ->withArgs(['posts.live.page2.size20', 60, Mockery::any()])
+            ->andReturn($this->paginatorMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourcesFound')
+            ->once()
+            ->withArgs([$this->responseMock, $this->paginatorMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->postController->index($this->requestMock, $this->responseMock, $this->postMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_index_responds_with_all_posts()
+    {
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['size', 15])
+            ->andReturn(20);
+
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['page', 1])
+            ->andReturn(2);
+
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexAllPosts', $this->postMock])
+            ->andReturn(false);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
+            ->once()
+            ->withArgs(['posts.all.page2.size20', 60, Mockery::any()])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock
@@ -131,9 +176,16 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_with_a_resource_when_one_exists()
     {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['showAllPosts', $this->postMock])
+            ->andReturn(false);
+
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
+            ->withArgs(['post.a-slug.any', 60, Mockery::any()])
             ->andReturn($this->postMock);
 
         $this->jsonApiMock
@@ -142,7 +194,7 @@ class PostControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->postMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->postController->show($this->responseMock, 'a-slug');
+        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -150,9 +202,16 @@ class PostControllerTest extends TestCase
 
     public function test_show_responds_not_found_when_no_resource_exists()
     {
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['showAllPosts', $this->postMock])
+            ->andReturn(true);
+
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
+            ->withArgs(['post.a-slug.live', 60, Mockery::any()])
             ->andReturn(null);
 
         $this->jsonApiMock
@@ -166,7 +225,7 @@ class PostControllerTest extends TestCase
             ->once()
             ->withArgs([PostController::class . ' unable to find post with slug: a-slug']);
 
-        $actualResult = $this->postController->show($this->responseMock, 'a-slug');
+        $actualResult = $this->postController->show($this->responseMock, $this->postMock, 'a-slug');
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -467,7 +526,7 @@ class PostControllerTest extends TestCase
         $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
-            ->withArgs(['post.a-slug']);
+            ->withArgs(['post.a-slug.*']);
 
         $this->cacheRepositoryMock
             ->shouldReceive('keys')
@@ -570,7 +629,7 @@ class PostControllerTest extends TestCase
         $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
-            ->withArgs(['post.a-slug']);
+            ->withArgs(['post.a-slug.*']);
 
         $this->cacheRepositoryMock
             ->shouldReceive('keys')
