@@ -111,7 +111,7 @@ class CategoryControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_index_returns_categories()
+    public function test_index_returns_categories_with_live_posts()
     {
         $this->requestMock
             ->shouldReceive('query')
@@ -125,9 +125,16 @@ class CategoryControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexAllPosts', $this->postMock])
+            ->andReturn(true);
+
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
+            ->withArgs(['categories.live.page2.size30', 60, Mockery::any()])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock
@@ -136,7 +143,45 @@ class CategoryControllerTest extends TestCase
             ->withArgs([$this->responseMock, $this->paginatorMock])
             ->andReturn($this->responseMock);
 
-        $actualResult = $this->categoryController->index($this->requestMock, $this->responseMock, $this->categoryMock);
+        $actualResult = $this->categoryController->index($this->requestMock, $this->responseMock, $this->categoryMock, $this->postMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_index_returns_categories_with_all_posts()
+    {
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['size', 15])
+            ->andReturn(30);
+
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['page', 1])
+            ->andReturn(2);
+
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexAllPosts', $this->postMock])
+            ->andReturn(false);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
+            ->once()
+            ->withArgs(['categories.all.page2.size30', 60, Mockery::any()])
+            ->andReturn($this->paginatorMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourcesFound')
+            ->once()
+            ->withArgs([$this->responseMock, $this->paginatorMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->categoryController->index($this->requestMock, $this->responseMock, $this->categoryMock, $this->postMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -651,13 +696,24 @@ class CategoryControllerTest extends TestCase
         $this->cacheRepositoryMock
             ->shouldReceive('keys')
             ->once()
-            ->withArgs(['categories*'])
-            ->andReturn(['categories.page1.size2']);
+            ->withArgs(['categories.all*'])
+            ->andReturn(['categories.all.page1.size2']);
 
         $this->cacheRepositoryMock
             ->shouldReceive('deleteMultiple')
             ->once()
-            ->withArgs([['categories.page1.size2']]);
+            ->withArgs([['categories.all.page1.size2']]);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('keys')
+            ->once()
+            ->withArgs(['categories.live*'])
+            ->andReturn(['categories.live.page1.size2']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('deleteMultiple')
+            ->once()
+            ->withArgs([['categories.live.page1.size2']]);
 
         $this->cacheRepositoryMock
             ->shouldReceive('keys')

@@ -62,19 +62,39 @@ class CategoryController extends Controller
         $this->cacheRepository = $cacheRepository;
     }
 
-    public function index(Request $request, Response $response, Category $category)
+    public function index(Request $request, Response $response, Category $category, Post $post)
     {
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $this->cacheRepository->remember("categories.page$page.size$size", 60, function () use ($size, $page, $category) {
-            $paginator = $category
-                ->withCount('posts')
-                ->orderBy('created_at', 'desc')
-                ->paginate($size, null, 'page', $page);
+        if ($this->gate->denies('indexAllPosts', $post)) {
+            $paginator = $this->cacheRepository->remember("categories.live.page$page.size$size", 60, function () use ($size, $page, $category) {
+                $paginator = $category
+                    ->withCount([
+                        'posts' => function ($query) {
+                            $query->where('status', 'live')
+                                ->orderBy('created_at', 'desc');
+                        }
+                    ])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
 
-            return $paginator;
-        });
+                return $paginator;
+            });
+        } else {
+            $paginator = $this->cacheRepository->remember("categories.all.page$page.size$size", 60, function () use ($size, $page, $category) {
+                $paginator = $category
+                    ->withCount([
+                        'posts' => function ($query) {
+                            $query->orderBy('created_at', 'desc');
+                        }
+                    ])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
+
+                return $paginator;
+            });
+        }
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
@@ -185,7 +205,10 @@ class CategoryController extends Controller
 
     private function clearCategoriesCache()
     {
-        $categoryKeys = $this->cacheRepository->keys('categories*');
+        $categoryKeys = $this->cacheRepository->keys('categories.all*');
+        $this->cacheRepository->deleteMultiple($categoryKeys);
+
+        $categoryKeys = $this->cacheRepository->keys('categories.live*');
         $this->cacheRepository->deleteMultiple($categoryKeys);
 
         $categoryPostKeys = $this->cacheRepository->keys('categories-posts*');
