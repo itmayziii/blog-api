@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'allow_origins' => ['https://www.fullheapdeveloper.com', 'localhost:8080'],
+    'allow_origins' => ['https://www.fullheapdeveloper.com', 'http://localhost:4200'],
 
     /*
     |--------------------------------------------------------------------------
