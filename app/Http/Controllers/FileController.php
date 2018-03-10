@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
 use App\Image;
+use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
@@ -52,9 +53,9 @@ class FileController
         $uploadedImages = [];
         foreach ($files as $fileName => $file) {
             $uploadedFile = $request->file($fileName);
-            $isImageUploaded = $this->fileSystem->put($this->imagePath . $uploadedFile->getClientOriginalName(), $uploadedFile);
-
-            if ($isImageUploaded === false) {
+            try {
+                $uploadedFile->move($this->imagePath, $uploadedFile->getClientOriginalName());
+            } catch (Exception $e) {
                 $this->logger->error(FileController::class . " failed to upload file $fileName");
                 continue;
             }
