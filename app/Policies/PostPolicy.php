@@ -42,4 +42,12 @@ class PostPolicy
     {
         return $user->isAdmin();
     }
+
+    /**
+     *
+     */
+    public function indexLivePosts(User $user, Post $post)
+    {
+        return $user->isAdmin();
+    }
 }

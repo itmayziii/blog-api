@@ -98,7 +98,7 @@ class PostControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_index_responds_with_resources()
+    public function test_index_responds_with_live_posts()
     {
         $this->requestMock
             ->shouldReceive('query')
@@ -112,9 +112,54 @@ class PostControllerTest extends TestCase
             ->withArgs(['page', 1])
             ->andReturn(2);
 
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexLivePosts', $this->postMock])
+            ->andReturn(true);
+
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
             ->once()
+            ->withArgs(['posts.live.page2.size20', 60, Mockery::any()])
+            ->andReturn($this->paginatorMock);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourcesFound')
+            ->once()
+            ->withArgs([$this->responseMock, $this->paginatorMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->postController->index($this->requestMock, $this->responseMock, $this->postMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_index_responds_with_all_posts()
+    {
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['size', 15])
+            ->andReturn(20);
+
+        $this->requestMock
+            ->shouldReceive('query')
+            ->once()
+            ->withArgs(['page', 1])
+            ->andReturn(2);
+
+        $this->gateMock
+            ->shouldReceive('denies')
+            ->once()
+            ->withArgs(['indexLivePosts', $this->postMock])
+            ->andReturn(false);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('remember')
+            ->once()
+            ->withArgs(['posts.all.page2.size20', 60, Mockery::any()])
             ->andReturn($this->paginatorMock);
 
         $this->jsonApiMock

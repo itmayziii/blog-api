@@ -79,14 +79,23 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        $paginator = $this->cacheRepository->remember("posts.page$page.size$size", 60, function () use ($size, $page, $post) {
-            $paginator = $post->where('status', 'live')
-                ->orderBy('created_at', 'desc')
-                ->paginate($size, null, 'page', $page);
+        if ($this->gate->denies('indexLivePosts', $post)) {
+            $paginator = $this->cacheRepository->remember("posts.live.page$page.size$size", 60, function () use ($size, $page, $post) {
+                $paginator = $post->where('status', 'live')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
 
-            return $paginator;
-        });
+                return $paginator;
+            });
+        } else {
+            $paginator = $this->cacheRepository->remember("posts.all.page$page.size$size", 60, function () use ($size, $page, $post) {
+                $paginator = $post
+                    ->orderBy('created_at', 'desc')
+                    ->paginate($size, null, 'page', $page);
 
+                return $paginator;
+            });
+        }
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }
