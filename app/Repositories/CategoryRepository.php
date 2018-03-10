@@ -31,15 +31,20 @@ class CategoryRepository
 
     /**
      * @param string $slug
+     * @param bool $livePostsOnly
      *
      * @return Category | null
      */
-    public function findBySlugWithPosts($slug)
+    public function findBySlugWithPosts($slug, $livePostsOnly = true)
     {
         return $this->category
             ->where('slug', $slug)
             ->with([
-                'posts' => function ($query) {
+                'posts' => function ($query) use ($livePostsOnly) {
+                    if ($livePostsOnly) {
+                        $query->where('status', 'live');
+                    }
+
                     $query->orderBy('created_at', 'desc');
                 }
             ])
