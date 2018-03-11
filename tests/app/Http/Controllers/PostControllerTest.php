@@ -407,7 +407,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn($this->postMock);
 
         $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
@@ -433,7 +433,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn(null);
 
         $actualResult = $this->postController->update($this->requestMock, $this->responseMock, $this->postMock, 'a-slug');
@@ -461,7 +461,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn($this->postMock);
 
         $this->requestMock
@@ -520,7 +520,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn($this->postMock);
 
         $this->cacheRepositoryMock
@@ -593,7 +593,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn(null);
 
         $actualResult = $this->postController->delete($this->responseMock, $this->postMock, 'a-slug');
@@ -619,7 +619,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn($this->postMock);
 
         $this->postMock
@@ -676,7 +676,7 @@ class PostControllerTest extends TestCase
         $this->postRepositoryMock
             ->shouldReceive('findBySlug')
             ->once()
-            ->withArgs(['a-slug'])
+            ->withArgs(['a-slug', false])
             ->andReturn($this->postMock);
 
         $this->postMock

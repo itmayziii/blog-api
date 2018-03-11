@@ -188,7 +188,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $this->postRepository->findBySlug($slug);
+        $post = $this->postRepository->findBySlug($slug, false);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -244,7 +244,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $this->postRepository->findBySlug($slug);
+        $post = $this->postRepository->findBySlug($slug, false);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
