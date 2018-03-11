@@ -223,7 +223,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
-        $this->cacheRepository->forget("post.{$slug}.*");
+        $this->cacheRepository->forget("post.{$slug}.any");
+        $this->cacheRepository->forget("post.{$slug}.all");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceUpdated($response, $post);
@@ -256,7 +257,8 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
-        $this->cacheRepository->forget("post.$slug.*");
+        $this->cacheRepository->forget("post.{$slug}.any");
+        $this->cacheRepository->forget("post.{$slug}.all");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceDeleted($response);

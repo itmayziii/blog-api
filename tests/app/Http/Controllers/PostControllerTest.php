@@ -526,7 +526,12 @@ class PostControllerTest extends TestCase
         $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
-            ->withArgs(['post.a-slug.*']);
+            ->withArgs(['post.a-slug.any']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['post.a-slug.all']);
 
         $this->cacheRepositoryMock
             ->shouldReceive('keys')
@@ -629,7 +634,12 @@ class PostControllerTest extends TestCase
         $this->cacheRepositoryMock
             ->shouldReceive('forget')
             ->once()
-            ->withArgs(['post.a-slug.*']);
+            ->withArgs(['post.a-slug.any']);
+
+        $this->cacheRepositoryMock
+            ->shouldReceive('forget')
+            ->once()
+            ->withArgs(['post.a-slug.all']);
 
         $this->cacheRepositoryMock
             ->shouldReceive('keys')
