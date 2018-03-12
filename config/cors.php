@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'allow_origins' => ['https://www.fullheapdeveloper.com', 'http://localhost:4200'],
+    'allow_origins' => [env('APP_CORS_ALLOWED_ORIGINS')],
 
     /*
     |--------------------------------------------------------------------------

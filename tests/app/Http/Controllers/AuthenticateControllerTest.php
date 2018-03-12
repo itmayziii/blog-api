@@ -8,6 +8,7 @@ use App\Repositories\UserRepository;
 use App\User;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -54,6 +55,10 @@ class AuthenticateControllerTest extends TestCase
      * @var AuthenticateController
      */
     private $authenticateController;
+    /**
+     * @var ConfigRepository | Mock
+     */
+    private $configRepositoryMock;
 
     public function setUp()
     {
@@ -66,7 +71,14 @@ class AuthenticateControllerTest extends TestCase
         $this->hasherMock = Mockery::mock(Hasher::class);
         $this->userMock = Mockery::mock(User::class);
         $this->carbonMock = Mockery::mock(Carbon::class);
-        $this->authenticateController = new AuthenticateController($this->jsonApiMock, $this->userRepositoryMock, $this->loggerMock, $this->hasherMock);
+        $this->configRepositoryMock = Mockery::mock(ConfigRepository::class);
+        $this->authenticateController = new AuthenticateController(
+            $this->jsonApiMock,
+            $this->userRepositoryMock,
+            $this->loggerMock,
+            $this->hasherMock,
+            $this->configRepositoryMock
+        );
     }
 
     public function tearDown()
@@ -195,7 +207,7 @@ class AuthenticateControllerTest extends TestCase
         $this->jsonApiMock
             ->shouldReceive('respondServerError')
             ->once()
-            ->withArgs([$this->responseMock, 'Unable to create token.'])
+            ->withArgs([$this->responseMock, 'Unable to save user with new token.'])
             ->andReturn($this->responseMock);
 
         $this->userMock
@@ -212,6 +224,11 @@ class AuthenticateControllerTest extends TestCase
             ->shouldReceive('save')
             ->once()
             ->andThrow(new Exception('an error occurred'));
+
+        $this->carbonMock
+            ->shouldReceive('copy')
+            ->once()
+            ->andReturn($this->carbonMock);
 
         $this->carbonMock
             ->shouldReceive('addDay')
@@ -234,7 +251,7 @@ class AuthenticateControllerTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_authenticate_responds_resource_created_when_username_and_password_is_valid()
+    public function test_authenticate_responds_successful_authentication_when_username_and_password_are_valid()
     {
         $this->requestMock
             ->shouldReceive('header')
@@ -268,8 +285,14 @@ class AuthenticateControllerTest extends TestCase
             ->once();
 
         $this->carbonMock
+            ->shouldReceive('copy')
+            ->once()
+            ->andReturn($this->carbonMock);
+
+        $this->carbonMock
             ->shouldReceive('addDay')
-            ->once();
+            ->once()
+            ->andReturn(86400);
 
         $this->hasherMock
             ->shouldReceive('check')
@@ -277,16 +300,38 @@ class AuthenticateControllerTest extends TestCase
             ->withArgs(['ThisPass1', 'ThisPass1'])
             ->andReturn(true);
 
+        $this->configRepositoryMock
+            ->shouldReceive('get')
+            ->once()
+            ->withArgs(['cookies'])
+            ->andReturn([
+                'domain' => 'localhost',
+                'secure' => false,
+                'http_only' => false
+            ]);
+
+        $this->responseMock
+            ->shouldReceive('withCookie')
+            ->once()
+            ->withAnyArgs()
+            ->andReturn($this->responseMock);
+
         $actualResult = $this->authenticateController->authenticate($this->requestMock, $this->responseMock, $this->carbonMock);
         $expectedResult = $this->responseMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_validateToken_responds_bad_request_if_api_token_header_is_not_set()
+    public function test_validateToken_responds_bad_request_if_api_token_header_or_cookie_is_not_set()
     {
         $this->requestMock
-            ->shouldReceive('header')
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(false);
+
+        $this->requestMock
+            ->shouldReceive('cookie')
             ->once()
             ->withArgs(['API-Token'])
             ->andReturn(null);
@@ -294,7 +339,7 @@ class AuthenticateControllerTest extends TestCase
         $this->jsonApiMock
             ->shouldReceive('respondBadRequest')
             ->once()
-            ->withArgs([$this->responseMock, 'API-Token header is not set.'])
+            ->withArgs([$this->responseMock, 'Neither API-Token header or cookie is set.'])
             ->andReturn($this->responseMock);
 
         $actualResult = $this->authenticateController->validateToken($this->requestMock, $this->responseMock, $this->carbonMock);
@@ -305,6 +350,12 @@ class AuthenticateControllerTest extends TestCase
 
     public function test_validateToken_responds_unauthorized_if_user_is_not_found()
     {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(true);
+
         $this->requestMock
             ->shouldReceive('header')
             ->once()
@@ -332,7 +383,13 @@ class AuthenticateControllerTest extends TestCase
     public function test_validateToken_responds_unauthorized_if_token_is_expired()
     {
         $this->requestMock
-            ->shouldReceive('header')
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(false);
+
+        $this->requestMock
+            ->shouldReceive('cookie')
             ->once()
             ->withArgs(['API-Token'])
             ->andReturn('a1b2c3');
@@ -368,6 +425,12 @@ class AuthenticateControllerTest extends TestCase
 
     public function test_validateToken_responds_with_user_if_token_is_valid()
     {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(true);
+
         $this->requestMock
             ->shouldReceive('header')
             ->once()

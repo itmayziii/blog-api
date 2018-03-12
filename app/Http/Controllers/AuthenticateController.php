@@ -6,13 +6,16 @@ use App\Http\JsonApi;
 use App\Repositories\UserRepository;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class AuthenticateController
 {
+    const API_TOKEN_NAME = 'API-Token';
     /**
      * @var UserRepository
      */
@@ -29,13 +32,18 @@ class AuthenticateController
      * @var Hasher
      */
     private $hasher;
+    /**
+     * @var ConfigRepository
+     */
+    private $configRepository;
 
-    public function __construct(JsonApi $jsonApi, UserRepository $userRepository, LoggerInterface $logger, Hasher $hasher)
+    public function __construct(JsonApi $jsonApi, UserRepository $userRepository, LoggerInterface $logger, Hasher $hasher, ConfigRepository $configRepository)
     {
         $this->userRepository = $userRepository;
         $this->jsonApi = $jsonApi;
         $this->logger = $logger;
         $this->hasher = $hasher;
+        $this->configRepository = $configRepository;
     }
 
     /**
@@ -70,15 +78,20 @@ class AuthenticateController
 
         $apiToken = sha1(str_random());
         $user->setAttribute('api_token', $apiToken);
-        $user->setAttribute('api_token_expiration', $carbon->addDay());
+        $oneDayInTheFuture = $carbon->copy()->addDay();
+        $user->setAttribute('api_token_expiration', $oneDayInTheFuture);
         try {
             $user->save();
         } catch (Exception $e) {
             $this->logger->error("Failed to update user with API Token with exception: " . $e->getMessage());
-            return $this->jsonApi->respondServerError($response, 'Unable to create token.');
+            return $this->jsonApi->respondServerError($response, 'Unable to save user with new token.');
         }
 
-        return $this->jsonApi->respondResourceCreated($response, $user);
+        $cookiesConfig = $this->configRepository->get('cookies');
+        $response = $this->jsonApi->respondResourceCreated($response, $user);
+        $cookie = new Cookie(self::API_TOKEN_NAME, $apiToken, $oneDayInTheFuture, '/', $cookiesConfig['domain'], $cookiesConfig['secure'], $cookiesConfig['http_only']);
+
+       return $response->withCookie($cookie);
     }
 
     /**
@@ -90,9 +103,10 @@ class AuthenticateController
      */
     public function validateToken(Request $request, Response $response, Carbon $carbon)
     {
-        $apiTokenHeader = $request->header('API-Token');
+        $apiTokenHeader = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
         if (is_null($apiTokenHeader)) {
-            return $this->jsonApi->respondBadRequest($response, 'API-Token header is not set.');
+            $apiTokenName = self::API_TOKEN_NAME;
+            return $this->jsonApi->respondBadRequest($response, "Neither $apiTokenName header or cookie is set.");
         }
 
         $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
