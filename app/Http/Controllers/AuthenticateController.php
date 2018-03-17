@@ -91,7 +91,7 @@ class AuthenticateController
         $response = $this->jsonApi->respondResourceCreated($response, $user);
         $cookie = new Cookie(self::API_TOKEN_NAME, $apiToken, $oneDayInTheFuture, '/', $cookiesConfig['domain'], $cookiesConfig['secure'], $cookiesConfig['http_only']);
 
-       return $response->withCookie($cookie);
+        return $response->withCookie($cookie);
     }
 
     /**
