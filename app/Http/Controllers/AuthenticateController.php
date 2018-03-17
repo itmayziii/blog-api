@@ -77,11 +77,12 @@ class AuthenticateController
         }
 
         $apiToken = sha1(str_random());
-        $user->setAttribute('api_token', $apiToken);
         $oneDayInTheFuture = $carbon->copy()->addDay();
-        $user->setAttribute('api_token_expiration', $oneDayInTheFuture);
         try {
-            $user->save();
+            $user->update([
+                'api_token'            => $apiToken,
+                'api_token_expiration' => $oneDayInTheFuture
+            ]);
         } catch (Exception $e) {
             $this->logger->error("Failed to update user with API Token with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, 'Unable to save user with new token.');
@@ -103,13 +104,13 @@ class AuthenticateController
      */
     public function validateToken(Request $request, Response $response, Carbon $carbon)
     {
-        $apiTokenHeader = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
-        if (is_null($apiTokenHeader)) {
+        $apiToken = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
+        if (is_null($apiToken)) {
             $apiTokenName = self::API_TOKEN_NAME;
             return $this->jsonApi->respondBadRequest($response, "Neither $apiTokenName header or cookie is set.");
         }
 
-        $user = $this->userRepository->retrieveUserByToken($apiTokenHeader);
+        $user = $this->userRepository->retrieveUserByToken($apiToken);
         if (is_null($user)) {
             return $this->jsonApi->respondUnauthorized($response);
         }
@@ -121,6 +122,11 @@ class AuthenticateController
         }
 
         return $this->jsonApi->respondResourceFound($response, $user);
+    }
+
+    public function logout()
+    {
+
     }
 
     /**

@@ -217,11 +217,7 @@ class AuthenticateControllerTest extends TestCase
             ->andReturn('ThisPass1');
 
         $this->userMock
-            ->shouldReceive('setAttribute')
-            ->twice();
-
-        $this->userMock
-            ->shouldReceive('save')
+            ->shouldReceive('update')
             ->once()
             ->andThrow(new Exception('an error occurred'));
 
@@ -277,11 +273,7 @@ class AuthenticateControllerTest extends TestCase
             ->andReturn('ThisPass1');
 
         $this->userMock
-            ->shouldReceive('setAttribute')
-            ->twice();
-
-        $this->userMock
-            ->shouldReceive('save')
+            ->shouldReceive('update')
             ->once();
 
         $this->carbonMock
