@@ -4,6 +4,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/authenticate', 'AuthenticateController@authenticate');
     $router->get('/token-validation', 'AuthenticateController@validateToken');
+    $router->delete('/logout', 'AuthenticateController@logout');
 
     $router->group(['prefix' => 'contacts'], function () use ($router) {
 

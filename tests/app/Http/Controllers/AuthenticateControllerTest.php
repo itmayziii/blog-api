@@ -457,4 +457,140 @@ class AuthenticateControllerTest extends TestCase
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
+
+    public function test_logout_responds_bad_request_when_api_token_is_not_passed_in()
+    {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(false);
+
+        $this->requestMock
+            ->shouldReceive('cookie')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(null);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondBadRequest')
+            ->once()
+            ->withArgs([$this->responseMock, 'Neither API-Token header or cookie is set.'])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->authenticateController->logout($this->requestMock, $this->responseMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_logout_responds_unauthorized_if_user_is_not_found()
+    {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(true);
+
+        $this->requestMock
+            ->shouldReceive('header')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn('abc123');
+
+        $this->userRepositoryMock
+            ->shouldReceive('retrieveUserByToken')
+            ->once()
+            ->withArgs(['abc123'])
+            ->andReturn(null);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondUnauthorized')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->authenticateController->logout($this->requestMock, $this->responseMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_logout_responds_with_server_error_if_logout_fails()
+    {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(true);
+
+        $this->requestMock
+            ->shouldReceive('header')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn('abc123');
+
+        $this->userRepositoryMock
+            ->shouldReceive('retrieveUserByToken')
+            ->once()
+            ->withArgs(['abc123'])
+            ->andThrow($this->userMock);
+
+        $this->userMock
+            ->shouldReceive('update')
+            ->once()
+            ->andThrow(new Exception('an error occurred'));
+
+        $this->loggerMock
+            ->shouldReceive('error')
+            ->once()
+            ->withArgs(['Failed to update user and log them out with exception: an error occurred']);
+
+        $this->jsonApiMock
+            ->shouldReceive('respondServerError')
+            ->once()
+            ->withArgs([$this->responseMock, 'Unable to logout user.'])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->authenticateController->logout($this->requestMock, $this->responseMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
+
+    public function test_logout_responds_user_token_deleted()
+    {
+        $this->requestMock
+            ->shouldReceive('hasHeader')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn(true);
+
+        $this->requestMock
+            ->shouldReceive('header')
+            ->once()
+            ->withArgs(['API-Token'])
+            ->andReturn('abc123');
+
+        $this->userRepositoryMock
+            ->shouldReceive('retrieveUserByToken')
+            ->once()
+            ->withArgs(['abc123'])
+            ->andThrow($this->userMock);
+
+        $this->userMock
+            ->shouldReceive('update')
+            ->once();
+
+        $this->jsonApiMock
+            ->shouldReceive('respondResourceDeleted')
+            ->once()
+            ->withArgs([$this->responseMock])
+            ->andReturn($this->responseMock);
+
+        $actualResult = $this->authenticateController->logout($this->requestMock, $this->responseMock);
+        $expectedResult = $this->responseMock;
+
+        $this->assertThat($actualResult, $this->equalTo($expectedResult));
+    }
 }

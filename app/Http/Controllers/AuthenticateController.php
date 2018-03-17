@@ -124,9 +124,30 @@ class AuthenticateController
         return $this->jsonApi->respondResourceFound($response, $user);
     }
 
-    public function logout()
+    public function logout(Request $request, Response $response)
     {
+        $apiToken = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
+        if (is_null($apiToken)) {
+            $apiTokenName = self::API_TOKEN_NAME;
+            return $this->jsonApi->respondBadRequest($response, "Neither $apiTokenName header or cookie is set.");
+        }
 
+        $user = $this->userRepository->retrieveUserByToken($apiToken);
+        if (is_null($user)) {
+            return $this->jsonApi->respondUnauthorized($response);
+        }
+
+        try {
+            $user->update([
+                'api_token'            => null,
+                'api_token_expiration' => null
+            ]);
+        } catch (Exception $e) {
+            $this->logger->error("Failed to update user and log them out with exception: " . $e->getMessage());
+            return $this->jsonApi->respondServerError($response, 'Unable to logout user.');
+        }
+
+        return $this->jsonApi->respondResourceDeleted($response);
     }
 
     /**

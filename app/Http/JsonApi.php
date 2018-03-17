@@ -105,7 +105,7 @@ class JsonApi
 
     public function respondUnauthorized(Response $response): Response
     {
-        $error = new Error(null, null, Response::HTTP_FORBIDDEN, null, 'Unauthorized');
+        $error = new Error(null, null, Response::HTTP_UNAUTHORIZED, null, 'Unauthorized');
         $content = $this->encoder->encodeError($error);
 
         return $this->respond($response, Response::HTTP_UNAUTHORIZED, $content);
