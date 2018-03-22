@@ -2,15 +2,15 @@
 
 namespace App\Providers;
 
-use App\Post;
 use App\Category;
 use App\Contact;
-use App\Policies\PostPolicy;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
+use App\Policies\PostPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
+use App\Post;
 use App\Tag;
 use App\User;
 use Illuminate\Filesystem\Filesystem;
@@ -53,7 +53,7 @@ class AuthServiceProvider extends ServiceProvider
         // the User instance via an API token or any other method necessary.
 
         $this->app['auth']->viaRequest('api', function ($request) {
-            $apiToken = $request->header('API-Token');
+            $apiToken = $request->hasHeader('API-Token') ? $request->header('API-Token') : $request->cookie('API-Token');
             if ($apiToken) {
                 $user = User::where('api_token', $apiToken)->first();
 
