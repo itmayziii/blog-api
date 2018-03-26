@@ -9,12 +9,26 @@ class Post extends Model
     /**
      * @inheritDoc
      */
-    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'preview', 'image_path_sm', 'image_path_md', 'image_path_lg'];
+    protected $fillable = ['user_id', 'category_id', 'status', 'title', 'slug', 'content', 'preview', 'image_path_sm', 'image_path_md', 'image_path_lg', 'image_path_meta'];
 
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'category_id', 'user_id', 'status', 'title', 'slug', 'content', 'preview', 'image_path_sm', 'image_path_md', 'image_path_lg'];
+    protected $visible = [
+        'created_at',
+        'updated_at',
+        'category_id',
+        'user_id',
+        'status',
+        'title',
+        'slug',
+        'content',
+        'preview',
+        'image_path_sm',
+        'image_path_md',
+        'image_path_lg',
+        'image_path_meta'
+    ];
 
     /**
      * Get all of the tags for the post.

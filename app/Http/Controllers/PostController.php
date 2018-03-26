@@ -151,16 +151,17 @@ class PostController extends Controller
 
         try {
             $post = $post->create([
-                'user_id'       => $request->input('user-id'),
-                'category_id'   => $request->input('category-id'),
-                'slug'          => $request->input('slug'),
-                'status'        => $request->input('status'),
-                'title'         => $request->input('title'),
-                'content'       => $request->input('content'),
-                'preview'       => $request->input('preview'),
-                'image_path_sm' => $request->input('image-path-sm'),
-                'image_path_md' => $request->input('image-path-md'),
-                'image_path_lg' => $request->input('image-path-lg')
+                'user_id'         => $request->input('user-id'),
+                'category_id'     => $request->input('category-id'),
+                'slug'            => $request->input('slug'),
+                'status'          => $request->input('status'),
+                'title'           => $request->input('title'),
+                'content'         => $request->input('content'),
+                'preview'         => $request->input('preview'),
+                'image_path_sm'   => $request->input('image-path-sm'),
+                'image_path_md'   => $request->input('image-path-md'),
+                'image_path_lg'   => $request->input('image-path-lg'),
+                'image_path_meta' => $request->input('image-path-meta')
             ]);
         } catch (Exception $e) {
             $this->logger->error(PostController::class . " failed to create a post with exception: " . $e->getMessage());
@@ -207,16 +208,17 @@ class PostController extends Controller
 
         try {
             $post->update([
-                'user_id'       => $request->input('user-id'),
-                'category_id'   => $request->input('category-id'),
-                'slug'          => $request->input('slug'),
-                'status'        => $request->input('status'),
-                'title'         => $request->input('title'),
-                'content'       => $request->input('content'),
-                'preview'       => $request->input('preview'),
-                'image_path_sm' => $request->input('image-path-sm'),
-                'image_path_md' => $request->input('image-path-md'),
-                'image_path_lg' => $request->input('image-path-lg')
+                'user_id'         => $request->input('user-id'),
+                'category_id'     => $request->input('category-id'),
+                'slug'            => $request->input('slug'),
+                'status'          => $request->input('status'),
+                'title'           => $request->input('title'),
+                'content'         => $request->input('content'),
+                'preview'         => $request->input('preview'),
+                'image_path_sm'   => $request->input('image-path-sm'),
+                'image_path_md'   => $request->input('image-path-md'),
+                'image_path_lg'   => $request->input('image-path-lg'),
+                'image_path_meta' => $request->input('image-path-meta')
             ]);
         } catch (Exception $e) {
             $this->logger->error(PostController::class . " failed to update a post with exception: " . $e->getMessage());

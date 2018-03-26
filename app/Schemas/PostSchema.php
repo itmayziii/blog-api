@@ -22,18 +22,19 @@ class PostSchema extends BaseSchema
     public function getAttributes($post, array $fieldKeysFilter = null): ?array
     {
         return [
-            'createdAt'   => $post->getAttribute('created_at')->toIso8601String(),
-            'updatedAt'   => $post->getAttribute('updated_at')->toIso8601String(),
-            'status'      => $post->getAttribute('status'),
-            'title'       => $post->getAttribute('title'),
-            'slug'        => $post->getAttribute('slug'),
-            'content'     => $post->getAttribute('content'),
-            'preview'     => $post->getAttribute('preview'),
-            'imagePathSm' => $post->getAttribute('image_path_sm'),
-            'imagePathMd' => $post->getAttribute('image_path_md'),
-            'imagePathLg' => $post->getAttribute('image_path_lg'),
-            'categoryId'  => $post->getAttribute('category_id'),
-            'userId'      => $post->getAttribute('user_id')
+            'createdAt'     => $post->getAttribute('created_at')->toIso8601String(),
+            'updatedAt'     => $post->getAttribute('updated_at')->toIso8601String(),
+            'status'        => $post->getAttribute('status'),
+            'title'         => $post->getAttribute('title'),
+            'slug'          => $post->getAttribute('slug'),
+            'content'       => $post->getAttribute('content'),
+            'preview'       => $post->getAttribute('preview'),
+            'imagePathSm'   => $post->getAttribute('image_path_sm'),
+            'imagePathMd'   => $post->getAttribute('image_path_md'),
+            'imagePathLg'   => $post->getAttribute('image_path_lg'),
+            'imagePathMeta' => $post->getAttribute('image_path_meta'),
+            'categoryId'    => $post->getAttribute('category_id'),
+            'userId'        => $post->getAttribute('user_id')
         ];
     }
 
