@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
             ContactsTableSeeder::class,
             PostsTableSeeder::class,
             TagsTableSeeder::class,
-            TaggableTableSeeder::class
+            TaggableTableSeeder::class,
+            PagesTableSeeder::class
         ]);
     }
 }

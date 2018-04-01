@@ -56,6 +56,12 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     });
 
+    $router->group(['prefix' => 'pages'], function () use ($router) {
+
+        $router->get('', 'PageController@index');
+
+    });
+
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
 });
