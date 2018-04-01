@@ -79,23 +79,12 @@ class PostController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        if ($this->gate->denies('indexAllPosts', $post)) {
-            $paginator = $this->cacheRepository->remember("posts.live.page$page.size$size", 60, function () use ($size, $page, $post) {
-                $paginator = $post->where('status', 'live')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate($size, null, 'page', $page);
+        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', $post);
+        $allowedStatus = $isAllowedToIndexAllPosts ? 'all' : 'live';
 
-                return $paginator;
-            });
-        } else {
-            $paginator = $this->cacheRepository->remember("posts.all.page$page.size$size", 60, function () use ($size, $page, $post) {
-                $paginator = $post
-                    ->orderBy('created_at', 'desc')
-                    ->paginate($size, null, 'page', $page);
-
-                return $paginator;
-            });
-        }
+        $paginator = $this->cacheRepository->remember("posts.$allowedStatus.page$page.size$size", 60, function () use ($size, $page, $isAllowedToIndexAllPosts) {
+            return $isAllowedToIndexAllPosts ? $this->postRepository->paginateAllPosts($page, $size) : $this->postRepository->paginateLivePosts($page, $size);
+        });
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
     }

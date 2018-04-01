@@ -16,6 +16,21 @@ class PostRepository
         $this->post = $post;
     }
 
+    public function paginateAllPosts($page, $size)
+    {
+        return $this->post
+            ->orderBy('updated_at', 'desc')
+            ->paginate($size, null, 'page', $page);
+    }
+
+    public function paginateLivePosts($page, $size)
+    {
+        return $this->post
+            ->where('status', 'live')
+            ->orderBy('updated_at', 'desc')
+            ->paginate($size, null, 'page', $page);
+    }
+
     /**
      * @param string $slug
      * @param boolean $liveOnly

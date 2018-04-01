@@ -113,10 +113,10 @@ class PostControllerTest extends TestCase
             ->andReturn(2);
 
         $this->gateMock
-            ->shouldReceive('denies')
+            ->shouldReceive('allows')
             ->once()
             ->withArgs(['indexAllPosts', $this->postMock])
-            ->andReturn(true);
+            ->andReturn(false);
 
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
@@ -151,10 +151,10 @@ class PostControllerTest extends TestCase
             ->andReturn(2);
 
         $this->gateMock
-            ->shouldReceive('denies')
+            ->shouldReceive('allows')
             ->once()
             ->withArgs(['indexAllPosts', $this->postMock])
-            ->andReturn(false);
+            ->andReturn(true);
 
         $this->cacheRepositoryMock
             ->shouldReceive('remember')
