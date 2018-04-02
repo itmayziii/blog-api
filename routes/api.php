@@ -59,6 +59,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->group(['prefix' => 'pages'], function () use ($router) {
 
         $router->get('', 'PageController@index');
+        $router->get('/{slug}', 'PageController@show');
+        $router->post('', 'PageController@store');
 
     });
 

@@ -183,6 +183,7 @@ class PostController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
+        // Removing the unique validation on some fields if they have not changed
         if ($post->getAttribute('slug') === $request->input('slug')) {
             $this->validationRules['slug'] = 'required|max:255';
         }
