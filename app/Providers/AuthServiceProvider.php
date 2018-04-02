@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Category;
 use App\Contact;
+use App\Page;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
+use App\Policies\PagePolicy;
 use App\Policies\PostPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
@@ -25,7 +27,8 @@ class AuthServiceProvider extends ServiceProvider
         Category::class   => CategoryPolicy::class,
         Tag::class        => TagPolicy::class,
         User::class       => UserPolicy::class,
-        Filesystem::class => FilesystemPolicy::class
+        Filesystem::class => FilesystemPolicy::class,
+        Page::class       => PagePolicy::class
     ];
 
     /**
