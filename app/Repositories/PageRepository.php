@@ -73,9 +73,15 @@ class PageRepository
         ]);
     }
 
-    public function update($attributes)
+    /**
+     * @param Page $page
+     * @param array $attributes
+     *
+     * @return boolean
+     */
+    public function update($page, $attributes)
     {
-        return $this->page->update([
+        return $page->update([
             'title'   => isset($attributes['title']) ? $attributes['title'] : null,
             'slug'    => isset($attributes['slug']) ? $attributes['slug'] : null,
             'content' => isset($attributes['content']) ? $attributes['content'] : null,

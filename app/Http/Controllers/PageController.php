@@ -164,7 +164,7 @@ class PageController extends Controller
         $page = $this->pageRepository->findBySlug($slug);
         if (is_null($page)) {
             $this->logger->debug(PageController::class . " unable to find page to update with slug: $slug");
-            return $this->jsonApi->respondResourceFound($response, $page);
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         if ($this->gate->denies('update', $page)) {
@@ -187,7 +187,7 @@ class PageController extends Controller
         }
 
         try {
-            $this->pageRepository->update($request->all());
+            $this->pageRepository->update($page, $request->all());
         } catch (Exception $e) {
             $this->logger->error(PageController::class . " failed to update a page with exception: " . $e->getMessage());
             return $this->jsonApi->respondServerError($response, 'Unable to update page');
@@ -212,7 +212,7 @@ class PageController extends Controller
         $page = $this->pageRepository->findBySlug($slug);
         if (is_null($page)) {
             $this->logger->debug(PageController::class . " unable to find page to delete with slug: $slug");
-            return $this->jsonApi->respondResourceFound($response, $page);
+            return $this->jsonApi->respondResourceNotFound($response);
         }
 
         if ($this->gate->denies('delete', $page)) {

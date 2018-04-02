@@ -61,6 +61,8 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
         $router->get('', 'PageController@index');
         $router->get('/{slug}', 'PageController@show');
         $router->post('', 'PageController@store');
+        $router->put('/{slug}', 'PageController@update');
+        $router->delete('/{slug}', 'PageController@delete');
 
     });
 
