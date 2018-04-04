@@ -33,19 +33,14 @@ class PostRepository
 
     /**
      * @param string $slug
-     * @param boolean $liveOnly
      *
      * @return Post | null
      */
-    public function findBySlug($slug, $liveOnly = true)
+    public function findBySlug($slug)
     {
-        $post = $this->post
-            ->where('slug', $slug);
-
-        if ($liveOnly) {
-            $post = $post->where('status', 'live');
-        }
-
-        return $post->get()->first();
+        return $this->post
+            ->where('slug', $slug)
+            ->get()
+            ->first();
     }
 }

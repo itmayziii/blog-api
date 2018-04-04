@@ -58,11 +58,11 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->group(['prefix' => 'pages'], function () use ($router) {
 
-        $router->get('', 'PageController@index');
+        $router->get('', ['middleware' => 'auth', 'uses' => 'PageController@index']);
         $router->get('/{slug}', 'PageController@show');
-        $router->post('', 'PageController@store');
-        $router->put('/{slug}', 'PageController@update');
-        $router->delete('/{slug}', 'PageController@delete');
+        $router->post('', ['middleware' => 'auth', 'uses' => 'PageController@store']);
+        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PageController@update']);
+        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PageController@delete']);
 
     });
 

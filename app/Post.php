@@ -60,6 +60,11 @@ class Post extends Model
      */
     public function isOwner(User $user)
     {
-        return ($this->user_id === $user->id);
+        return $this->getAttribute('user_id') === $user->getAttribute('id');
+    }
+
+    public function isLive()
+    {
+        return $this->getAttribute('status') === 'live';
     }
 }
