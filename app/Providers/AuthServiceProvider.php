@@ -57,13 +57,11 @@ class AuthServiceProvider extends ServiceProvider
 
         $this->app['auth']->viaRequest('api', function ($request) {
             $apiToken = $request->hasHeader('API-Token') ? $request->header('API-Token') : $request->cookie('API-Token');
-            if ($apiToken) {
-                $user = User::where('api_token', $apiToken)->first();
-
-                return $user;
+            if (is_null($apiToken)) {
+                return null;
             }
 
-            return null;
+            return User::where('api_token', $apiToken)->first();
         });
     }
 

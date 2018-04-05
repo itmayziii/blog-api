@@ -60,15 +60,15 @@ class PostPolicy
     }
 
     /**
-     * Determine if a user can show all posts, or only live posts.
+     * Determine if a user can show a post.
      *
      * @param User $user
      * @param Post $post
      *
      * @return bool
      */
-    public function showAllPosts(User $user, Post $post)
+    public function show(User $user, Post $post)
     {
-        return $user->isAdmin();
+        return $user->isAdmin() || $post->isOwner($user);
     }
 }

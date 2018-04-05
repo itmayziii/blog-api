@@ -15,7 +15,7 @@ class PagePolicy
      *
      * @return bool
      */
-    public function indexAllPages(User $user, Page $page)
+    public function index(User $user, Page $page)
     {
         return $user->isAdmin();
     }
@@ -28,7 +28,7 @@ class PagePolicy
      *
      * @return bool
      */
-    public function showPage(User $user, Page $page)
+    public function show(User $user, Page $page)
     {
         return $user->isAdmin() || $page->getAttribute('is_live') == true;
     }

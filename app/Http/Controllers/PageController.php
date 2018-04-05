@@ -8,6 +8,7 @@ use App\Repositories\CacheRepository;
 use App\Repositories\PageRepository;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,6 +28,10 @@ class PageController extends Controller
      * @var Gate
      */
     private $gate;
+    /**
+     * @var Guard
+     */
+    private $guard;
     /**
      * @var PageRepository
      */
@@ -51,6 +56,7 @@ class PageController extends Controller
         JsonApi $jsonApi,
         LoggerInterface $logger,
         Gate $gate,
+        Guard $guard,
         PageRepository $pageRepository,
         CacheRepository $cacheRepository,
         ValidationFactory $validationFactory
@@ -59,6 +65,7 @@ class PageController extends Controller
         $this->jsonApi = $jsonApi;
         $this->logger = $logger;
         $this->gate = $gate;
+        $this->guard = $guard;
         $this->pageRepository = $pageRepository;
         $this->cacheRepository = $cacheRepository;
     }
@@ -74,16 +81,16 @@ class PageController extends Controller
      */
     public function index(Request $request, Response $response, Page $page)
     {
+        if ($this->gate->denies('index', $page)) {
+            return $this->jsonApi->respondForbidden($response);
+        }
+
         $size = $request->query('size', 15);
         $pageQueryParam = $request->query('page', 1);
 
-        $isAllowedToIndexAllPages = $this->gate->allows('indexAllPages', $page);
-        $allowedStatus = $isAllowedToIndexAllPages ? 'all' : 'live';
-
-        $paginator = $this->cacheRepository->remember("pages.$allowedStatus.page$pageQueryParam.size$size", 60,
-            function () use ($size, $pageQueryParam, $isAllowedToIndexAllPages) {
-                return ($isAllowedToIndexAllPages) ? $this->pageRepository->paginateAllPages($pageQueryParam, $size) : $this->pageRepository->paginateLivePages($pageQueryParam,
-                    $size);
+        $paginator = $this->cacheRepository->remember("pages.all.page$pageQueryParam.size$size", 60,
+            function () use ($size, $pageQueryParam) {
+                return $this->pageRepository->paginateAllPages($pageQueryParam, $size);
             });
 
         return $this->jsonApi->respondResourcesFound($response, $paginator);
@@ -108,7 +115,15 @@ class PageController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
-        if ($this->gate->denies('showPage', $page)) {
+        if ($page->isLive()) {
+            return $this->jsonApi->respondResourceFound($response, $page);
+        }
+
+        if ($this->guard->guest()) {
+            return $this->jsonApi->respondUnauthorized($response);
+        }
+
+        if ($this->gate->denies('show', $page)) {
             $this->logger->debug(PageController::class . " unauthorized to show page with slug: $slug");
             return $this->jsonApi->respondForbidden($response);
         }

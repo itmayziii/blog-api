@@ -8,6 +8,7 @@ use App\Repositories\CacheRepository;
 use App\Repositories\PostRepository;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -32,6 +33,10 @@ class PostController extends Controller
      */
     private $gate;
     /**
+     * @var Guard
+     */
+    private $guard;
+    /**
      * @var CacheRepository
      */
     private $cacheRepository;
@@ -53,6 +58,7 @@ class PostController extends Controller
         JsonApi $jsonApi,
         PostRepository $postRepository,
         Gate $gate,
+        Guard $guard,
         LoggerInterface $logger,
         ValidationFactory $validationFactory,
         CacheRepository $cacheRepository
@@ -61,6 +67,7 @@ class PostController extends Controller
         $this->jsonApi = $jsonApi;
         $this->postRepository = $postRepository;
         $this->gate = $gate;
+        $this->guard = $guard;
         $this->logger = $logger;
         $this->cacheRepository = $cacheRepository;
     }
@@ -93,26 +100,31 @@ class PostController extends Controller
      * Find specific posts by slug.
      *
      * @param Response $response
-     * @param Post $post
      * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, Post $post, $slug)
+    public function show(Response $response, $slug)
     {
-        if ($this->gate->denies('showAllPosts', $post)) {
-            $post = $this->cacheRepository->remember("post.$slug.live", 60, function () use ($slug) {
-                return $this->postRepository->findBySlug($slug, true);
-            });
-        } else {
-            $post = $this->cacheRepository->remember("post.$slug.any", 60, function () use ($slug) {
-                return $this->postRepository->findBySlug($slug, false);
-            });
-        }
+        $post = $this->cacheRepository->remember("post.$slug", 60, function () use ($slug) {
+            return $this->postRepository->findBySlug($slug);
+        });
 
         if (is_null($post)) {
             $this->logger->debug(PostController::class . " unable to find post with slug: $slug");
             return $this->jsonApi->respondResourceNotFound($response);
+        }
+
+        if ($post->isLive()) {
+            return $this->jsonApi->respondResourceFound($response, $post);
+        }
+
+        if ($this->guard->guest()) {
+            return $this->jsonApi->respondUnauthorized($response);
+        }
+
+        if ($this->gate->denies('show', $post)) {
+            return $this->jsonApi->respondForbidden($response);
         }
 
         return $this->jsonApi->respondResourceFound($response, $post);
@@ -178,7 +190,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $this->postRepository->findBySlug($slug, false);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -215,8 +227,7 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, 'Unable to update post');
         }
 
-        $this->cacheRepository->forget("post.{$slug}.any");
-        $this->cacheRepository->forget("post.{$slug}.all");
+        $this->cacheRepository->forget("post.{$slug}");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceUpdated($response, $post);
@@ -237,7 +248,7 @@ class PostController extends Controller
             return $this->jsonApi->respondForbidden($response);
         }
 
-        $post = $this->postRepository->findBySlug($slug, false);
+        $post = $this->postRepository->findBySlug($slug);
         if (is_null($post)) {
             return $this->jsonApi->respondResourceNotFound($response);
         }
@@ -249,8 +260,7 @@ class PostController extends Controller
             return $this->jsonApi->respondServerError($response, "Unable to delete post");
         }
 
-        $this->cacheRepository->forget("post.{$slug}.any");
-        $this->cacheRepository->forget("post.{$slug}.all");
+        $this->cacheRepository->forget("post.{$slug}");
         $this->clearPostsCache();
 
         return $this->jsonApi->respondResourceDeleted($response);
