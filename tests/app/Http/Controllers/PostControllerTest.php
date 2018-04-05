@@ -288,7 +288,7 @@ class PostControllerTest extends TestCase
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['show'])
+            ->withArgs(['show', $this->postMock])
             ->andReturn(true);
 
         $this->jsonApiMock
@@ -324,7 +324,7 @@ class PostControllerTest extends TestCase
         $this->gateMock
             ->shouldReceive('denies')
             ->once()
-            ->withArgs(['show'])
+            ->withArgs(['show', $this->postMock])
             ->andReturn(false);
 
         $this->jsonApiMock
