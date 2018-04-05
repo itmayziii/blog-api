@@ -123,7 +123,7 @@ class PostController extends Controller
             return $this->jsonApi->respondUnauthorized($response);
         }
 
-        if ($this->gate->denies('show')) {
+        if ($this->gate->denies('show', $post)) {
             return $this->jsonApi->respondForbidden($response);
         }
 

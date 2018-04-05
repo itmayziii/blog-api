@@ -115,7 +115,7 @@ class PageController extends Controller
             return $this->jsonApi->respondResourceNotFound($response);
         }
 
-        if ($page->getAttribute('is_live') === 1) {
+        if ($page->isLive()) {
             return $this->jsonApi->respondResourceFound($response, $page);
         }
 
