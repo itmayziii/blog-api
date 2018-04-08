@@ -19,7 +19,7 @@ class PostRepository
     public function paginateAllPosts($page, $size)
     {
         return $this->post
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate($size, null, 'page', $page);
     }
 
@@ -27,7 +27,7 @@ class PostRepository
     {
         return $this->post
             ->where('status', 'live')
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate($size, null, 'page', $page);
     }
 
