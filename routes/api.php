@@ -14,15 +14,15 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     });
 
-    $router->group(['prefix' => 'posts'], function () use ($router) {
-
-        $router->get('', 'PostController@index');
-        $router->get('/{slug}', 'PostController@show');
-        $router->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
-        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
-        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
-
-    });
+//    $router->group(['prefix' => 'posts'], function () use ($router) {
+//
+//        $router->get('', 'PostController@index');
+//        $router->get('/{slug}', 'PostController@show');
+//        $router->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
+//        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
+//        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
+//
+//    });
 
     $router->group(['prefix' => 'categories'], function () use ($router) {
 
@@ -67,5 +67,10 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     });
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
+
+
+    $router->get('/{resourceUrlId}/{resourceId}', 'ResourceController@show');
+    $router->get('/{resourceUrlId}', 'ResourceController@index');
+    $router->post('/{resourceUrlId}', 'ResourceController@store');
 
 });

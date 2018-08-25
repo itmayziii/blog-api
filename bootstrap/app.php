@@ -36,6 +36,7 @@ $app->withEloquent();
 |
 */
 $app->configure('cookies');
+$app->configure('resources');
 
 /*
 |--------------------------------------------------------------------------

@@ -1,0 +1,223 @@
+<?php
+
+namespace Tests\Integration\Http\Controllers;
+
+use Illuminate\Support\Facades\Artisan;
+use Laravel\Lumen\Testing\DatabaseMigrations;
+use TestingDatabaseSeeder;
+use Tests\TestCase;
+
+class PostControllerTest extends TestCase
+{
+    use DatabaseMigrations;
+
+    public function setUp()
+    {
+        parent::setUp();
+        Artisan::call('db:seed', ['--class' => TestingDatabaseSeeder::class]);
+    }
+
+    public function test_index_returns_posts()
+    {
+        $response = $this->json('GET', 'v1/posts');
+
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'data'  => [
+                [
+                    'type'       => 'posts',
+                    'id'         => '1',
+                    'attributes' => [
+                        'createdAt'     => '2018-06-18T12:00:30+00:00',
+                        'updatedAt'     => '2018-06-18T12:00:30+00:00',
+                        'status'        => 'live',
+                        'title'         => 'Post One',
+                        'slug'          => 'post-one',
+                        'content'       => 'Some really long content',
+                        'preview'       => 'Some really short content',
+                        'imagePathSm'   => '/images/post-one-image-sm',
+                        'imagePathMd'   => '/images/post-one-image-md',
+                        'imagePathLg'   => '/images/post-one-image-lg',
+                        'imagePathMeta' => '/images/post-one-image-meta',
+                        'categoryId'    => 1,
+                        'userId'        => 1
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-one'
+                    ]
+                ]
+            ],
+            'links' => [
+                'first' => 'http://localhost/v1/posts?page=1',
+                'last'  => 'http://localhost/v1/posts?page=1'
+            ]
+        ]);
+    }
+
+    public function test_show_returns_post()
+    {
+        $response = $this->json('GET', 'v1/posts/post-one');
+
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'data' => [
+                'type'       => 'posts',
+                'id'         => '1',
+                'attributes' => [
+                    'createdAt'     => '2018-06-18T12:00:30+00:00',
+                    'updatedAt'     => '2018-06-18T12:00:30+00:00',
+                    'status'        => 'live',
+                    'title'         => 'Post One',
+                    'slug'          => 'post-one',
+                    'content'       => 'Some really long content',
+                    'preview'       => 'Some really short content',
+                    'imagePathSm'   => '/images/post-one-image-sm',
+                    'imagePathMd'   => '/images/post-one-image-md',
+                    'imagePathLg'   => '/images/post-one-image-lg',
+                    'imagePathMeta' => '/images/post-one-image-meta',
+                    'categoryId'    => 1,
+                    'userId'        => 1
+                ],
+                'links'      => [
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-one'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_show_responds_not_found()
+    {
+        $response = $this->json('GET', 'v1/posts/imaginary-post');
+
+        $response->assertResponseStatus(404);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "404",
+                    'title'  => 'Not Found'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_show_responds_unauthorized()
+    {
+        $response = $this->json('GET', 'v1/posts/post-two');
+
+        $response->assertResponseStatus(401);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "401",
+                    'title'  => 'Unauthorized'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_show_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+        $response = $this->json('GET', 'v1/posts/post-two');
+
+        $response->assertResponseStatus(403);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "403",
+                    'title'  => 'Forbidden'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_show_responds_with_resource()
+    {
+        $this->actAsAdministrativeUser();
+        $response = $this->json('GET', 'v1/posts/post-two');
+
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'data' => [
+                'type'       => 'posts',
+                'id'         => '2',
+                'attributes' => [
+                    'createdAt'     => '2018-06-18T12:00:30+00:00',
+                    'updatedAt'     => '2018-06-18T12:00:30+00:00',
+                    'status'        => 'draft',
+                    'title'         => 'Post Two',
+                    'slug'          => 'post-two',
+                    'content'       => 'Some really long content',
+                    'preview'       => 'Some really short content',
+                    'imagePathSm'   => '/images/post-one-image-sm',
+                    'imagePathMd'   => '/images/post-one-image-md',
+                    'imagePathLg'   => '/images/post-one-image-lg',
+                    'imagePathMeta' => '/images/post-one-image-meta',
+                    'categoryId'    => 1,
+                    'userId'        => 1
+                ],
+                'links'      => [
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-two'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_store_responds_unauthorized()
+    {
+        $response = $this->json('POST', 'v1/posts');
+
+        $response->assertResponseStatus(401);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "401",
+                    'title'  => 'Unauthorized'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_store_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+
+        $response = $this->json('POST', 'v1/posts');
+
+        $response->assertResponseStatus(403);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals(([
+            'errors' => [
+                [
+                    'status' => "403",
+                    'title'  => 'Forbidden'
+                ]
+            ]
+        ]));
+    }
+
+    public function test_store_creates_post()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('POST', 'v1/posts');
+
+        $response->assertResponseStatus(403);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals(([
+            'errors' => [
+                [
+                    'status' => "403",
+                    'title'  => 'Forbidden'
+                ]
+            ]
+        ]));
+    }
+}

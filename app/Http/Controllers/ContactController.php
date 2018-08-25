@@ -25,9 +25,9 @@ class ContactController extends Controller
      */
     private $logger;
     private $validationRules = [
-        'first-name' => 'max:100',
-        'last-name'  => 'max:100',
-        'email'      => 'max:100',
+        'first-name' => 'required|max:100',
+        'last-name'  => 'required|max:100',
+        'email'      => 'required|max:100',
         'comments'   => 'required|max:4000'
     ];
 

@@ -11,11 +11,10 @@ class PostPolicy
      * Determine whether the user can create posts.
      *
      * @param  User $user
-     * @param  Post $post
      *
      * @return bool
      */
-    public function store(User $user, Post $post)
+    public function store(User $user)
     {
         return $user->isAdmin();
     }

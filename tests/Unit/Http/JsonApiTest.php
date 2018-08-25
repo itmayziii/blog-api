@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Http;
+namespace Tests\Unit\Http;
 
 use App\Http\JsonApi;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
