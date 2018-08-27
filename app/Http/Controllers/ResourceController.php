@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Contracts\ResourceInterface;
 use App\Http\JsonApi;
-use Error;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Guard;
-use \Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psr\Log\LoggerInterface;
@@ -43,9 +43,21 @@ class ResourceController
      * @var Gate
      */
     private $gate;
+    /**
+     * @var ValidationFactory
+     */
+    private $validationFactory;
 
-    public function __construct(Request $request, Response $response, JsonApi $jsonApi, Config $config, LoggerInterface $logger, Guard $guard, Gate $gate)
-    {
+    public function __construct(
+        Request $request,
+        Response $response,
+        JsonApi $jsonApi,
+        Config $config,
+        LoggerInterface $logger,
+        Guard $guard,
+        Gate $gate,
+        ValidationFactory $validationFactory
+    ) {
         $this->request = $request;
         $this->response = $response;
         $this->jsonApi = $jsonApi;
@@ -53,6 +65,7 @@ class ResourceController
         $this->logger = $logger;
         $this->guard = $guard;
         $this->gate = $gate;
+        $this->validationFactory = $validationFactory;
     }
 
     /**
@@ -65,7 +78,6 @@ class ResourceController
     public function index($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-
         if (is_null($resource) || !$resource instanceof ResourceInterface) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
@@ -88,7 +100,6 @@ class ResourceController
     public function show($resourceUrlId, $id)
     {
         $resource = $this->determineResource($resourceUrlId);
-
         if (is_null($resource) || !$resource instanceof ResourceInterface) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
@@ -98,16 +109,15 @@ class ResourceController
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        if ($resource->skipShowAuthentication($resourceObject)) {
-            return $this->jsonApi->respondResourceFound($this->response, $resourceObject);
-        }
+        if ($resource->requireShowAuthorization($resourceObject)) {
+            if ($this->guard->guest()) {
+                return $this->jsonApi->respondUnauthorized($this->response);
+            }
 
-        if ($this->guard->guest()) {
-            return $this->jsonApi->respondUnauthorized($this->response);
-        }
+            if ($this->gate->denies('show', $resourceObject)) {
+                return $this->jsonApi->respondForbidden($this->response);
+            }
 
-        if ($this->gate->denies('show', $resourceObject)) {
-            return $this->jsonApi->respondForbidden($this->response);
         }
 
         return $this->jsonApi->respondResourceFound($this->response, $resourceObject);
@@ -123,13 +133,11 @@ class ResourceController
     public function store($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-
         if (is_null($resource) || !$resource instanceof ResourceInterface) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        if (!$resource->skipStoreAuthentication()) {
-
+        if ($resource->requireStoreAuthorization()) {
             if ($this->guard->guest()) {
                 return $this->jsonApi->respondUnauthorized($this->response);
             }
@@ -137,15 +145,106 @@ class ResourceController
             if ($this->gate->denies('store', $resource->getResourceType())) {
                 return $this->jsonApi->respondForbidden($this->response);
             }
-
         }
 
-        $resourceObject = $resource->storeResourceObject($this->request->all());
+        $validation = $this->validationFactory->make($this->request->all(), $resource->getStoreValidationRules());
+        if ($validation->fails()) {
+            $this->logger->error(ResourceController::class . ": Unable to create {$resource->getResourceType()}, validation failed: " . print_r($validation->errors(), true));
+            return $this->jsonApi->respondValidationFailed($this->response, $validation->getMessageBag());
+        }
+
+        try {
+            $resourceObject = $resource->storeResourceObject($this->request->all(), $this->guard->user());
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to store resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
+        }
         if (is_null($resourceObject)) {
             return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
         }
 
         return $this->jsonApi->respondResourceCreated($this->response, $resourceObject);
+    }
+
+    /**
+     * @param string $resourceUrlId
+     * @param string | integer $id
+     *
+     * @return Response
+     */
+    public function update($resourceUrlId, $id)
+    {
+        $resource = $this->determineResource($resourceUrlId);
+        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        $resourceObject = $resource->findResourceObject($id);
+        if (is_null($resourceObject)) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        if ($resource->requireUpdateAuthorization($resourceObject)) {
+            if ($this->guard->guest()) {
+                return $this->jsonApi->respondUnauthorized($this->response);
+            }
+
+            if ($this->gate->denies('store', $resource->getResourceType())) {
+                return $this->jsonApi->respondForbidden($this->response);
+            }
+        }
+
+        $requestData = $this->request->all();
+        $validation = $this->validationFactory->make($requestData, $resource->getUpdateValidationRules($resourceObject, $requestData));
+        if ($validation->fails()) {
+            $this->logger->error(ResourceController::class . ": unable to update {$resource->getResourceType()}, validation failed: " . print_r($validation->errors(), true));
+            return $this->jsonApi->respondValidationFailed($this->response, $validation->getMessageBag());
+        }
+
+        try {
+            $resourceObject = $resource->updateResourceObject($resourceObject, $requestData, $this->guard->user());
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to update resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
+        }
+
+        return $this->jsonApi->respondResourceUpdated($this->response, $resourceObject);
+    }
+
+    /**
+     * @param string $resourceUrlId
+     * @param string | integer $id
+     *
+     * @return Response
+     */
+    public function delete($resourceUrlId, $id)
+    {
+        $resource = $this->determineResource($resourceUrlId);
+        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        $resourceObject = $resource->findResourceObject($id);
+        if (is_null($resourceObject)) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        if ($resource->resource->requireDeleteAuthorization) {
+            if ($this->guard->guest()) {
+                return $this->jsonApi->respondUnauthorized($this->response);
+            }
+
+            if ($this->gate->denies('delete', $resource->getResourceType())) {
+                return $this->jsonApi->respondForbidden($this->response);
+            }
+        }
+
+        $resourceDeleted = $resource->deleteResourceObject($resourceObject);
+        if (!$resourceDeleted) {
+            $this->jsonApi->respondServerError($this->response, 'Unable to delete resource');
+        }
+
+        return $this->jsonApi->respondResourceDeleted($this->response);
     }
 
     private function determineResource($resourceUrlId)
@@ -156,14 +255,14 @@ class ResourceController
             try {
                 $resourceObject = app()->make($resources[$resourceUrlId]);
             } catch (Exception $exception) {
-                $this->logger->error(ResourceController::class . ": Unable to create resource of class {$resources[$resourceUrlId]}");
+                $this->logger->error(ResourceController::class . ": unable to create resource of class {$resources[$resourceUrlId]}");
                 return null;
             }
 
             return $resourceObject;
         }
 
-        $this->logger->debug(ResourceController::class . ": Unable to find a resource by name: {$resourceUrlId}");
+        $this->logger->debug(ResourceController::class . ": unable to find a resource by name: {$resourceUrlId}");
         return null;
     }
 }

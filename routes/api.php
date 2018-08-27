@@ -72,5 +72,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->get('/{resourceUrlId}/{resourceId}', 'ResourceController@show');
     $router->get('/{resourceUrlId}', 'ResourceController@index');
     $router->post('/{resourceUrlId}', 'ResourceController@store');
+    $router->delete('/{resourceUrlId}/{resourceId}', 'ResourceController@delete');
+    $router->put('/{resourceUrlId}/{resourceId}', 'ResourceController@update');
 
 });

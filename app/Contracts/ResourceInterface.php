@@ -2,6 +2,7 @@
 
 namespace App\Contracts;
 
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ResourceInterface
@@ -28,24 +29,63 @@ interface ResourceInterface
 
     /**
      * @param array $attributes
+     * @param Authenticatable $user
      *
      * @return mixed
      */
-    public function storeResourceObject($attributes);
+    public function storeResourceObject($attributes, Authenticatable $user = null);
+
+    /**
+     * @param mixed $resourceObject
+     * @param array $attributes
+     * @param Authenticatable $user
+     *
+     * @return mixed
+     */
+    public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null);
+
+    /**
+     * @param mixed $resourceObject
+     *
+     * @return boolean
+     */
+    public function deleteResourceObject($resourceObject);
+
+    /**
+     * @return array
+     */
+    public function getStoreValidationRules();
+
+    /**
+     * @param mixed $resourceObject
+     * @param array $attributes
+     *
+     * @return array
+     */
+    public function getUpdateValidationRules($resourceObject, $attributes);
 
     /**
      * Determine if a resource needs authentication / authorization in order to show it
      *
-     * @param mixed $resource
+     * @param mixed $resourceObject
      *
      * @return bool
      */
-    public function skipShowAuthentication($resource);
+    public function requireShowAuthorization($resourceObject);
 
     /**
      * Determine if a resource needs authentication / authorization in order to create it
      *
      * @return bool
      */
-    public function skipStoreAuthentication();
+    public function requireStoreAuthorization();
+
+    /**
+     * Determine if a resource needs authentication / authorization in order to delete it
+     *
+     * @param mixed $resourceObject
+     *
+     * @return mixed
+     */
+    public function requireUpdateAuthorization($resourceObject);
 }

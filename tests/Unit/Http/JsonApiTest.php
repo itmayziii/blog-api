@@ -220,7 +220,7 @@ class JsonApiTest extends TestCase
 
     public function test_respondValidationFailed_encodes_errors_and_returns_a_400_status_code()
     {
-        $this->setupResponseMock(400);
+        $this->setupResponseMock(422);
 
         $messageBagMock = Mockery::mock(MessageBag::class);
         $messageBagMock

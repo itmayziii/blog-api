@@ -116,13 +116,13 @@ class JsonApi
         $errors = [];
         foreach ($messageBag->toArray() as $errorField => $errorDetails) {
             foreach ($errorDetails as $errorDetail) {
-                $errors[] = new Error(null, null, Response::HTTP_BAD_REQUEST, null, 'Bad Request', $errorDetail);
+                $errors[] = new Error(null, null, Response::HTTP_UNPROCESSABLE_ENTITY, null, Response::$statusTexts[Response::HTTP_UNPROCESSABLE_ENTITY], $errorDetail);
             }
         }
 
         $content = $this->encoder->encodeErrors($errors);
 
-        return $this->respond($response, Response::HTTP_BAD_REQUEST, $content);
+        return $this->respond($response, Response::HTTP_UNPROCESSABLE_ENTITY, $content);
     }
 
     public function respondBadRequest(Response $response, $errorDetail)

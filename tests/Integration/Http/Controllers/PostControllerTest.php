@@ -3,14 +3,11 @@
 namespace Tests\Integration\Http\Controllers;
 
 use Illuminate\Support\Facades\Artisan;
-use Laravel\Lumen\Testing\DatabaseMigrations;
 use TestingDatabaseSeeder;
 use Tests\TestCase;
 
 class PostControllerTest extends TestCase
 {
-    use DatabaseMigrations;
-
     public function setUp()
     {
         parent::setUp();
@@ -103,7 +100,7 @@ class PostControllerTest extends TestCase
         ]);
     }
 
-    public function test_show_responds_unauthorized()
+    public function test_show_responds_unauthenticated()
     {
         $response = $this->json('GET', 'v1/posts/post-two');
 
@@ -169,7 +166,7 @@ class PostControllerTest extends TestCase
         ]);
     }
 
-    public function test_store_responds_unauthorized()
+    public function test_store_responds_unauthenticated()
     {
         $response = $this->json('POST', 'v1/posts');
 
@@ -203,11 +200,97 @@ class PostControllerTest extends TestCase
         ]));
     }
 
-    public function test_store_creates_post()
+    public function test_store_has_validation()
     {
         $this->actAsAdministrativeUser();
 
         $response = $this->json('POST', 'v1/posts');
+        $response->assertResponseStatus(422);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals(([
+            'errors' => [
+                [
+                    'detail' => "The category-id field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The slug field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The status field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The title field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ]
+            ]
+        ]));
+    }
+
+    public function test_store_creates_post()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('POST', 'v1/posts', [
+            'category-id'     => 1,
+            'slug'            => 'test-post-creation',
+            'status'          => 'live',
+            'title'           => 'A title',
+            'content'         => 'Some test content',
+            'preview'         => 'Just a preview',
+            'image-path-sm'   => 'https://www.fullheapdeveloper/images/test-sm',
+            'image-path-md'   => 'https://www.fullheapdeveloper/images/test-md',
+            'image-path-lg'   => 'https://www.fullheapdeveloper/images/test-lg',
+            'image-path-meta' => 'https://www.fullheapdeveloper/images/test-meta'
+        ]);
+
+        $response->assertResponseStatus(201);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+    }
+
+    public function test_update_responds_not_found()
+    {
+        $response = $this->json('PUT', 'v1/posts/post-that-does-not-exist');
+
+        $response->assertResponseStatus(404);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "404",
+                    'title'  => 'Not Found'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_update_responds_unauthorized()
+    {
+        $response = $this->json('PUT', 'v1/posts/post-two');
+
+        $response->assertResponseStatus(401);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => "401",
+                    'title'  => 'Unauthorized'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_update_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+
+        $response = $this->json('PUT', 'v1/posts/post-two');
 
         $response->assertResponseStatus(403);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
@@ -219,5 +302,58 @@ class PostControllerTest extends TestCase
                 ]
             ]
         ]));
+    }
+
+    public function test_update_responds_validation_failed()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('PUT', 'v1/posts/post-two');
+        $response->assertResponseStatus(422);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals(([
+            'errors' => [
+                [
+                    'detail' => "The category-id field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The slug field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The status field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ],
+                [
+                    'detail' => "The title field is required.",
+                    'status' => '422',
+                    'title'  => 'Unprocessable Entity'
+                ]
+            ]
+        ]));
+    }
+
+    public function test_update_updates_post()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('PUT', 'v1/posts/post-two', [
+            'category-id'     => 1,
+            'slug'            => 'test-post-update',
+            'status'          => 'live',
+            'title'           => 'A title',
+            'content'         => 'Some test content',
+            'preview'         => 'Just a preview',
+            'image-path-sm'   => 'https://www.fullheapdeveloper/images/test-sm',
+            'image-path-md'   => 'https://www.fullheapdeveloper/images/test-md',
+            'image-path-lg'   => 'https://www.fullheapdeveloper/images/test-lg',
+            'image-path-meta' => 'https://www.fullheapdeveloper/images/test-meta'
+        ]);
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
     }
 }
