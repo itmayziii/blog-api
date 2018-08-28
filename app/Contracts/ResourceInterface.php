@@ -8,9 +8,14 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 interface ResourceInterface
 {
     /**
-     * @return mixed
+     * @return string
      */
     public function getResourceType();
+
+    /**
+     * @return array
+     */
+    public function getAllowedResourceActions();
 
     /**
      * @param string|integer $id
@@ -65,6 +70,13 @@ interface ResourceInterface
     public function getUpdateValidationRules($resourceObject, $attributes);
 
     /**
+     * Determine if a resource needs authentication / authorization in order to index it
+     *
+     * @return boolean
+     */
+    public function requireIndexAuthorization();
+
+    /**
      * Determine if a resource needs authentication / authorization in order to show it
      *
      * @param mixed $resourceObject
@@ -81,11 +93,20 @@ interface ResourceInterface
     public function requireStoreAuthorization();
 
     /**
+     * Determine if a resource needs authentication / authorization in order to update it
+     *
+     * @param mixed $resourceObject
+     *
+     * @return bool
+     */
+    public function requireUpdateAuthorization($resourceObject);
+
+    /**
      * Determine if a resource needs authentication / authorization in order to delete it
      *
      * @param mixed $resourceObject
      *
-     * @return mixed
+     * @return bool
      */
-    public function requireUpdateAuthorization($resourceObject);
+    public function requireDeleteAuthorization($resourceObject);
 }

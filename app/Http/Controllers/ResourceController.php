@@ -78,8 +78,18 @@ class ResourceController
     public function index($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('index', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        if ($resource->requireIndexAuthorization()) {
+            if ($this->guard->guest()) {
+                return $this->jsonApi->respondUnauthorized($this->response);
+            }
+
+            if ($this->gate->denies('index', $resource->getResourceType())) {
+                return $this->jsonApi->respondForbidden($this->response);
+            }
         }
 
         $size = $this->request->query('size', 15);
@@ -100,7 +110,7 @@ class ResourceController
     public function show($resourceUrlId, $id)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('show', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -117,7 +127,6 @@ class ResourceController
             if ($this->gate->denies('show', $resourceObject)) {
                 return $this->jsonApi->respondForbidden($this->response);
             }
-
         }
 
         return $this->jsonApi->respondResourceFound($this->response, $resourceObject);
@@ -133,7 +142,7 @@ class ResourceController
     public function store($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('store', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -175,7 +184,7 @@ class ResourceController
     public function update($resourceUrlId, $id)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('update', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -189,7 +198,7 @@ class ResourceController
                 return $this->jsonApi->respondUnauthorized($this->response);
             }
 
-            if ($this->gate->denies('store', $resource->getResourceType())) {
+            if ($this->gate->denies('store', $resourceObject)) {
                 return $this->jsonApi->respondForbidden($this->response);
             }
         }
@@ -220,7 +229,7 @@ class ResourceController
     public function delete($resourceUrlId, $id)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('delete', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -229,12 +238,12 @@ class ResourceController
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        if ($resource->resource->requireDeleteAuthorization) {
+        if ($resource->requireDeleteAuthorization($resourceObject)) {
             if ($this->guard->guest()) {
                 return $this->jsonApi->respondUnauthorized($this->response);
             }
 
-            if ($this->gate->denies('delete', $resource->getResourceType())) {
+            if ($this->gate->denies('delete', $resourceObject)) {
                 return $this->jsonApi->respondForbidden($this->response);
             }
         }

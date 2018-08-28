@@ -87,50 +87,20 @@ class PostControllerTest extends TestCase
     public function test_show_responds_not_found()
     {
         $response = $this->json('GET', 'v1/posts/imaginary-post');
-
-        $response->assertResponseStatus(404);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "404",
-                    'title'  => 'Not Found'
-                ]
-            ]
-        ]);
+        $this->assertNotFound($response);
     }
 
     public function test_show_responds_unauthenticated()
     {
         $response = $this->json('GET', 'v1/posts/post-two');
-
-        $response->assertResponseStatus(401);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "401",
-                    'title'  => 'Unauthorized'
-                ]
-            ]
-        ]);
+        $this->assertUnauthorized($response);
     }
 
     public function test_show_responds_forbidden()
     {
         $this->actAsStandardUser();
         $response = $this->json('GET', 'v1/posts/post-two');
-
-        $response->assertResponseStatus(403);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "403",
-                    'title'  => 'Forbidden'
-                ]
-            ]
-        ]);
+        $this->assertForbidden($response);
     }
 
     public function test_show_responds_with_resource()
@@ -169,35 +139,14 @@ class PostControllerTest extends TestCase
     public function test_store_responds_unauthenticated()
     {
         $response = $this->json('POST', 'v1/posts');
-
-        $response->assertResponseStatus(401);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "401",
-                    'title'  => 'Unauthorized'
-                ]
-            ]
-        ]);
+        $this->assertUnauthorized($response);
     }
 
     public function test_store_responds_forbidden()
     {
         $this->actAsStandardUser();
-
         $response = $this->json('POST', 'v1/posts');
-
-        $response->assertResponseStatus(403);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals(([
-            'errors' => [
-                [
-                    'status' => "403",
-                    'title'  => 'Forbidden'
-                ]
-            ]
-        ]));
+        $this->assertForbidden($response);
     }
 
     public function test_store_has_validation()
@@ -257,51 +206,20 @@ class PostControllerTest extends TestCase
     public function test_update_responds_not_found()
     {
         $response = $this->json('PUT', 'v1/posts/post-that-does-not-exist');
-
-        $response->assertResponseStatus(404);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "404",
-                    'title'  => 'Not Found'
-                ]
-            ]
-        ]);
+        $this->assertNotFound($response);
     }
 
     public function test_update_responds_unauthorized()
     {
         $response = $this->json('PUT', 'v1/posts/post-two');
-
-        $response->assertResponseStatus(401);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => "401",
-                    'title'  => 'Unauthorized'
-                ]
-            ]
-        ]);
+        $this->assertUnauthorized($response);
     }
 
     public function test_update_responds_forbidden()
     {
         $this->actAsStandardUser();
-
         $response = $this->json('PUT', 'v1/posts/post-two');
-
-        $response->assertResponseStatus(403);
-        $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals(([
-            'errors' => [
-                [
-                    'status' => "403",
-                    'title'  => 'Forbidden'
-                ]
-            ]
-        ]));
+        $this->assertForbidden($response);
     }
 
     public function test_update_responds_validation_failed()
@@ -355,5 +273,24 @@ class PostControllerTest extends TestCase
         ]);
         $response->assertResponseStatus(200);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
+    }
+
+    public function test_delete_responds_not_found()
+    {
+        $response = $this->json('DELETE', 'v1/posts/a-post-that-does-not-exist');
+        $this->assertNotFound($response);
+    }
+
+    public function test_delete_responds_unauthorized()
+    {
+        $response = $this->json('DELETE', 'v1/posts/post-two');
+        $this->assertUnauthorized($response);
+    }
+
+    public function test_delete_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+        $response = $this->json('DELETE', 'v1/posts/post-two');
+        $this->assertForbidden($response);
     }
 }

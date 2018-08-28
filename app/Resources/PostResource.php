@@ -42,6 +42,14 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
+    public function getAllowedResourceActions()
+    {
+        return ['index', 'show', 'store', 'update', 'delete'];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function findResourceObject($slug)
     {
         return $this->postRepository->findBySlug($slug);
@@ -118,6 +126,11 @@ class PostResource implements ResourceInterface
         return $validationRules;
     }
 
+    public function requireIndexAuthorization()
+    {
+        return false;
+    }
+
     /**
      * @inheritdoc
      */
@@ -138,6 +151,14 @@ class PostResource implements ResourceInterface
      * @inheritdoc
      */
     public function requireUpdateAuthorization($resourceObject)
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function requireDeleteAuthorization($resourceObject)
     {
         return true;
     }
