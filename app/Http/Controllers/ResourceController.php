@@ -115,7 +115,7 @@ class ResourceController
         }
 
         $resourceObject = $resource->findResourceObject($id);
-        if (is_null($resourceObject)) {
+        if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -168,7 +168,7 @@ class ResourceController
             $this->logger->error(ResourceController::class . ": unable to store resource with exception: {$exception->getMessage()}");
             return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
         }
-        if (is_null($resourceObject)) {
+        if ($resourceObject === false) {
             return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
         }
 
@@ -189,7 +189,7 @@ class ResourceController
         }
 
         $resourceObject = $resource->findResourceObject($id);
-        if (is_null($resourceObject)) {
+        if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -234,7 +234,7 @@ class ResourceController
         }
 
         $resourceObject = $resource->findResourceObject($id);
-        if (is_null($resourceObject)) {
+        if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 

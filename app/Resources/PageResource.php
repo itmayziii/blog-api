@@ -2,18 +2,24 @@
 
 use App\Contracts\ResourceInterface;
 use App\Page;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PageResource implements ResourceInterface
 {
-    public function __construct()
-    {
+    /**
+     * @var \App\Repositories\PageRepository
+     */
+    private $pageRepository;
 
+    public function __construct(\App\Repositories\PageRepository $pageRepository)
+    {
+        $this->pageRepository = $pageRepository;
     }
 
     /**
      * @inheritdoc
      */
-    public function getResourceType()
+    public function getResourceType(): string
     {
         return Page::class;
     }
@@ -21,7 +27,7 @@ class PageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getAllowedResourceActions()
+    public function getAllowedResourceActions(): array
     {
         return ['index', 'show', 'store', 'update', 'delete'];
     }
@@ -29,17 +35,17 @@ class PageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($id)
+    public function findResourceObject($slug)
     {
-        // TODO: Implement findResourceObject() method.
+        return $this->pageRepository->findBySlug($slug);
     }
 
     /**
      * @inheritdoc
      */
-    public function findResourceObjects($page, $size)
+    public function findResourceObjects($page, $size): LengthAwarePaginator
     {
-        // TODO: Implement findResourceObjects() method.
+        return $this->pageRepository->paginateAllPages($page, $size);
     }
 
     /**
@@ -47,7 +53,7 @@ class PageResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, \Illuminate\Contracts\Auth\Authenticatable $user = null)
     {
-        // TODO: Implement storeResourceObject() method.
+        return $this->pageRepository->create($attributes);
     }
 
     /**
@@ -55,34 +61,54 @@ class PageResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, \Illuminate\Contracts\Auth\Authenticatable $user = null)
     {
-        // TODO: Implement updateResourceObject() method.
+        return $this->pageRepository->update($resourceObject, $attributes);
     }
 
     /**
      * @inheritdoc
      */
-    public function deleteResourceObject($resourceObject)
+    public function deleteResourceObject($resourceObject): bool
     {
-        // TODO: Implement deleteResourceObject() method.
+        return $this->pageRepository->delete($resourceObject);
     }
 
     /**
      * @inheritdoc
      */
-    public function getStoreValidationRules()
+    public function getStoreValidationRules(): array
     {
-        // TODO: Implement getStoreValidationRules() method.
+        return [
+            'title'   => 'required|max:200|unique:pages',
+            'slug'    => 'required|max:255|unique:pages',
+            'content' => 'max:100000',
+            'is_live' => 'boolean'
+        ];
     }
 
     /**
      * @inheritdoc
      */
-    public function getUpdateValidationRules($resourceObject, $attributes)
+    public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        // TODO: Implement getUpdateValidationRules() method.
+        $validationRules = [
+            'title'   => 'required|max:200|unique:pages',
+            'slug'    => 'required|max:255|unique:pages',
+            'content' => 'max:100000',
+            'is_live' => 'boolean'
+        ];
+
+        // Removing the unique validation on some fields if they have not changed
+        if (isset($attributes['slug']) && $resourceObject->getAttribute('slug') === $attributes['slug']) {
+            $validationRules['slug'] = 'required|max:255';
+        }
+        if (isset($attributes['title']) && $resourceObject->getAttribute('title') === $attributes['title']) {
+            $validationRules['title'] = 'required|max:200';
+        }
+
+        return $validationRules;
     }
 
-    public function requireIndexAuthorization()
+    public function requireIndexAuthorization(): bool
     {
         return true;
     }
@@ -90,32 +116,32 @@ class PageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function requireShowAuthorization($resourceObject)
+    public function requireShowAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireShowAuthorization() method.
+        return $resourceObject->isLive() === false;
     }
 
     /**
      * @inheritdoc
      */
-    public function requireStoreAuthorization()
+    public function requireStoreAuthorization(): bool
     {
-        // TODO: Implement requireStoreAuthorization() method.
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function requireUpdateAuthorization($resourceObject)
+    public function requireUpdateAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireUpdateAuthorization() method.
+        return true;
     }
 
     /**
      * @inheritdoc
      */
-    public function requireDeleteAuthorization($resourceObject)
+    public function requireDeleteAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireDeleteAuthorization() method.
+        return true;
     }
 }

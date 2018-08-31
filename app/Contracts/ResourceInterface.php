@@ -10,17 +10,17 @@ interface ResourceInterface
     /**
      * @return string
      */
-    public function getResourceType();
+    public function getResourceType(): string;
 
     /**
      * @return array
      */
-    public function getAllowedResourceActions();
+    public function getAllowedResourceActions(): array;
 
     /**
-     * @param string|integer $id
+     * @param string | integer $id
      *
-     * @return mixed|null
+     * @return mixed | bool
      */
     public function findResourceObject($id);
 
@@ -30,7 +30,7 @@ interface ResourceInterface
      *
      * @return LengthAwarePaginator
      */
-    public function findResourceObjects($page, $size);
+    public function findResourceObjects($page, $size): LengthAwarePaginator;
 
     /**
      * @param array $attributes
@@ -54,12 +54,12 @@ interface ResourceInterface
      *
      * @return boolean
      */
-    public function deleteResourceObject($resourceObject);
+    public function deleteResourceObject($resourceObject): bool;
 
     /**
      * @return array
      */
-    public function getStoreValidationRules();
+    public function getStoreValidationRules(): array;
 
     /**
      * @param mixed $resourceObject
@@ -67,14 +67,14 @@ interface ResourceInterface
      *
      * @return array
      */
-    public function getUpdateValidationRules($resourceObject, $attributes);
+    public function getUpdateValidationRules($resourceObject, $attributes): array;
 
     /**
      * Determine if a resource needs authentication / authorization in order to index it
      *
-     * @return boolean
+     * @return bool
      */
-    public function requireIndexAuthorization();
+    public function requireIndexAuthorization(): bool;
 
     /**
      * Determine if a resource needs authentication / authorization in order to show it
@@ -83,14 +83,14 @@ interface ResourceInterface
      *
      * @return bool
      */
-    public function requireShowAuthorization($resourceObject);
+    public function requireShowAuthorization($resourceObject): bool;
 
     /**
      * Determine if a resource needs authentication / authorization in order to create it
      *
      * @return bool
      */
-    public function requireStoreAuthorization();
+    public function requireStoreAuthorization(): bool;
 
     /**
      * Determine if a resource needs authentication / authorization in order to update it
@@ -99,7 +99,7 @@ interface ResourceInterface
      *
      * @return bool
      */
-    public function requireUpdateAuthorization($resourceObject);
+    public function requireUpdateAuthorization($resourceObject): bool;
 
     /**
      * Determine if a resource needs authentication / authorization in order to delete it
@@ -108,5 +108,5 @@ interface ResourceInterface
      *
      * @return bool
      */
-    public function requireDeleteAuthorization($resourceObject);
+    public function requireDeleteAuthorization($resourceObject): bool;
 }

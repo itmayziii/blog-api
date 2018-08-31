@@ -33,8 +33,8 @@ class PostRepository
     }
 
     /**
-     * @param string | integer $page
-     * @param string | integer $size
+     * @param string | int $page
+     * @param string | int $size
      *
      * @return LengthAwarePaginator
      */
@@ -48,8 +48,8 @@ class PostRepository
     }
 
     /**
-     * @param string | integer $page
-     * @param string | integer $size
+     * @param string | int $page
+     * @param string | int $size
      *
      * @return LengthAwarePaginator
      */
@@ -66,7 +66,7 @@ class PostRepository
     /**
      * @param string $slug
      *
-     * @return Post | null
+     * @return Post | bool
      */
     public function findBySlug($slug)
     {
@@ -78,7 +78,8 @@ class PostRepository
         });
 
         if (is_null($post)) {
-            $this->logger->error(PostRepository::class . ": unable to find post by slug: {$slug}");
+            $this->logger->notice(PostRepository::class . ": unable to find post by slug: {$slug}");
+            return false;
         }
 
         return $post;
@@ -88,7 +89,7 @@ class PostRepository
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return Post | null
+     * @return Post | bool
      */
     public function create($attributes, Authenticatable $user)
     {
@@ -96,7 +97,7 @@ class PostRepository
             $post = $this->post->create($this->mapAttributes($attributes, $user));
         } catch (Exception $exception) {
             $this->logger->error(PostRepository::class . ": unable to create post with exception: {$exception->getMessage()}");
-            return null;
+            return false;
         }
 
         $this->cache->clear();
@@ -108,7 +109,7 @@ class PostRepository
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return Post | boolean
+     * @return Post | bool
      */
     public function update(Post $post, $attributes, Authenticatable $user)
     {
@@ -119,13 +120,14 @@ class PostRepository
             return false;
         }
 
+        $this->cache->clear();
         return $post;
     }
 
     /**
      * @param Post $post
      *
-     * @return boolean
+     * @return bool
      */
     public function delete(Post $post)
     {

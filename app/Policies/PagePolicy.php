@@ -8,20 +8,19 @@ use App\User;
 class PagePolicy
 {
     /**
-     * Determine if a user can view all pages, or only live pages.
+     * Determine if a user can view all pages
      *
      * @param User $user
-     * @param Page $page
      *
      * @return bool
      */
-    public function index(User $user, Page $page)
+    public function index(User $user)
     {
         return $user->isAdmin();
     }
 
     /**
-     * Determine if a user can view all pages, or only live pages.
+     * Determine if a user can view all pages, or only live pages
      *
      * @param User $user
      * @param Page $page
@@ -34,7 +33,7 @@ class PagePolicy
     }
 
     /**
-     * Determine if a user can create a page.
+     * Determine if a user can create a page
      *
      * @param User $user
      * @param Page $page
@@ -47,7 +46,7 @@ class PagePolicy
     }
 
     /**
-     * Determine if a user can update a page.
+     * Determine if a user can update a page
      *
      * @param User $user
      * @param Page $page
@@ -60,7 +59,7 @@ class PagePolicy
     }
 
     /**
-     * Determine if a user can delete a page.
+     * Determine if a user can delete a page
      *
      * @param User $user
      * @param Page $page

@@ -8,6 +8,7 @@ use App\Repositories\PostRepository;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PostResource implements ResourceInterface
 {
@@ -34,7 +35,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getResourceType()
+    public function getResourceType(): string
     {
         return Post::class;
     }
@@ -42,7 +43,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getAllowedResourceActions()
+    public function getAllowedResourceActions(): array
     {
         return ['index', 'show', 'store', 'update', 'delete'];
     }
@@ -58,7 +59,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObjects($page, $size)
+    public function findResourceObjects($page, $size): LengthAwarePaginator
     {
         $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', app()->make(Post::class));
         return $isAllowedToIndexAllPosts ? $this->postRepository->paginateAllPosts($page, $size) : $this->postRepository->paginateLivePosts($page, $size);
@@ -83,7 +84,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function deleteResourceObject($resourceObject)
+    public function deleteResourceObject($resourceObject): bool
     {
         return $this->postRepository->delete($resourceObject);
     }
@@ -91,7 +92,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getStoreValidationRules()
+    public function getStoreValidationRules(): array
     {
         return [
             'category-id' => 'required',
@@ -105,7 +106,7 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getUpdateValidationRules($resourceObject, $attributes)
+    public function getUpdateValidationRules($resourceObject, $attributes): array
     {
         $validationRules = [
             'category-id' => 'required',
@@ -126,7 +127,7 @@ class PostResource implements ResourceInterface
         return $validationRules;
     }
 
-    public function requireIndexAuthorization()
+    public function requireIndexAuthorization(): bool
     {
         return false;
     }
@@ -134,23 +135,15 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function requireShowAuthorization($resourceObject)
+    public function requireShowAuthorization($resourceObject): bool
     {
-        return !$resourceObject->isLive();
+        return $resourceObject->isLive() === false;
     }
 
     /**
      * @inheritdoc
      */
-    public function requireStoreAuthorization()
-    {
-        return true;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function requireUpdateAuthorization($resourceObject)
+    public function requireStoreAuthorization(): bool
     {
         return true;
     }
@@ -158,7 +151,15 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function requireDeleteAuthorization($resourceObject)
+    public function requireUpdateAuthorization($resourceObject): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function requireDeleteAuthorization($resourceObject): bool
     {
         return true;
     }
