@@ -61,7 +61,7 @@ class PostResource implements ResourceInterface
      */
     public function findResourceObjects($page, $size): LengthAwarePaginator
     {
-        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', app()->make(Post::class));
+        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', Post::class);
         return $isAllowedToIndexAllPosts ? $this->postRepository->paginateAllPosts($page, $size) : $this->postRepository->paginateLivePosts($page, $size);
     }
 

@@ -14,7 +14,7 @@ class PostControllerTest extends TestCase
         Artisan::call('db:seed', ['--class' => TestingDatabaseSeeder::class]);
     }
 
-    public function test_index_returns_posts()
+    public function test_index_returns_live_posts_for_everyone()
     {
         $response = $this->json('GET', 'v1/posts');
 
@@ -42,6 +42,68 @@ class PostControllerTest extends TestCase
                     ],
                     'links'      => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-one'
+                    ]
+                ]
+            ],
+            'links' => [
+                'first' => 'http://localhost/v1/posts?page=1',
+                'last'  => 'http://localhost/v1/posts?page=1'
+            ]
+        ]);
+    }
+
+    public function test_index_returns_all_posts_for_authorized_users()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('GET', 'v1/posts');
+
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'data'  => [
+                [
+                    'type'       => 'posts',
+                    'id'         => '1',
+                    'attributes' => [
+                        'createdAt'     => '2018-06-18T12:00:30+00:00',
+                        'updatedAt'     => '2018-06-18T12:00:30+00:00',
+                        'status'        => 'live',
+                        'title'         => 'Post One',
+                        'slug'          => 'post-one',
+                        'content'       => 'Some really long content',
+                        'preview'       => 'Some really short content',
+                        'imagePathSm'   => '/images/post-one-image-sm',
+                        'imagePathMd'   => '/images/post-one-image-md',
+                        'imagePathLg'   => '/images/post-one-image-lg',
+                        'imagePathMeta' => '/images/post-one-image-meta',
+                        'categoryId'    => 1,
+                        'userId'        => 1
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-one'
+                    ]
+                ],
+                [
+                    'type'       => 'posts',
+                    'id'         => '2',
+                    'attributes' => [
+                        'createdAt'     => '2018-06-18T12:00:30+00:00',
+                        'updatedAt'     => '2018-06-18T12:00:30+00:00',
+                        'status'        => 'draft',
+                        'title'         => 'Post Two',
+                        'slug'          => 'post-two',
+                        'content'       => 'Some really long content',
+                        'preview'       => 'Some really short content',
+                        'imagePathSm'   => '/images/post-one-image-sm',
+                        'imagePathMd'   => '/images/post-one-image-md',
+                        'imagePathLg'   => '/images/post-one-image-lg',
+                        'imagePathMeta' => '/images/post-one-image-meta',
+                        'categoryId'    => 1,
+                        'userId'        => 1
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/posts/post-two'
                     ]
                 ]
             ],

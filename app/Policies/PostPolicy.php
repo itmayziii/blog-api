@@ -49,11 +49,10 @@ class PostPolicy
      * Determine if a user can view all posts, or only live posts.
      *
      * @param User $user
-     * @param Post $post
      *
      * @return bool
      */
-    public function indexAllPosts(User $user, Post $post)
+    public function indexAllPosts(User $user)
     {
         return $user->isAdmin();
     }

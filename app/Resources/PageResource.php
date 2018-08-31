@@ -1,17 +1,20 @@
 <?php
 
+namespace App\Resources;
+
 use App\Contracts\ResourceInterface;
 use App\Page;
+use App\Repositories\PageRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PageResource implements ResourceInterface
 {
     /**
-     * @var \App\Repositories\PageRepository
+     * @var PageRepository
      */
     private $pageRepository;
 
-    public function __construct(\App\Repositories\PageRepository $pageRepository)
+    public function __construct(PageRepository $pageRepository)
     {
         $this->pageRepository = $pageRepository;
     }

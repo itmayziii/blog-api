@@ -56,16 +56,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     });
 
-    $router->group(['prefix' => 'pages'], function () use ($router) {
-
-        $router->get('', ['middleware' => 'auth', 'uses' => 'PageController@index']);
-        $router->get('/{slug}', 'PageController@show');
-        $router->post('', ['middleware' => 'auth', 'uses' => 'PageController@store']);
-        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PageController@update']);
-        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PageController@delete']);
-
-    });
-
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
 
