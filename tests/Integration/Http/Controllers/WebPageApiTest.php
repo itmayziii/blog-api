@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Artisan;
 use TestingDatabaseSeeder;
 use Tests\TestCase;
 
-class PostControllerTest extends TestCase
+class WebPageApiTest extends TestCase
 {
     public function setUp()
     {

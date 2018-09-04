@@ -28,11 +28,11 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     protected $hidden = ['password', 'remember_token'];
 
     /**
-     * Get all of the posts for a user.
+     * Get all of the web pages for a user.
      */
-    public function posts()
+    public function webPages()
     {
-        return $this->hasMany(Post::class);
+        return $this->hasMany(WebPage::class);
     }
 
     /**

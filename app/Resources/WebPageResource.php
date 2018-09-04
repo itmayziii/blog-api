@@ -3,32 +3,32 @@
 namespace App\Resources;
 
 use App\Contracts\ResourceInterface;
-use App\Post;
-use App\Repositories\PostRepository;
+use App\Repositories\WebPageRepository;
+use App\WebPage;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class PostResource implements ResourceInterface
+class WebPageResource implements ResourceInterface
 {
     /**
      * @var Cache
      */
     private $cache;
     /**
-     * @var PostRepository
+     * @var WebPageRepository
      */
-    private $postRepository;
+    private $webPageRepository;
     /**
      * @var Gate
      */
     private $gate;
 
-    public function __construct(Cache $cache, PostRepository $postRepository, Gate $gate)
+    public function __construct(Cache $cache, WebPageRepository $webPageRepository, Gate $gate)
     {
         $this->cache = $cache;
-        $this->postRepository = $postRepository;
+        $this->webPageRepository = $webPageRepository;
         $this->gate = $gate;
     }
 
@@ -37,7 +37,7 @@ class PostResource implements ResourceInterface
      */
     public function getResourceType(): string
     {
-        return Post::class;
+        return WebPage::class;
     }
 
     /**
@@ -51,9 +51,9 @@ class PostResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($slug)
+    public function findResourceObject($path)
     {
-        return $this->postRepository->findBySlug($slug);
+        return $this->webPageRepository->findByPath($path);
     }
 
     /**
@@ -61,8 +61,8 @@ class PostResource implements ResourceInterface
      */
     public function findResourceObjects($page, $size): LengthAwarePaginator
     {
-        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', Post::class);
-        return $isAllowedToIndexAllPosts ? $this->postRepository->paginateAllPosts($page, $size) : $this->postRepository->paginateLivePosts($page, $size);
+        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', WebPage::class);
+        return $isAllowedToIndexAllPosts ? $this->webPageRepository->pageinateAllWebPages($page, $size) : $this->webPageRepository->paginateLiveWebPages($page, $size);
     }
 
     /**
@@ -70,7 +70,7 @@ class PostResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        return $this->postRepository->create($attributes, $user);
+        return $this->webPageRepository->create($attributes, $user);
     }
 
     /**
@@ -78,7 +78,7 @@ class PostResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
-        $this->postRepository->update($resourceObject, $attributes, $user);
+        $this->webPageRepository->update($resourceObject, $attributes, $user);
     }
 
     /**
@@ -86,7 +86,7 @@ class PostResource implements ResourceInterface
      */
     public function deleteResourceObject($resourceObject): bool
     {
-        return $this->postRepository->delete($resourceObject);
+        return $this->webPageRepository->delete($resourceObject);
     }
 
     /**
@@ -96,9 +96,9 @@ class PostResource implements ResourceInterface
     {
         return [
             'category-id' => 'required',
-            'title'       => 'required|max:200|unique:posts',
+            'title'       => 'required|max:200|unique:webpages',
             'status'      => 'required',
-            'slug'        => 'required|max:255|unique:posts',
+            'slug'        => 'required|max:255|unique:webpages',
             'content'     => 'max:10000'
         ];
     }

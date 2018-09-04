@@ -2,13 +2,13 @@
 
 namespace App\Policies;
 
-use App\Post;
 use App\User;
+use App\WebPage;
 
-class PostPolicy
+class WebPagePolicy
 {
     /**
-     * Determine whether the user can create posts.
+     * Determine whether the user can create web pages
      *
      * @param  User $user
      *
@@ -20,33 +20,33 @@ class PostPolicy
     }
 
     /**
-     * Determine whether the user can update posts.
+     * Determine whether the user can update web pages
      *
      * @param User $user
-     * @param Post $post
+     * @param WebPage $webPage
      *
      * @return bool
      */
-    public function update(User $user, Post $post)
+    public function update(User $user, WebPage $webPage)
     {
         return $user->isAdmin();
     }
 
     /**
-     * Determine whether the user can delete posts.
+     * Determine whether the user can delete web pages
      *
      * @param User $user
-     * @param Post $post
+     * @param WebPage $webPage
      *
      * @return bool
      */
-    public function delete(User $user, Post $post)
+    public function delete(User $user, WebPage $webPage)
     {
         return $user->isAdmin();
     }
 
     /**
-     * Determine if a user can view all posts, or only live posts.
+     * Determine if a user can view all web pages, or only live ones
      *
      * @param User $user
      *
@@ -58,15 +58,15 @@ class PostPolicy
     }
 
     /**
-     * Determine if a user can show a post.
+     * Determine if a user can show a web pages
      *
      * @param User $user
-     * @param Post $post
+     * @param WebPage $webPage
      *
      * @return bool
      */
-    public function show(User $user, Post $post)
+    public function show(User $user, WebPage $webPage)
     {
-        return $user->isAdmin() || $post->isOwner($user);
+        return $user->isAdmin();
     }
 }

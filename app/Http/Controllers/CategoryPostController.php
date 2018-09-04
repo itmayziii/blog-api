@@ -6,6 +6,7 @@ use App\Http\JsonApi;
 use App\Post;
 use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
+use App\WebPage;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Response;
 
@@ -37,22 +38,22 @@ class CategoryPostController
     }
 
     /**
-     * Find specific category with all related posts.
+     * Find specific category with all related web pages
      *
      * @param Response $response
-     * @param Post $post
+     * @param WebPage $webPage
      * @param string $slug
      *
      * @return Response
      */
-    public function show(Response $response, Post $post, $slug) // TODO figure out how we can paginate included JSON API resources
+    public function show(Response $response, WebPage $webPage, $slug) // TODO figure out how we can paginate included JSON API resources
     {
-        if ($this->gate->denies('indexAllPosts', $post)) {
-            $category = $this->cacheRepository->remember("categories-posts.{$slug}.live", 60, function () use ($slug) {
+        if ($this->gate->denies('indexAllPosts', $webPage)) {
+            $category = $this->cacheRepository->remember("categories-webpages.{$slug}.live", 60, function () use ($slug) {
                 return $this->categoryRepository->findBySlugWithPosts($slug, true);
             });
         } else {
-            $category = $this->cacheRepository->remember("categories-posts.{$slug}.all", 60, function () use ($slug) {
+            $category = $this->cacheRepository->remember("categories-webpages.{$slug}.all", 60, function () use ($slug) {
                 return $this->categoryRepository->findBySlugWithPosts($slug, false);
             });
         }

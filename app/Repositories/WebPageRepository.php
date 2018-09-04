@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Post;
+use App\WebPage;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
@@ -10,12 +10,12 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
 
-class PostRepository
+class WebPageRepository
 {
     /**
-     * @var Post | Builder
+     * @var WebPage | Builder
      */
-    private $post;
+    private $webPage;
     /**
      * @var Cache
      */
@@ -25,9 +25,9 @@ class PostRepository
      */
     private $logger;
 
-    public function __construct(Post $post, Cache $cache, LoggerInterface $logger)
+    public function __construct(WebPage $webPage, Cache $cache, LoggerInterface $logger)
     {
-        $this->post = $post;
+        $this->webPage = $webPage;
         $this->cache = $cache;
         $this->logger = $logger;
     }
@@ -38,10 +38,10 @@ class PostRepository
      *
      * @return LengthAwarePaginator
      */
-    public function paginateAllPosts($page, $size)
+    public function pageinateAllWebPages($page, $size)
     {
-        return $this->cache->remember("posts.all.page$page.size$size", 60, function () use ($size, $page) {
-            return $this->post
+        return $this->cache->remember("webPages.all.page$page.size$size", 60, function () use ($size, $page) {
+            return $this->webPage
                 ->orderBy('created_at', 'desc')
                 ->paginate($size, null, 'page', $page);
         });
@@ -53,88 +53,88 @@ class PostRepository
      *
      * @return LengthAwarePaginator
      */
-    public function paginateLivePosts($page, $size)
+    public function paginateLiveWebPages($page, $size)
     {
-        return $this->cache->remember("posts.live.page$page.size$size", 60, function () use ($size, $page) {
-            return $this->post
-                ->where('status', 'live')
+        return $this->cache->remember("webPages.live.page$page.size$size", 60, function () use ($size, $page) {
+            return $this->webPage
+                ->where('is_live', 1)
                 ->orderBy('created_at', 'desc')
                 ->paginate($size, null, 'page', $page);
         });
     }
 
     /**
-     * @param string $slug
+     * @param string $path
      *
-     * @return Post | bool
+     * @return WebPage | bool
      */
-    public function findBySlug($slug)
+    public function findByPath($path)
     {
-        $post = $this->cache->remember("post.$slug", 60, function () use ($slug) {
-            return $this->post
-                ->where('slug', $slug)
+        $webpage = $this->cache->remember("webPage.$path", 60, function () use ($path) {
+            return $this->webPage
+                ->where('path', $path)
                 ->get()
                 ->first();
         });
 
-        if (is_null($post)) {
-            $this->logger->notice(PostRepository::class . ": unable to find post by slug: {$slug}");
+        if (is_null($webpage)) {
+            $this->logger->notice(WebPageRepository::class . ": unable to find web page by path: {$path}");
             return false;
         }
 
-        return $post;
+        return $webpage;
     }
 
     /**
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return Post | bool
+     * @return WebPage | bool
      */
     public function create($attributes, Authenticatable $user)
     {
         try {
-            $post = $this->post->create($this->mapAttributes($attributes, $user));
+            $webpage = $this->webPage->create($this->mapAttributes($attributes, $user));
         } catch (Exception $exception) {
-            $this->logger->error(PostRepository::class . ": unable to create post with exception: {$exception->getMessage()}");
+            $this->logger->error(WebPageRepository::class . ": unable to create web page with exception: {$exception->getMessage()}");
             return false;
         }
 
         $this->cache->clear();
-        return $post;
+        return $webpage;
     }
 
     /**
-     * @param Post $post
+     * @param WebPage $webPage
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return Post | bool
+     * @return WebPage | bool
      */
-    public function update(Post $post, $attributes, Authenticatable $user)
+    public function update(WebPage $webPage, $attributes, Authenticatable $user)
     {
         try {
-            $post->update($this->mapAttributes($attributes, $user));
+            $webPage->update($this->mapAttributes($attributes, $user));
         } catch (Exception $exception) {
-            $this->logger->error(PostRepository::class . ": unable to update post with exception: {$exception->getMessage()}");
+            $this->logger->error(WebPageRepository::class . ": unable to update web page with exception: {$exception->getMessage()}");
             return false;
         }
 
         $this->cache->clear();
-        return $post;
+        return $webPage;
     }
 
     /**
-     * @param Post $post
+     * @param WebPage $webPage
      *
      * @return bool
      */
-    public function delete(Post $post)
+    public function delete(WebPage $webPage)
     {
         try {
-            $post->delete();
+            $webPage->delete();
         } catch (Exception $exception) {
-            $this->logger->error(PostRepository::class . ": unable to delete post with with exception: {$exception->getMessage()}");
+            $this->logger->error(WebPageRepository::class . ": unable to delete web page with with exception: {$exception->getMessage()}");
             return false;
         }
 

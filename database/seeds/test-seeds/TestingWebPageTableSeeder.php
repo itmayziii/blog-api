@@ -1,20 +1,20 @@
 <?php
 
-use App\Post;
+use App\WebPage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class TestingPostTableSeeder extends Seeder
+class TestingWebPageTableSeeder extends Seeder
 {
     public function run()
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        DB::table('posts')->truncate();
+        WebPage::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        $postFactory = factory(Post::class);
+        $webPageFactory = factory(WebPage::class);
 
-        $postFactory->create([
+        $webPageFactory->create([
             'id'              => 1,
             'slug'            => 'post-one',
             'created_at'      => strtotime('2018-06-18 12:00:30'),
@@ -31,7 +31,7 @@ class TestingPostTableSeeder extends Seeder
             'image_path_meta' => '/images/post-one-image-meta'
         ]);
 
-        $postFactory->create([
+        $webPageFactory->create([
             'id'              => 2,
             'slug'            => 'post-two',
             'created_at'      => strtotime('2018-06-18 12:00:30'),

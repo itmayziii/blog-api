@@ -25,10 +25,10 @@ class Category extends Model
     }
 
     /**
-     * Get all the posts under this category.
+     * Get all the web pages under this category
      */
-    public function posts()
+    public function webPages()
     {
-        return $this->hasMany(Post::class);
+        return $this->hasMany(WebPage::class);
     }
 }

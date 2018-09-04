@@ -9,9 +9,9 @@ use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
 use App\Policies\PagePolicy;
-use App\Policies\PostPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\WebPagePolicy;
 use App\Post;
 use App\Tag;
 use App\User;
@@ -23,7 +23,7 @@ class AuthServiceProvider extends ServiceProvider
 {
     private $policies = [
         Contact::class    => ContactPolicy::class,
-        Post::class       => PostPolicy::class,
+        Post::class       => WebPagePolicy::class,
         Category::class   => CategoryPolicy::class,
         Tag::class        => TagPolicy::class,
         User::class       => UserPolicy::class,

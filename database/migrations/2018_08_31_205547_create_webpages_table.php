@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
-class CreateWebpageTable extends Migration
+class CreateWebpagesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -19,7 +19,7 @@ class CreateWebpageTable extends Migration
             $table->timestamps();
             $table->integer('created_by')->unsigned();
             $table->integer('last_updated_by')->unsigned();
-            $table->integer('category_id')->unsigned();
+            $table->integer('category_id')->nullable()->unsigned();
             $table->string('path')->unique();
             $table->boolean('is_live');
             $table->string('title', 200);

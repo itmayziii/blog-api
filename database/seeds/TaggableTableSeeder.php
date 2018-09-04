@@ -1,7 +1,7 @@
 <?php
 
-use App\Post;
 use App\Tag;
+use App\WebPage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,16 +14,18 @@ class TaggableTableSeeder extends Seeder
      */
     public function run()
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('taggables')->truncate();
 
         $tags = Tag::all();
-        $posts = Post::all();
-        foreach ($posts as $post) {
+        $webPages = WebPage::all();
+        foreach ($webPages as $webPage) {
 
             $tags->shuffle();
 
             $randomTags = $tags->random(3);
-            $post->tags()->attach($randomTags);
+            $webPage->tags()->attach($randomTags);
         }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

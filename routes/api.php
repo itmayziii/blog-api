@@ -14,16 +14,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     });
 
-//    $router->group(['prefix' => 'posts'], function () use ($router) {
-//
-//        $router->get('', 'PostController@index');
-//        $router->get('/{slug}', 'PostController@show');
-//        $router->post('', ['middleware' => 'auth', 'uses' => 'PostController@store']);
-//        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@update']);
-//        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'PostController@delete']);
-//
-//    });
-
     $router->group(['prefix' => 'categories'], function () use ($router) {
 
         $router->get('', 'CategoryController@index');
@@ -64,5 +54,4 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->post('/{resourceUrlId}', 'ResourceController@store');
     $router->delete('/{resourceUrlId}/{resourceId}', 'ResourceController@delete');
     $router->put('/{resourceUrlId}/{resourceId}', 'ResourceController@update');
-
 });

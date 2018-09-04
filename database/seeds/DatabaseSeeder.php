@@ -15,10 +15,9 @@ class DatabaseSeeder extends Seeder
             UsersTableSeeder::class,
             CategoriesTableSeeder::class,
             ContactsTableSeeder::class,
-            PostsTableSeeder::class,
+            WebPageTableSeeder::class,
             TagsTableSeeder::class,
-            TaggableTableSeeder::class,
-            PagesTableSeeder::class
+            TaggableTableSeeder::class
         ]);
     }
 }

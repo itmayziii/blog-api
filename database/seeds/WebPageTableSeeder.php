@@ -1,10 +1,10 @@
 <?php
 
-use App\Contact;
+use App\WebPage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class ContactsTableSeeder extends Seeder
+class WebPageTableSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,8 +14,8 @@ class ContactsTableSeeder extends Seeder
     public function run()
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        Contact::truncate();
-        factory(Contact::class, 100)->create();
+        WebPage::truncate();
+        factory(WebPage::class, 100)->create();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

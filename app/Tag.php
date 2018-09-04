@@ -17,10 +17,10 @@ class Tag extends Model
     protected $visible = ['created_at', 'updated_at', 'name'];
 
     /**
-     * Get all of the posts that are assigned this tag.
+     * Get all of the web pages that are assigned this tag
      */
-    public function posts()
+    public function webPages()
     {
-        return $this->morphedByMany(Post::class, 'taggable');
+        return $this->morphedByMany(WebPage::class, 'taggable');
     }
 }

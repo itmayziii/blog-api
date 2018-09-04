@@ -9,9 +9,9 @@ class UserSchema extends BaseSchema
 {
     protected $resourceType = 'users';
 
-    public function getId($post): ?string
+    public function getId($user): ?string
     {
-        return $post->getAttribute('id');
+        return $user->getAttribute('id');
     }
 
     public function getAttributes($user, array $fieldKeysFilter = null): ?array
