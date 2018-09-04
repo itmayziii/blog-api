@@ -67,7 +67,7 @@ class CategoryController extends Controller
         $size = $request->query('size', 15);
         $page = $request->query('page', 1);
 
-        if ($this->gate->denies('indexAllPosts', $post)) {
+        if ($this->gate->denies('indexAllWebPages', $post)) {
             $paginator = $this->cacheRepository->remember("categories.live.page$page.size$size", 60, function () use ($size, $page, $category) {
                 $paginator = $category
                     ->withCount([

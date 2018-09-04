@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Psr\Log\LoggerInterface;
 
 class WebPageRepository
@@ -64,12 +65,32 @@ class WebPageRepository
     }
 
     /**
+     * @param string $id
+     *
+     * @return WebPage | bool
+     */
+    public function findById($id)
+    {
+        $webpage = $this->cache->remember("webPage.$id", 60, function () use ($id) {
+            return $this->webPage->find($id);
+        });
+
+        if (is_null($webpage)) {
+            $this->logger->notice(WebPageRepository::class . ": unable to find web page by ID: {$id}");
+            return false;
+        }
+
+        return $webpage;
+    }
+
+    /**
      * @param string $path
      *
      * @return WebPage | bool
      */
     public function findByPath($path)
     {
+        $path = Str::start($path, '/');
         $webpage = $this->cache->remember("webPage.$path", 60, function () use ($path) {
             return $this->webPage
                 ->where('path', $path)
@@ -93,8 +114,11 @@ class WebPageRepository
      */
     public function create($attributes, Authenticatable $user)
     {
+        $attributes = $this->mapAttributes($attributes, $user);
+        $attributes['created_by'] = $user->getAuthIdentifier();
+        $attributes['last_updated_by'] = $user->getAuthIdentifier();
         try {
-            $webpage = $this->webPage->create($this->mapAttributes($attributes, $user));
+            $webpage = $this->webPage->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to create web page with exception: {$exception->getMessage()}");
             return false;
@@ -113,8 +137,10 @@ class WebPageRepository
      */
     public function update(WebPage $webPage, $attributes, Authenticatable $user)
     {
+        $attributes = $this->mapAttributes($attributes, $user);
+        $attributes['last_updated_by'] = $user->getAuthIdentifier();
         try {
-            $webPage->update($this->mapAttributes($attributes, $user));
+            $webPage->update($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to update web page with exception: {$exception->getMessage()}");
             return false;
@@ -151,17 +177,16 @@ class WebPageRepository
     private function mapAttributes($attributes, Authenticatable $user)
     {
         return [
-            'user_id'         => $user->getAuthIdentifier(),
-            'category_id'     => isset($attributes['category-id']) ? $attributes['category-id'] : null,
-            'slug'            => isset($attributes['slug']) ? $attributes['slug'] : null,
-            'status'          => isset($attributes['status']) ? $attributes['status'] : null,
+            'category_id'     => isset($attributes['category_id']) ? $attributes['category_id'] : null,
+            'path'            => isset($attributes['path']) ? $attributes['path'] : null,
+            'is_live'         => isset($attributes['is_live']) ? $attributes['is_live'] : null,
             'title'           => isset($attributes['title']) ? $attributes['title'] : null,
             'content'         => isset($attributes['content']) ? $attributes['content'] : null,
             'preview'         => isset($attributes['preview']) ? $attributes['preview'] : null,
-            'image_path_sm'   => isset($attributes['image-path-sm']) ? $attributes['image-path-sm'] : null,
-            'image_path_md'   => isset($attributes['image-path-md']) ? $attributes['image-path-md'] : null,
-            'image_path_lg'   => isset($attributes['image-path-lg']) ? $attributes['image-path-lg'] : null,
-            'image_path_meta' => isset($attributes['image-path-meta']) ? $attributes['image-path-meta'] : null
+            'image_path_sm'   => isset($attributes['image_path_sm']) ? $attributes['image_path_sm'] : null,
+            'image_path_md'   => isset($attributes['image_path_md']) ? $attributes['image_path_md'] : null,
+            'image_path_lg'   => isset($attributes['image_path_lg']) ? $attributes['image_path_lg'] : null,
+            'image_path_meta' => isset($attributes['image_path_meta']) ? $attributes['image_path_meta'] : null
         ];
     }
 }

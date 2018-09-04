@@ -52,7 +52,7 @@ class WebPagePolicy
      *
      * @return bool
      */
-    public function indexAllPosts(User $user)
+    public function indexAllWebPages(User $user)
     {
         return $user->isAdmin();
     }
@@ -67,6 +67,10 @@ class WebPagePolicy
      */
     public function show(User $user, WebPage $webPage)
     {
-        return $user->isAdmin();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $webPage->getAttribute('is_live');
     }
 }

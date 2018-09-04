@@ -48,6 +48,7 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
+    $router->get('/webpages/{route:.*}', 'WebPageController@show');
 
     $router->get('/{resourceUrlId}/{resourceId}', 'ResourceController@show');
     $router->get('/{resourceUrlId}', 'ResourceController@index');

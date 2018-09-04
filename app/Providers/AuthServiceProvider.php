@@ -4,17 +4,15 @@ namespace App\Providers;
 
 use App\Category;
 use App\Contact;
-use App\Page;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
-use App\Policies\PagePolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\WebPagePolicy;
-use App\Post;
 use App\Tag;
 use App\User;
+use App\WebPage;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -23,12 +21,11 @@ class AuthServiceProvider extends ServiceProvider
 {
     private $policies = [
         Contact::class    => ContactPolicy::class,
-        Post::class       => WebPagePolicy::class,
+        WebPage::class    => WebPagePolicy::class,
         Category::class   => CategoryPolicy::class,
         Tag::class        => TagPolicy::class,
         User::class       => UserPolicy::class,
-        Filesystem::class => FilesystemPolicy::class,
-        Page::class       => PagePolicy::class
+        Filesystem::class => FilesystemPolicy::class
     ];
 
     /**

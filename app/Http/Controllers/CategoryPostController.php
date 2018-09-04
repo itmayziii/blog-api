@@ -48,7 +48,7 @@ class CategoryPostController
      */
     public function show(Response $response, WebPage $webPage, $slug) // TODO figure out how we can paginate included JSON API resources
     {
-        if ($this->gate->denies('indexAllPosts', $webPage)) {
+        if ($this->gate->denies('indexAllWebPages', $webPage)) {
             $category = $this->cacheRepository->remember("categories-webpages.{$slug}.live", 60, function () use ($slug) {
                 return $this->categoryRepository->findBySlugWithPosts($slug, true);
             });

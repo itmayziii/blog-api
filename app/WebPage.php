@@ -52,6 +52,11 @@ class WebPage extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * Determine if a web page is live
+     *
+     * @return bool
+     */
     public function isLive()
     {
         return $this->getAttribute('is_live') === true;

@@ -51,9 +51,9 @@ class WebPageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($path)
+    public function findResourceObject($id)
     {
-        return $this->webPageRepository->findByPath($path);
+        return $this->webPageRepository->findById($id);
     }
 
     /**
@@ -61,7 +61,7 @@ class WebPageResource implements ResourceInterface
      */
     public function findResourceObjects($page, $size): LengthAwarePaginator
     {
-        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllPosts', WebPage::class);
+        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllWebPages', WebPage::class);
         return $isAllowedToIndexAllPosts ? $this->webPageRepository->pageinateAllWebPages($page, $size) : $this->webPageRepository->paginateLiveWebPages($page, $size);
     }
 
@@ -95,10 +95,10 @@ class WebPageResource implements ResourceInterface
     public function getStoreValidationRules(): array
     {
         return [
-            'category-id' => 'required',
+            'category_id' => 'required',
             'title'       => 'required|max:200|unique:webpages',
-            'status'      => 'required',
-            'slug'        => 'required|max:255|unique:webpages',
+            'is_live'     => 'required|boolean',
+            'path'        => 'required|max:255|unique:webpages',
             'content'     => 'max:10000'
         ];
     }
@@ -109,16 +109,16 @@ class WebPageResource implements ResourceInterface
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
         $validationRules = [
-            'category-id' => 'required',
+            'category_id' => 'required',
             'title'       => 'required|max:200',
-            'status'      => 'required',
-            'slug'        => 'required|max:255',
+            'is_live'     => 'required|boolean',
+            'path'        => 'required|max:255',
             'content'     => 'max:10000'
         ];
 
         // Removing the unique validation on some fields if they have not changed
-        if (isset($attributes['slug']) && $resourceObject->getAttribute('slug') === $attributes['slug']) {
-            $validationRules['slug'] = 'required|max:255';
+        if (isset($attributes['path']) && $resourceObject->getAttribute('path') === $attributes['path']) {
+            $validationRules['path'] = 'required|max:255';
         }
         if (isset($attributes['title']) && $resourceObject->getAttribute('title') === $attributes['title']) {
             $validationRules['title'] = 'required|max:200';
