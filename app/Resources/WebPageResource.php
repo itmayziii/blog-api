@@ -98,7 +98,7 @@ class WebPageResource implements ResourceInterface
             'category_id' => 'required',
             'title'       => 'required|max:200|unique:webpages',
             'is_live'     => 'required|boolean',
-            'path'        => 'required|max:255|unique:webpages',
+            'slug'        => 'required|max:255|unique:webpages',
             'content'     => 'max:10000'
         ];
     }
@@ -112,16 +112,13 @@ class WebPageResource implements ResourceInterface
             'category_id' => 'required',
             'title'       => 'required|max:200',
             'is_live'     => 'required|boolean',
-            'path'        => 'required|max:255',
+            'slug'        => 'required|max:255|unique:webpages',
             'content'     => 'max:10000'
         ];
 
         // Removing the unique validation on some fields if they have not changed
-        if (isset($attributes['path']) && $resourceObject->getAttribute('path') === $attributes['path']) {
-            $validationRules['path'] = 'required|max:255';
-        }
-        if (isset($attributes['title']) && $resourceObject->getAttribute('title') === $attributes['title']) {
-            $validationRules['title'] = 'required|max:200';
+        if (isset($attributes['slug']) && $resourceObject->getAttribute('slug') === $attributes['slug']) {
+            $validationRules['slug'] = 'required|max:255';
         }
 
         return $validationRules;

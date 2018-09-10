@@ -3,21 +3,27 @@
 use App\Category;
 use App\User;
 use App\WebPage;
+use App\WebPageType;
+use Illuminate\Support\Str;
 
 $factory->define(WebPage::class, function (Faker\Generator $faker) {
 
-    $user = User::all()->shuffle()->first(); // Random user
-    $category = Category::all()->shuffle()->first(); // Random category
+    $title = $faker->sentence;
+    $slug = Str::slug($title);
+    $randomUser = User::all()->shuffle()->first();
+    $randomType = WebPageType::all()->shuffle()->first();
+    $randomCategory = Category::all()->shuffle()->first();
 
     return [
         'created_at'      => $faker->unixTime,
         'updated_at'      => $faker->unixTime,
-        'created_by'      => $user->getAttribute('id'),
-        'last_updated_by' => $user->getAttribute('id'),
-        'category_id'     => $category->getAttribute('id'),
-        'path'            => "/posts/{$faker->slug}",
+        'created_by'      => $randomUser->getAttribute('id'),
+        'last_updated_by' => $randomUser->getAttribute('id'),
+        'category_id'     => $randomCategory->getAttribute('id'),
+        'slug'            => $slug,
+        'type_id'         => $randomType->getAttribute('id'),
         'is_live'         => rand(0, 1),
-        'title'           => $faker->title,
+        'title'           => $title,
         'content'         => $faker->paragraphs(5, true),
         'preview'         => $faker->paragraphs(1, true),
         'image_path_sm'   => $faker->imageUrl(768, 300),

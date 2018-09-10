@@ -14,6 +14,7 @@ class TestingDatabaseSeeder extends Seeder
         $this->call([
             TestingUserTableSeeder::class,
             TestingCategoryTableSeeder::class,
+            TestingWebPageTypeTableSeeder::class,
             TestingWebPageTableSeeder::class
         ]);
     }

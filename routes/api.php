@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\JsonApi;
+use Illuminate\Http\Response;
+
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/authenticate', 'AuthenticateController@authenticate');
@@ -55,4 +58,9 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->post('/{resourceUrlId}', 'ResourceController@store');
     $router->delete('/{resourceUrlId}/{resourceId}', 'ResourceController@delete');
     $router->put('/{resourceUrlId}/{resourceId}', 'ResourceController@update');
+});
+
+$router->get('/{route:.*}', function (Response $response, JsonApi $jsonApi) {
+    dd('afd');
+    return $jsonApi->respondResourceNotFound($response);
 });
