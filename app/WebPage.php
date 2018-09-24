@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebPage extends Model
 {
+    /**
+     * @var array
+     */
+    private $modules = [];
+
     protected $table = 'webpages';
 
     protected $fillable = [
@@ -16,8 +21,7 @@ class WebPage extends Model
         'type_id',
         'is_live',
         'title',
-        'content',
-        'preview',
+        'short_description',
         'image_path_sm',
         'image_path_md',
         'image_path_lg',
@@ -27,6 +31,22 @@ class WebPage extends Model
     public function getIsLiveAttribute($value)
     {
         return (bool)$value;
+    }
+
+    /**
+     * @return array
+     */
+    public function getModules()
+    {
+        return $this->modules;
+    }
+
+    /**
+     * @param array $modules
+     */
+    public function setModules(array $modules)
+    {
+        $this->modules = $modules;
     }
 
     /**

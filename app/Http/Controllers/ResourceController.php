@@ -92,10 +92,7 @@ class ResourceController
             }
         }
 
-        $size = $this->request->query('size', 15);
-        $page = $this->request->query('page', 1);
-
-        $resourceObjects = $resource->findResourceObjects($page, $size);
+        $resourceObjects = $resource->findResourceObjects($this->request->query());
         return $this->jsonApi->respondResourcesFound($this->response, $resourceObjects);
     }
 
@@ -103,18 +100,24 @@ class ResourceController
      * Show a specific resource
      *
      * @param string $resourceUrlId
-     * @param string|integer $id
      *
      * @return Response
      */
-    public function show($resourceUrlId, $id)
+    public function show($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('show', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $resourceObject = $resource->findResourceObject($id);
+        $pathSegments = array_slice($this->request->segments(), 2);
+        try {
+            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to find resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to find resource");
+        }
+
         if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
@@ -166,8 +169,9 @@ class ResourceController
             $resourceObject = $resource->storeResourceObject($this->request->all(), $this->guard->user());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to store resource with exception: {$exception->getMessage()}");
-            return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
+            $resourceObject = false;
         }
+
         if ($resourceObject === false) {
             return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
         }
@@ -177,18 +181,24 @@ class ResourceController
 
     /**
      * @param string $resourceUrlId
-     * @param string | integer $id
      *
      * @return Response
      */
-    public function update($resourceUrlId, $id)
+    public function update($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('update', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $resourceObject = $resource->findResourceObject($id);
+        $pathSegments = array_slice($this->request->segments(), 2);
+        try {
+            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to update resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
+        }
+
         if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
@@ -214,6 +224,10 @@ class ResourceController
             $resourceObject = $resource->updateResourceObject($resourceObject, $requestData, $this->guard->user());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to update resource with exception: {$exception->getMessage()}");
+            $resourceObject = false;
+        }
+
+        if ($resourceObject === false) {
             return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
         }
 
@@ -222,18 +236,24 @@ class ResourceController
 
     /**
      * @param string $resourceUrlId
-     * @param string | integer $id
      *
      * @return Response
      */
-    public function delete($resourceUrlId, $id)
+    public function delete($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('delete', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $resourceObject = $resource->findResourceObject($id);
+        $pathSegments = array_slice($this->request->segments(), 2);
+        try {
+            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to delete resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to delete resource");
+        }
+
         if ($resourceObject === false) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
@@ -248,8 +268,14 @@ class ResourceController
             }
         }
 
-        $resourceDeleted = $resource->deleteResourceObject($resourceObject);
-        if (!$resourceDeleted) {
+        try {
+            $resourceDeleted = $resource->deleteResourceObject($resourceObject);
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to delete resource with exception: {$exception->getMessage()}");
+            $resourceDeleted = false;
+        }
+
+        if ($resourceDeleted === false) {
             $this->jsonApi->respondServerError($this->response, 'Unable to delete resource');
         }
 
@@ -264,7 +290,7 @@ class ResourceController
             try {
                 $resourceObject = app()->make($resources[$resourceUrlId]);
             } catch (Exception $exception) {
-                $this->logger->error(ResourceController::class . ": unable to create resource of class {$resources[$resourceUrlId]}");
+                $this->logger->critical(ResourceController::class . ": unable to create resource of class {$resources[$resourceUrlId]}");
                 return null;
             }
 

@@ -23,8 +23,7 @@ class CreateWebpagesTable extends Migration
             $table->unsignedInteger('type_id')->nullable();
             $table->boolean('is_live');
             $table->string('title', 200);
-            $table->longText('content')->nullable();
-            $table->text('preview')->nullable();
+            $table->text('short_description')->nullable();
             $table->string('image_path_sm')->nullable();
             $table->string('image_path_md')->nullable();
             $table->string('image_path_lg')->nullable();

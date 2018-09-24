@@ -31,7 +31,8 @@ class WebPageApiTest extends TestCase
                         'created_by'      => 1,
                         'updated_by'      => 1,
                         'category_id'     => 1,
-                        'path'            => '/posts/post-one',
+                        'slug'            => 'post-one',
+                        'type_id'         => 1,
                         'is_live'         => true,
                         'title'           => 'Post One',
                         'content'         => 'Some really long content',
@@ -42,7 +43,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta' => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post/post-one'
                     ]
                 ]
             ],
@@ -72,7 +73,8 @@ class WebPageApiTest extends TestCase
                         'created_by'      => 1,
                         'updated_by'      => 1,
                         'category_id'     => 1,
-                        'path'            => '/posts/post-one',
+                        'slug'            => 'post-one',
+                        'type_id'         => 1,
                         'is_live'         => true,
                         'title'           => 'Post One',
                         'content'         => 'Some really long content',
@@ -83,7 +85,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta' => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post/post-one'
                     ]
                 ],
                 [
@@ -95,7 +97,8 @@ class WebPageApiTest extends TestCase
                         'created_by'      => 1,
                         'updated_by'      => 1,
                         'category_id'     => 1,
-                        'path'            => '/posts/post-two',
+                        'slug'            => 'post-two',
+                        'type_id'         => 1,
                         'is_live'         => false,
                         'title'           => 'Post Two',
                         'content'         => 'Some really long content',
@@ -106,7 +109,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta' => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-two'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post/post-two'
                     ]
                 ]
             ],
@@ -119,7 +122,7 @@ class WebPageApiTest extends TestCase
 
     public function test_show_returns_webpage()
     {
-        $response = $this->json('GET', 'v1/webpages/posts/post-one');
+        $response = $this->json('GET', 'v1/webpages/post/post-one');
 
         $response->assertResponseStatus(200);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
@@ -133,7 +136,8 @@ class WebPageApiTest extends TestCase
                     'created_by'      => 1,
                     'updated_by'      => 1,
                     'category_id'     => 1,
-                    'path'            => '/posts/post-one',
+                    'slug'            => 'post-one',
+                    'type_id'         => 1,
                     'is_live'         => true,
                     'title'           => 'Post One',
                     'content'         => 'Some really long content',
@@ -144,7 +148,7 @@ class WebPageApiTest extends TestCase
                     'image_path_meta' => '/images/post-one-image-meta'
                 ],
                 'links'      => [
-                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post/post-one'
                 ]
             ]
         ]);
@@ -152,27 +156,27 @@ class WebPageApiTest extends TestCase
 
     public function test_show_responds_not_found()
     {
-        $response = $this->json('GET', 'v1/webpages/imaginary-post');
+        $response = $this->json('GET', 'v1/webpages/post/imaginary-post');
         $this->assertNotFound($response);
     }
 
     public function test_show_responds_unauthenticated()
     {
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post/post-two');
         $this->assertUnauthorized($response);
     }
 
     public function test_show_responds_forbidden()
     {
         $this->actAsStandardUser();
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post/post-two');
         $this->assertForbidden($response);
     }
 
     public function test_show_responds_with_non_live_web_page_if_user_authorized()
     {
         $this->actAsAdministrativeUser();
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post/post-two');
 
         $response->assertResponseStatus(200);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
@@ -186,7 +190,8 @@ class WebPageApiTest extends TestCase
                     'created_by'      => 1,
                     'updated_by'      => 1,
                     'category_id'     => 1,
-                    'path'            => '/posts/post-two',
+                    'slug'            => 'post-two',
+                    'type_id'         => 1,
                     'is_live'         => false,
                     'title'           => 'Post Two',
                     'content'         => 'Some really long content',
@@ -197,7 +202,7 @@ class WebPageApiTest extends TestCase
                     'image_path_meta' => '/images/post-one-image-meta'
                 ],
                 'links'      => [
-                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-two'
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post/post-two'
                 ]
             ]
         ]);
@@ -223,30 +228,21 @@ class WebPageApiTest extends TestCase
         $response = $this->json('POST', 'v1/webpages');
         $response->assertResponseStatus(422);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
-        $response->seeJsonEquals(([
+        $response->seeJsonEquals([
             'errors' => [
                 [
-                    'detail' => "The category id field is required.",
                     'status' => '422',
-                    'title'  => 'Unprocessable Entity'
-                ],
-                [
-                    'detail' => "The path field is required.",
-                    'status' => '422',
-                    'title'  => 'Unprocessable Entity'
-                ],
-                [
-                    'detail' => "The is live field is required.",
-                    'status' => '422',
-                    'title'  => 'Unprocessable Entity'
-                ],
-                [
-                    'detail' => "The title field is required.",
-                    'status' => '422',
-                    'title'  => 'Unprocessable Entity'
+                    'title'  => 'Unprocessable Entity',
+                    'source' => [
+                        'category_id' => ["The category id field is required."],
+                        'is_live'     => ["The is live field is required."],
+                        'slug'        => ["The slug field is required."],
+                        'title'       => ["The title field is required."],
+                        'type_id'     => ["The type id field is required."]
+                    ]
                 ]
             ]
-        ]));
+        ]);
     }
 
     public function test_store_creates_web_page()

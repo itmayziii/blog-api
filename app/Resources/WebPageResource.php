@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 
 class WebPageResource implements ResourceInterface
 {
@@ -51,18 +52,26 @@ class WebPageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($id)
+    public function findResourceObject($urlSegments, $queryParams)
     {
-        return $this->webPageRepository->findById($id);
+        if (count($urlSegments) !== 2) {
+            return false;
+        }
+        [$type, $slug] = $urlSegments;
+        return $this->webPageRepository->findBySlug($type, $slug);
     }
 
     /**
      * @inheritdoc
      */
-    public function findResourceObjects($page, $size): LengthAwarePaginator
+    public function findResourceObjects($queryParams): LengthAwarePaginator
     {
+        $type = Arr::get($queryParams, 'type', '');
+        $page = Arr::get($queryParams, 'page', 1);
+        $size = Arr::get($queryParams, 'size', 15);
+
         $isAllowedToIndexAllPosts = $this->gate->allows('indexAllWebPages', WebPage::class);
-        return $isAllowedToIndexAllPosts ? $this->webPageRepository->pageinateAllWebPages($page, $size) : $this->webPageRepository->paginateLiveWebPages($page, $size);
+        return $this->webPageRepository->paginateWebPages($page, $size, $type, !$isAllowedToIndexAllPosts);
     }
 
     /**
@@ -95,11 +104,17 @@ class WebPageResource implements ResourceInterface
     public function getStoreValidationRules(): array
     {
         return [
-            'category_id' => 'required',
-            'title'       => 'required|max:200|unique:webpages',
-            'is_live'     => 'required|boolean',
-            'slug'        => 'required|max:255|unique:webpages',
-            'content'     => 'max:10000'
+            'category_id'       => 'required',
+            'slug'              => 'required|max:255|composite_unique:type_id',
+            'type_id'           => 'required',
+            'is_live'           => 'required|boolean',
+            'title'             => 'required|max:200',
+            'modules'           => 'array',
+            'short_description' => 'max:1000',
+            'image_path_sm'     => 'max:255',
+            'image_path_md'     => 'max:255',
+            'image_path_lg'     => 'max:255',
+            'image_path_meta'   => 'max:255'
         ];
     }
 
@@ -108,13 +123,7 @@ class WebPageResource implements ResourceInterface
      */
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        $validationRules = [
-            'category_id' => 'required',
-            'title'       => 'required|max:200',
-            'is_live'     => 'required|boolean',
-            'slug'        => 'required|max:255|unique:webpages',
-            'content'     => 'max:10000'
-        ];
+        $validationRules = $this->getStoreValidationRules();
 
         // Removing the unique validation on some fields if they have not changed
         if (isset($attributes['slug']) && $resourceObject->getAttribute('slug') === $attributes['slug']) {

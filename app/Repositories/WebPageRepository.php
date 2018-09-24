@@ -8,7 +8,6 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use Psr\Log\LoggerInterface;
 
 class WebPageRepository
@@ -36,70 +35,58 @@ class WebPageRepository
     /**
      * @param string | int $page
      * @param string | int $size
+     * @param string $type
+     * @param bool $liveOnly
      *
      * @return LengthAwarePaginator
      */
-    public function pageinateAllWebPages($page, $size)
+    public function paginateWebPages($page, $size, $type = '', $liveOnly = false)
     {
-        return $this->cache->remember("webPages.all.page$page.size$size", 60, function () use ($size, $page) {
-            return $this->webPage
-                ->orderBy('created_at', 'desc')
-                ->paginate($size, null, 'page', $page);
-        });
-    }
-
-    /**
-     * @param string | int $page
-     * @param string | int $size
-     *
-     * @return LengthAwarePaginator
-     */
-    public function paginateLiveWebPages($page, $size)
-    {
-        return $this->cache->remember("webPages.live.page$page.size$size", 60, function () use ($size, $page) {
-            return $this->webPage
-                ->where('is_live', 1)
-                ->orderBy('created_at', 'desc')
-                ->paginate($size, null, 'page', $page);
-        });
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return WebPage | bool
-     */
-    public function findById($id)
-    {
-        $webpage = $this->cache->remember("webPage.$id", 60, function () use ($id) {
-            return $this->webPage->find($id);
-        });
-
-        if (is_null($webpage)) {
-            $this->logger->notice(WebPageRepository::class . ": unable to find web page by ID: {$id}");
-            return false;
+        $status = ($liveOnly === true) ? 'live' : 'all';
+        $cacheKey = "webPages:$status";
+        if (!empty($type)) {
+            $cacheKey .= ":$type";
         }
+        $cacheKey .= ":page.$page:size.$size";
 
-        return $webpage;
+        return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $type, $liveOnly) {
+            $query = $this->webPage
+                ->orderBy('created_at', 'desc');
+
+            if ($liveOnly) {
+                $query->where('is_live', true);
+            }
+
+            if (!empty($type)) {
+                $query->whereHas('type', function ($query) use ($type) {
+                    $query->where('name', $type);
+                });
+            }
+
+            return $query->paginate($size, null, 'page', $page);
+        });
     }
 
     /**
-     * @param string $path
+     * @param string $type
+     * @param string $slug
      *
      * @return WebPage | bool
      */
-    public function findByPath($path)
+    public function findBySlug($type, $slug)
     {
-        $path = Str::start($path, '/');
-        $webpage = $this->cache->remember("webPage.$path", 60, function () use ($path) {
+        $webpage = $this->cache->remember("webPage.$type.$slug", 60, function () use ($type, $slug) {
             return $this->webPage
-                ->where('path', $path)
-                ->get()
+                ->where('slug', $slug)
+                ->whereHas('type', function ($query) use ($type) {
+                    $query->where('name', $type);
+                })
+                ->with('type')
                 ->first();
         });
 
         if (is_null($webpage)) {
-            $this->logger->notice(WebPageRepository::class . ": unable to find web page by path: {$path}");
+            $this->logger->notice(WebPageRepository::class . ": unable to find web page with type: {$type}, slug: {$slug}");
             return false;
         }
 
@@ -177,16 +164,15 @@ class WebPageRepository
     private function mapAttributes($attributes, Authenticatable $user)
     {
         return [
-            'category_id'     => isset($attributes['category_id']) ? $attributes['category_id'] : null,
-            'path'            => isset($attributes['path']) ? $attributes['path'] : null,
-            'is_live'         => isset($attributes['is_live']) ? $attributes['is_live'] : null,
-            'title'           => isset($attributes['title']) ? $attributes['title'] : null,
-            'content'         => isset($attributes['content']) ? $attributes['content'] : null,
-            'preview'         => isset($attributes['preview']) ? $attributes['preview'] : null,
-            'image_path_sm'   => isset($attributes['image_path_sm']) ? $attributes['image_path_sm'] : null,
-            'image_path_md'   => isset($attributes['image_path_md']) ? $attributes['image_path_md'] : null,
-            'image_path_lg'   => isset($attributes['image_path_lg']) ? $attributes['image_path_lg'] : null,
-            'image_path_meta' => isset($attributes['image_path_meta']) ? $attributes['image_path_meta'] : null
+            'category_id'       => isset($attributes['category_id']) ? $attributes['category_id'] : null,
+            'path'              => isset($attributes['path']) ? $attributes['path'] : null,
+            'is_live'           => isset($attributes['is_live']) ? $attributes['is_live'] : null,
+            'title'             => isset($attributes['title']) ? $attributes['title'] : null,
+            'short_description' => isset($attributes['short_description']) ? $attributes['short_description'] : null,
+            'image_path_sm'     => isset($attributes['image_path_sm']) ? $attributes['image_path_sm'] : null,
+            'image_path_md'     => isset($attributes['image_path_md']) ? $attributes['image_path_md'] : null,
+            'image_path_lg'     => isset($attributes['image_path_lg']) ? $attributes['image_path_lg'] : null,
+            'image_path_meta'   => isset($attributes['image_path_meta']) ? $attributes['image_path_meta'] : null
         ];
     }
 }

@@ -18,19 +18,19 @@ interface ResourceInterface
     public function getAllowedResourceActions(): array;
 
     /**
-     * @param string | integer $id
+     * @param array $urlSegments
+     * @param array $queryParams
      *
      * @return mixed | bool
      */
-    public function findResourceObject($id);
+    public function findResourceObject($urlSegments, $queryParams);
 
     /**
-     * @param string|integer $page
-     * @param string|integer $size
+     * @param array $queryParams
      *
      * @return LengthAwarePaginator
      */
-    public function findResourceObjects($page, $size): LengthAwarePaginator;
+    public function findResourceObjects($queryParams): LengthAwarePaginator;
 
     /**
      * @param array $attributes
@@ -52,7 +52,7 @@ interface ResourceInterface
     /**
      * @param mixed $resourceObject
      *
-     * @return boolean
+     * @return borolean
      */
     public function deleteResourceObject($resourceObject): bool;
 

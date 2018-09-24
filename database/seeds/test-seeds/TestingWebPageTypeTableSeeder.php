@@ -17,7 +17,7 @@ class TestingWebPageTypeTableSeeder extends Seeder
         WebPageType::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        $webPageTypeFactory = factory(WebPageTypeTableSeeder::class);
+        $webPageTypeFactory = factory(WebPageType::class);
         $webPageTypeFactory->create([
             'name' => 'post'
         ]);

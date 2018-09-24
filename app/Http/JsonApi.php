@@ -113,14 +113,16 @@ class JsonApi
 
     public function respondValidationFailed(Response $response, MessageBag $messageBag): Response
     {
-        $errors = [];
+        $errorSource = [];
         foreach ($messageBag->toArray() as $errorField => $errorDetails) {
             foreach ($errorDetails as $errorDetail) {
-                $errors[] = new Error(null, null, Response::HTTP_UNPROCESSABLE_ENTITY, null, Response::$statusTexts[Response::HTTP_UNPROCESSABLE_ENTITY], $errorDetail);
+                $errorSource[$errorField][] = $errorDetail;
             }
         }
+        ksort($errorSource);
 
-        $content = $this->encoder->encodeErrors($errors);
+        $error = new Error(null, null, Response::HTTP_UNPROCESSABLE_ENTITY, null, Response::$statusTexts[Response::HTTP_UNPROCESSABLE_ENTITY], null, $errorSource);
+        $content = $this->encoder->encodeError($error);
 
         return $this->respond($response, Response::HTTP_UNPROCESSABLE_ENTITY, $content);
     }

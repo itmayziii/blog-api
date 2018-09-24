@@ -51,16 +51,13 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
-    $router->get('/webpages/{route:.*}', 'WebPageController@show');
-
-    $router->get('/{resourceUrlId}/{resourceId}', 'ResourceController@show');
+    $router->get('/{resourceUrlId}/{route:.*}', 'ResourceController@show');
     $router->get('/{resourceUrlId}', 'ResourceController@index');
     $router->post('/{resourceUrlId}', 'ResourceController@store');
-    $router->delete('/{resourceUrlId}/{resourceId}', 'ResourceController@delete');
-    $router->put('/{resourceUrlId}/{resourceId}', 'ResourceController@update');
+    $router->delete('/{resourceUrlId}/{route:.*}', 'ResourceController@delete');
+    $router->put('/{resourceUrlId}/{route:.*}', 'ResourceController@update');
 });
 
 $router->get('/{route:.*}', function (Response $response, JsonApi $jsonApi) {
-    dd('afd');
     return $jsonApi->respondResourceNotFound($response);
 });
