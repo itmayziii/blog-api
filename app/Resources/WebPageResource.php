@@ -101,14 +101,14 @@ class WebPageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getStoreValidationRules(): array
+    public function getStoreValidationRules($attributes): array
     {
         return [
-            'category_id'       => 'required',
-            'slug'              => 'required|max:255|composite_unique:type_id',
-            'type_id'           => 'required',
+            'category_id'       => 'integer',
+            'slug'              => "required|max:255|composite_unique:webpages,type_id,{$attributes['type_id']}",
+            'type_id'           => 'required:integer',
             'is_live'           => 'required|boolean',
-            'title'             => 'required|max:200',
+            'title'             => 'required|max:255',
             'modules'           => 'array',
             'short_description' => 'max:1000',
             'image_path_sm'     => 'max:255',
@@ -123,10 +123,10 @@ class WebPageResource implements ResourceInterface
      */
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        $validationRules = $this->getStoreValidationRules();
+        $validationRules = $this->getStoreValidationRules($attributes);
 
         // Removing the unique validation on some fields if they have not changed
-        if (isset($attributes['slug']) && $resourceObject->getAttribute('slug') === $attributes['slug']) {
+        if ($resourceObject->getAttribute('slug') === $attributes['slug'] && $resourceObject->getAttribute('type_id') === $attributes['type_id']) {
             $validationRules['slug'] = 'required|max:255';
         }
 

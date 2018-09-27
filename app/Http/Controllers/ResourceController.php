@@ -118,7 +118,7 @@ class ResourceController
             return $this->jsonApi->respondServerError($this->response, "Unable to find resource");
         }
 
-        if ($resourceObject === false) {
+        if (is_null($resourceObject)) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -159,20 +159,21 @@ class ResourceController
             }
         }
 
-        $validation = $this->validationFactory->make($this->request->all(), $resource->getStoreValidationRules());
+        $requestData = $this->request->all();
+        $validation = $this->validationFactory->make($requestData, $resource->getStoreValidationRules($requestData));
         if ($validation->fails()) {
             $this->logger->error(ResourceController::class . ": Unable to create {$resource->getResourceType()}, validation failed: " . print_r($validation->errors(), true));
             return $this->jsonApi->respondValidationFailed($this->response, $validation->getMessageBag());
         }
 
         try {
-            $resourceObject = $resource->storeResourceObject($this->request->all(), $this->guard->user());
+            $resourceObject = $resource->storeResourceObject($requestData, $this->guard->user());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to store resource with exception: {$exception->getMessage()}");
-            $resourceObject = false;
+            $resourceObject = null;
         }
 
-        if ($resourceObject === false) {
+        if (is_null($resourceObject)) {
             return $this->jsonApi->respondServerError($this->response, "Unable to create resource");
         }
 
@@ -199,7 +200,7 @@ class ResourceController
             return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
         }
 
-        if ($resourceObject === false) {
+        if (is_null($resourceObject)) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -224,10 +225,9 @@ class ResourceController
             $resourceObject = $resource->updateResourceObject($resourceObject, $requestData, $this->guard->user());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to update resource with exception: {$exception->getMessage()}");
-            $resourceObject = false;
         }
 
-        if ($resourceObject === false) {
+        if (is_null($resourceObject)) {
             return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
         }
 
@@ -254,7 +254,7 @@ class ResourceController
             return $this->jsonApi->respondServerError($this->response, "Unable to delete resource");
         }
 
-        if ($resourceObject === false) {
+        if (is_null($resourceObject)) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 

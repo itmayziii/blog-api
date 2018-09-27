@@ -8,6 +8,8 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use MongoDB\Database as MongoDB;
+use MongoDB\Driver\Exception\Exception as MongoException;
 use Psr\Log\LoggerInterface;
 
 class WebPageRepository
@@ -24,12 +26,17 @@ class WebPageRepository
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var MongoDB
+     */
+    private $mongoDB;
 
-    public function __construct(WebPage $webPage, Cache $cache, LoggerInterface $logger)
+    public function __construct(WebPage $webPage, Cache $cache, LoggerInterface $logger, MongoDB $mongoDB)
     {
         $this->webPage = $webPage;
         $this->cache = $cache;
         $this->logger = $logger;
+        $this->mongoDB = $mongoDB;
     }
 
     /**
@@ -71,7 +78,7 @@ class WebPageRepository
      * @param string $type
      * @param string $slug
      *
-     * @return WebPage | bool
+     * @return WebPage | null
      */
     public function findBySlug($type, $slug)
     {
@@ -87,7 +94,7 @@ class WebPageRepository
 
         if (is_null($webpage)) {
             $this->logger->notice(WebPageRepository::class . ": unable to find web page with type: {$type}, slug: {$slug}");
-            return false;
+            return null;
         }
 
         return $webpage;
@@ -97,18 +104,28 @@ class WebPageRepository
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return WebPage | bool
+     * @return WebPage | null
      */
     public function create($attributes, Authenticatable $user)
     {
-        $attributes = $this->mapAttributes($attributes, $user);
+        $attributes = $this->mapAttributes($attributes);
         $attributes['created_by'] = $user->getAuthIdentifier();
         $attributes['last_updated_by'] = $user->getAuthIdentifier();
+
         try {
             $webpage = $this->webPage->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to create web page with exception: {$exception->getMessage()}");
-            return false;
+            return null;
+        }
+
+        try {
+            $this->mongoDB->selectCollection('webpage_modules')->updateOne(['webpage_id' => $webpage->getAttribute('id')], [
+                'webpage_id' => $webpage->getAttribute('id'),
+                'modules'    => isset($attributes['modules']) ? $attributes['modules'] : []
+            ], ['upsert' => true]);
+        } catch (Exception $exception) {
+            $this->logger->error(WebPageRepository::class . ": webpage may have been partially created with exception: {$exception->getMessage()}");
         }
 
         $this->cache->clear();
@@ -120,17 +137,17 @@ class WebPageRepository
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return WebPage | bool
+     * @return WebPage | null
      */
     public function update(WebPage $webPage, $attributes, Authenticatable $user)
     {
-        $attributes = $this->mapAttributes($attributes, $user);
+        $attributes = $this->mapAttributes($attributes);
         $attributes['last_updated_by'] = $user->getAuthIdentifier();
         try {
             $webPage->update($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to update web page with exception: {$exception->getMessage()}");
-            return false;
+            return null;
         }
 
         $this->cache->clear();
@@ -157,15 +174,15 @@ class WebPageRepository
 
     /**
      * @param array $attributes
-     * @param Authenticatable $user
      *
      * @return array
      */
-    private function mapAttributes($attributes, Authenticatable $user)
+    private function mapAttributes($attributes)
     {
         return [
             'category_id'       => isset($attributes['category_id']) ? $attributes['category_id'] : null,
-            'path'              => isset($attributes['path']) ? $attributes['path'] : null,
+            'slug'              => isset($attributes['slug']) ? $attributes['slug'] : null,
+            'type_id'           => isset($attributes['type_id']) ? $attributes['type_id'] : null,
             'is_live'           => isset($attributes['is_live']) ? $attributes['is_live'] : null,
             'title'             => isset($attributes['title']) ? $attributes['title'] : null,
             'short_description' => isset($attributes['short_description']) ? $attributes['short_description'] : null,

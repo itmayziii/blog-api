@@ -16,8 +16,13 @@ class WebPageSchema extends BaseSchema
 
     public function getSelfSubUrl($webPage = null): string
     {
-        $type = $webPage->getRelationValue('type')->getAttribute('name');
-        return $this->selfSubUrl . "/{$type}/{$webPage->getAttribute('slug')}";
+        $typeRelationship = $webPage->getRelationValue('type');
+
+        if (is_null($typeRelationship)) {
+            return $this->selfSubUrl . "/{$webPage->getAttribute('slug')}";
+        }
+
+        return $this->selfSubUrl . "/{$typeRelationship->getAttribute('name')}/{$webPage->getAttribute('slug')}";
     }
 
     public function getAttributes($webPage, array $fieldKeysFilter = null): ?array

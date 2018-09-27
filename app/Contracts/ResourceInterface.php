@@ -21,7 +21,7 @@ interface ResourceInterface
      * @param array $urlSegments
      * @param array $queryParams
      *
-     * @return mixed | bool
+     * @return mixed | null
      */
     public function findResourceObject($urlSegments, $queryParams);
 
@@ -36,7 +36,7 @@ interface ResourceInterface
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return mixed
+     * @return mixed | null
      */
     public function storeResourceObject($attributes, Authenticatable $user = null);
 
@@ -45,21 +45,23 @@ interface ResourceInterface
      * @param array $attributes
      * @param Authenticatable $user
      *
-     * @return mixed
+     * @return mixed | null
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null);
 
     /**
      * @param mixed $resourceObject
      *
-     * @return borolean
+     * @return boolean
      */
     public function deleteResourceObject($resourceObject): bool;
 
     /**
+     * @param array $attributes
+     *
      * @return array
      */
-    public function getStoreValidationRules(): array;
+    public function getStoreValidationRules($attributes): array;
 
     /**
      * @param mixed $resourceObject
