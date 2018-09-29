@@ -2,8 +2,8 @@
 
 namespace App\Rules;
 
-use InvalidArgumentException;
 use Illuminate\Database\DatabaseManager;
+use InvalidArgumentException;
 
 class CompositeUnique
 {
@@ -14,8 +14,6 @@ class CompositeUnique
         }
 
         $db = app()->make(DatabaseManager::class);
-
-
         $exists = $db->table($parameters[0])
             ->where($attributes, $value)
             ->where($parameters[1], $parameters[2])

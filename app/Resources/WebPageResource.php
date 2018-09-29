@@ -104,9 +104,9 @@ class WebPageResource implements ResourceInterface
     public function getStoreValidationRules($attributes): array
     {
         return [
-            'category_id'       => 'integer',
+            'category_id'       => 'integer|exists:categories,id',
             'slug'              => "required|max:255|composite_unique:webpages,type_id,{$attributes['type_id']}",
-            'type_id'           => 'required:integer',
+            'type_id'           => 'required|integer|exists:webpage_types,id',
             'is_live'           => 'required|boolean',
             'title'             => 'required|max:255',
             'modules'           => 'array',
