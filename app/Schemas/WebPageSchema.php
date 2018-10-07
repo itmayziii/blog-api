@@ -16,13 +16,13 @@ class WebPageSchema extends BaseSchema
 
     public function getSelfSubUrl($webPage = null): string
     {
-        $typeRelationship = $webPage->getRelationValue('type');
+        $categoryRelationship = $webPage->getRelationValue('category');
 
-        if (is_null($typeRelationship)) {
+        if ($categoryRelationship->getAttribute('slug') === 'root') {
             return $this->selfSubUrl . "/{$webPage->getAttribute('slug')}";
         }
 
-        return $this->selfSubUrl . "/{$typeRelationship->getAttribute('name')}/{$webPage->getAttribute('slug')}";
+        return $this->selfSubUrl . "/{$categoryRelationship->getAttribute('slug')}/{$webPage->getAttribute('slug')}";
     }
 
     public function getAttributes($webPage, array $fieldKeysFilter = null): ?array
@@ -34,7 +34,6 @@ class WebPageSchema extends BaseSchema
             'updated_by'        => $webPage->getAttribute('last_updated_by'),
             'category_id'       => $webPage->getAttribute('category_id'),
             'slug'              => $webPage->getAttribute('slug'),
-            'type_id'           => $webPage->getAttribute('type_id'),
             'is_live'           => $webPage->getAttribute('is_live'),
             'title'             => $webPage->getAttribute('title'),
             'modules'           => $webPage->getModules(),

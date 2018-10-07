@@ -54,11 +54,21 @@ class WebPageResource implements ResourceInterface
      */
     public function findResourceObject($urlSegments, $queryParams)
     {
-        if (count($urlSegments) !== 2) {
-            return false;
+        if (count($urlSegments) === 1) {
+            [$id] = $urlSegments;
+            if (!is_numeric($id)) {
+                return null;
+            }
+
+            return $this->webPageRepository->findById($id);
         }
-        [$type, $slug] = $urlSegments;
-        return $this->webPageRepository->findBySlug($type, $slug);
+
+        if (count($urlSegments) !== 2) {
+            return null;
+        }
+
+        [$categorySlug, $slug] = $urlSegments;
+        return $this->webPageRepository->findBySlug($categorySlug, $slug);
     }
 
     /**
@@ -66,7 +76,7 @@ class WebPageResource implements ResourceInterface
      */
     public function findResourceObjects($queryParams): LengthAwarePaginator
     {
-        $type = Arr::get($queryParams, 'type', '');
+        $type = Arr::get($queryParams, 'type', null);
         $page = Arr::get($queryParams, 'page', 1);
         $size = Arr::get($queryParams, 'size', 15);
 
@@ -87,7 +97,7 @@ class WebPageResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
-        $this->webPageRepository->update($resourceObject, $attributes, $user);
+        return $this->webPageRepository->update($resourceObject, $attributes, $user);
     }
 
     /**
@@ -103,10 +113,9 @@ class WebPageResource implements ResourceInterface
      */
     public function getStoreValidationRules($attributes): array
     {
-        return [
-            'category_id'       => 'integer|exists:categories,id',
-            'slug'              => "required|max:255|composite_unique:webpages,type_id,{$attributes['type_id']}",
-            'type_id'           => 'required|integer|exists:webpage_types,id',
+        $validationRules = [
+            'category_id'       => 'required|integer|exists:categories,id',
+            'slug'              => "required|max:255|alpha_dash",
             'is_live'           => 'required|boolean',
             'title'             => 'required|max:255',
             'modules'           => 'array',
@@ -116,17 +125,26 @@ class WebPageResource implements ResourceInterface
             'image_path_lg'     => 'max:255',
             'image_path_meta'   => 'max:255'
         ];
+
+        if (isset($attributes['category_id'])) {
+            $validationRules['slug'] = $validationRules['slug'] .= "|composite_unique:webpages,category_id,{$attributes['category_id']}";
+        }
+
+        return $validationRules;
     }
 
     /**
      * @inheritdoc
      */
-    public function getUpdateValidationRules($resourceObject, $attributes): array
+    public function getUpdateValidationRules($resourceObject,
+        $attributes): array
     {
         $validationRules = $this->getStoreValidationRules($attributes);
 
         // Removing the unique validation on some fields if they have not changed
-        if ($resourceObject->getAttribute('slug') === $attributes['slug'] && $resourceObject->getAttribute('type_id') === $attributes['type_id']) {
+        $newSlug = Arr::get($attributes, 'slug');
+        $newCategoryId = Arr::get($attributes, 'category_id');
+        if ($resourceObject->getAttribute('slug') === $newSlug && $resourceObject->getAttribute('category_id') === $newCategoryId) {
             $validationRules['slug'] = 'required|max:255';
         }
 

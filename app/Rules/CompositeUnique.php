@@ -13,10 +13,11 @@ class CompositeUnique
             throw new InvalidArgumentException(CompositeUnique::class . ' expected three parameters passed to composite_unique validation');
         }
 
+        [$table, $column, $columnValue] = $parameters;
         $db = app()->make(DatabaseManager::class);
-        $exists = $db->table($parameters[0])
+        $exists = $db->table($table)
             ->where($attributes, $value)
-            ->where($parameters[1], $parameters[2])
+            ->where($column, $columnValue)
             ->exists();
 
         return !$exists;

@@ -218,7 +218,7 @@ class JsonApiTest extends TestCase
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
     }
 
-    public function test_respondValidationFailed_encodes_errors_and_returns_a_400_status_code()
+    public function test_respondValidationFailed_encodes_errors_and_returns_a_422_status_code()
     {
         $this->setupResponseMock(422);
 
@@ -229,7 +229,7 @@ class JsonApiTest extends TestCase
             ->andReturn([]);
 
         $this->encoderMock
-            ->shouldReceive('encodeErrors')
+            ->shouldReceive('encodeError')
             ->once()
             ->andReturn('Encoded Data');
 

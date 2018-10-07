@@ -9,20 +9,12 @@ class Category extends Model
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'name', 'slug'];
+    protected $visible = ['created_at', 'updated_at', 'name', 'plural_name', 'slug'];
 
     /**
      * @inheritDoc
      */
-    protected $fillable = ['name', 'slug'];
-
-    /**
-     * @inheritDoc
-     */
-    public function getRouteKeyName()
-    {
-        return 'name';
-    }
+    protected $fillable = ['name', 'plural_name', 'slug'];
 
     /**
      * Get all the web pages under this category

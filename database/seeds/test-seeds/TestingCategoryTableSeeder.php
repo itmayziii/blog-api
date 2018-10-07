@@ -15,9 +15,10 @@ class TestingCategoryTableSeeder extends Seeder
         $categoryFactory = factory(Category::class);
 
         $categoryFactory->create([
-            'id'   => 1,
-            'name' => 'Category One',
-            'slug' => 'category-one'
+            'id'          => 1,
+            'name'        => 'Post',
+            'plural_name' => 'Posts',
+            'slug'        => 'posts'
         ]);
     }
 

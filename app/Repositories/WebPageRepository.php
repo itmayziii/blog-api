@@ -9,7 +9,6 @@ use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use MongoDB\Database as MongoDB;
-use MongoDB\Driver\Exception\Exception as MongoException;
 use Psr\Log\LoggerInterface;
 
 class WebPageRepository
@@ -42,31 +41,32 @@ class WebPageRepository
     /**
      * @param string | int $page
      * @param string | int $size
-     * @param string $type
+     * @param string $categorySlug
      * @param bool $liveOnly
      *
      * @return LengthAwarePaginator
      */
-    public function paginateWebPages($page, $size, $type = '', $liveOnly = false)
+    public function paginateWebPages($page, $size, $categorySlug = null, $liveOnly = false)
     {
         $status = ($liveOnly === true) ? 'live' : 'all';
         $cacheKey = "webPages:$status";
-        if (!empty($type)) {
-            $cacheKey .= ":$type";
+        if (!is_null($categorySlug)) {
+            $cacheKey .= ":category.$categorySlug";
         }
         $cacheKey .= ":page.$page:size.$size";
 
-        return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $type, $liveOnly) {
+        return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $categorySlug, $liveOnly) {
             $query = $this->webPage
-                ->orderBy('created_at', 'desc');
+                ->orderBy('created_at', 'desc')
+                ->with('category');
 
-            if ($liveOnly) {
+            if ($liveOnly === true) {
                 $query->where('is_live', true);
             }
 
-            if (!empty($type)) {
-                $query->whereHas('type', function ($query) use ($type) {
-                    $query->where('name', $type);
+            if (!is_null($categorySlug)) {
+                $query->whereHas('category', function ($query) use ($categorySlug) {
+                    $query->where('slug', $categorySlug);
                 });
             }
 
@@ -75,29 +75,48 @@ class WebPageRepository
     }
 
     /**
-     * @param string $type
+     * @param string $categorySlug
      * @param string $slug
      *
      * @return WebPage | null
      */
-    public function findBySlug($type, $slug)
+    public function findBySlug($categorySlug, $slug)
     {
-        $webpage = $this->cache->remember("webPage.$type.$slug", 60, function () use ($type, $slug) {
+        $webPage = $this->cache->remember("webPage.$categorySlug.$slug", 60, function () use ($categorySlug, $slug) {
             return $this->webPage
                 ->where('slug', $slug)
-                ->whereHas('type', function ($query) use ($type) {
-                    $query->where('name', $type);
+                ->whereHas('category', function ($query) use ($categorySlug) {
+                    $query->where('slug', $categorySlug);
                 })
-                ->with('type')
+                ->with('category')
                 ->first();
         });
 
-        if (is_null($webpage)) {
-            $this->logger->notice(WebPageRepository::class . ": unable to find web page with type: {$type}, slug: {$slug}");
+        if (is_null($webPage)) {
+            $this->logger->notice(WebPageRepository::class . ": unable to find web page with category: {$categorySlug}, slug: {$slug}");
             return null;
         }
 
-        return $webpage;
+        return $webPage;
+    }
+
+    /**
+     * @param int | string $id
+     *
+     * @return Webpage | null
+     */
+    public function findById($id)
+    {
+        $webPage = $this->cache->remember("webPage:id.$id", 60, function () use ($id) {
+            return $this->webPage->find($id);
+        });
+
+        if (is_null($webPage)) {
+            $this->logger->notice(WebPageRepository::class . ": unable to find web page with id: {$id}");
+            return null;
+        }
+
+        return $webPage;
     }
 
     /**
@@ -182,7 +201,6 @@ class WebPageRepository
         return [
             'category_id'       => isset($attributes['category_id']) ? $attributes['category_id'] : null,
             'slug'              => isset($attributes['slug']) ? $attributes['slug'] : null,
-            'type_id'           => isset($attributes['type_id']) ? $attributes['type_id'] : null,
             'is_live'           => isset($attributes['is_live']) ? $attributes['is_live'] : null,
             'title'             => isset($attributes['title']) ? $attributes['title'] : null,
             'short_description' => isset($attributes['short_description']) ? $attributes['short_description'] : null,

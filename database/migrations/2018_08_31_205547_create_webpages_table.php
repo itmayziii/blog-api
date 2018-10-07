@@ -18,9 +18,8 @@ class CreateWebpagesTable extends Migration
             $table->timestamps();
             $table->integer('created_by')->unsigned();
             $table->integer('last_updated_by')->unsigned();
-            $table->integer('category_id')->nullable()->unsigned();
+            $table->integer('category_id')->unsigned();
             $table->string('slug');
-            $table->unsignedInteger('type_id');
             $table->boolean('is_live');
             $table->string('title');
             $table->text('short_description')->nullable();
@@ -29,11 +28,10 @@ class CreateWebpagesTable extends Migration
             $table->string('image_path_lg')->nullable();
             $table->string('image_path_meta')->nullable();
 
-            $table->unique(['slug', 'type_id']);
+            $table->unique(['slug', 'category_id']);
             $table->foreign('created_by')->references('id')->on('users');
             $table->foreign('last_updated_by')->references('id')->on('users');
             $table->foreign('category_id')->references('id')->on('categories');
-            $table->foreign('type_id')->references('id')->on('webpage_types');
         });
     }
 

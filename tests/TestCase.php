@@ -6,6 +6,8 @@ use App\User;
 
 abstract class TestCase extends \Laravel\Lumen\Testing\TestCase
 {
+    protected const textOver255Characters = 'This text is over 255 characters. This text is over 255 characters. This text is over 255 characters. This text is over 255 characters. This text is over 255 characters. This text is over 255 characters. This text is over 255 characters. This text is over ';
+
     public function setUp()
     {
         parent::setUp();

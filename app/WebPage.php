@@ -18,7 +18,6 @@ class WebPage extends Model
         'last_updated_by',
         'category_id',
         'slug',
-        'type_id',
         'is_live',
         'title',
         'short_description',
@@ -71,14 +70,6 @@ class WebPage extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    /**
-     * Get the type the web page belongs to
-     */
-    public function type()
-    {
-        return $this->belongsTo(WebPageType::class);
     }
 
     /**
