@@ -37,8 +37,13 @@ class AuthenticateController
      */
     private $configRepository;
 
-    public function __construct(JsonApi $jsonApi, UserRepository $userRepository, LoggerInterface $logger, Hasher $hasher, ConfigRepository $configRepository)
-    {
+    public function __construct(
+        JsonApi $jsonApi,
+        UserRepository $userRepository,
+        LoggerInterface $logger,
+        Hasher $hasher,
+        ConfigRepository $configRepository
+    ) {
         $this->userRepository = $userRepository;
         $this->jsonApi = $jsonApi;
         $this->logger = $logger;
@@ -115,9 +120,7 @@ class AuthenticateController
             return $this->jsonApi->respondUnauthorized($response);
         }
 
-        $tokenExpiration = strtotime($user->getAttribute('api_token_expiration'));
-        $now = $carbon->getTimestamp();
-        if ($now > $tokenExpiration) {
+        if ($user->isApiTokenExpired()) {
             return $this->jsonApi->respondUnauthorized($response);
         }
 

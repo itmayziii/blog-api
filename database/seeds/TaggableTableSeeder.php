@@ -1,7 +1,7 @@
 <?php
 
-use App\Tag;
-use App\WebPage;
+use App\Models\Tag;
+use App\Models\WebPage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

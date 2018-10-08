@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Str;
 
-$factory->define(App\Category::class, function (Faker\Generator $faker) {
+$factory->define(App\Models\Category::class, function (Faker\Generator $faker) {
 
     $name = $faker->word;
     $slug = Str::slug($name);

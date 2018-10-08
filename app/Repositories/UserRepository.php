@@ -2,12 +2,13 @@
 
 namespace App\Repositories;
 
-use App\User;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserRepository
 {
     /**
-     * @var User
+     * @var User | Builder
      */
     private $user;
 

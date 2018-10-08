@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\WebPage;
+use App\Models\WebPage;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;

@@ -1,8 +1,8 @@
 <?php
 
-use App\Category;
-use App\User;
-use App\WebPage;
+use App\Models\Category;
+use App\Models\User;
+use App\Models\WebPage;
 use Illuminate\Support\Str;
 
 $factory->define(WebPage::class, function (Faker\Generator $faker) {

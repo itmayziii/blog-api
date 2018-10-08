@@ -3,7 +3,7 @@
 namespace Tests\Unit\Repositories;
 
 use App\Repositories\UserRepository;
-use App\User;
+use App\Models\User;
 use Mockery;
 use Mockery\Mock;
 use Tests\TestCase;

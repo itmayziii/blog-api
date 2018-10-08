@@ -1,11 +1,12 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Laravel\Lumen\Auth\Authorizable;
 
 class User extends Model implements AuthenticatableContract, AuthorizableContract
@@ -40,11 +41,18 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
      */
     public function isAdmin()
     {
-        return ($this->role === 'Administrator');
+        return ($this->getAttribute('role') === 'Administrator');
     }
 
     public function isUser(User $user)
     {
-        return ($this->id === $user->id);
+        return ($this->getAttribute('id') === $user->getAttribute('id'));
+    }
+
+    public function isApiTokenExpired()
+    {
+        $userTokenExpiration = strtotime($this->getAttribute('api_token_authorization'));
+        $now = Carbon::now()->getTimestamp();
+        return $now > $userTokenExpiration;
     }
 }

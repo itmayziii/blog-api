@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
-use App\Post;
+use App\Models\Post;
 use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
-use App\WebPage;
+use App\Models\WebPage;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Http\Response;
 

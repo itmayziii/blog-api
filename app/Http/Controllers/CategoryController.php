@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Category;
+use App\Models\Category;
 use App\Http\JsonApi;
-use App\Post;
+use App\Models\Post;
 use App\Repositories\CacheRepository;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Access\Gate;

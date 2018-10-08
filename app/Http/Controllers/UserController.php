@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
-use App\User;
+use App\Models\User;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;

@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\User;
-use App\WebPage;
+use App\Models\User;
+use App\Models\WebPage;
 
 class WebPagePolicy
 {

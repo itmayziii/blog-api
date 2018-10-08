@@ -1,6 +1,6 @@
 <?php
 
-$factory->define(App\Tag::class, function (Faker\Generator $faker) {
+$factory->define(App\Models\Tag::class, function (Faker\Generator $faker) {
 
     return [
         'created_at' => $faker->unixTime,

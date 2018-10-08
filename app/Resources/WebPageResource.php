@@ -4,7 +4,7 @@ namespace App\Resources;
 
 use App\Contracts\ResourceInterface;
 use App\Repositories\WebPageRepository;
-use App\WebPage;
+use App\Models\WebPage;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
