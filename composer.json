@@ -11,7 +11,7 @@
   "require": {
     "php": ">=7.2.0",
     "ext-mongodb": "^1.5",
-    "laravel/lumen-framework": "^5.6",
+    "laravel/lumen-framework": "^5.7",
     "vlucas/phpdotenv": "~2.2",
     "nordsoftware/lumen-cors": "^2.1",
     "neomerx/json-api": "^2.0",
@@ -50,7 +50,7 @@
   "prefer-stable": true,
   "config": {
     "platform": {
-      "php": "7.2.2"
+      "php": "7.2"
     }
   }
 }
