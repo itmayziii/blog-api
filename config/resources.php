@@ -1,5 +1,6 @@
 <?php
 
 return [
-    'webpages' => App\Resources\WebPageResource::class
+    'webpages' => App\Resources\WebPageResource::class,
+    'contacts' => App\Resources\ContactResource::class
 ];

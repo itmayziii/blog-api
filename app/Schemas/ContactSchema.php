@@ -16,10 +16,10 @@ class ContactSchema extends BaseSchema
     public function getAttributes($post, array $fieldKeysFilter = null): ?array
     {
         return [
-            'createdAt' => $post->getAttribute('created_at')->toIso8601String(),
-            'updatedAt' => $post->getAttribute('updated_at')->toIso8601String(),
-            'firstName' => $post->getAttribute('first_name'),
-            'lastName'  => $post->getAttribute('last_name'),
+            'created_at' => $post->getAttribute('created_at')->toIso8601String(),
+            'updated_at' => $post->getAttribute('updated_at')->toIso8601String(),
+            'first_name' => $post->getAttribute('first_name'),
+            'last_name'  => $post->getAttribute('last_name'),
             'email'     => $post->getAttribute('email'),
             'comments'  => $post->getAttribute('comments')
         ];

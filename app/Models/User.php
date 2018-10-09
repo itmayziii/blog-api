@@ -51,7 +51,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     public function isApiTokenExpired()
     {
-        $userTokenExpiration = strtotime($this->getAttribute('api_token_authorization'));
+        $userTokenExpiration = strtotime($this->getAttribute('api_token_expiration'));
         $now = Carbon::now()->getTimestamp();
         return $now > $userTokenExpiration;
     }

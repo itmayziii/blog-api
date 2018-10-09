@@ -5,17 +5,9 @@ use Illuminate\Http\Response;
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
-    $router->post('/authenticate', 'AuthenticateController@authenticate');
-    $router->get('/token-validation', 'AuthenticateController@validateToken');
-    $router->delete('/logout', 'AuthenticateController@logout');
-
-    $router->group(['prefix' => 'contacts'], function () use ($router) {
-
-        $router->post('', 'ContactController@store');
-        $router->get('/{id}', ['middleware' => 'auth', 'uses' => 'ContactController@show']);
-        $router->get('', ['middleware' => 'auth', 'uses' => 'ContactController@index']);
-
-    });
+    $router->post('/token', 'AuthenticateController@authenticate');
+    $router->put('/token', 'AuthenticateController@validateToken');
+    $router->delete('/token', 'AuthenticateController@logout');
 
     $router->group(['prefix' => 'categories'], function () use ($router) {
 

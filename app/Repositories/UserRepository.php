@@ -22,7 +22,7 @@ class UserRepository
      *
      * @return User|null
      */
-    public function retrieveUserByEmail($username)
+    public function findByEmail($username)
     {
         $user = $this->user
             ->where('email', $username)
@@ -37,7 +37,7 @@ class UserRepository
      *
      * @return User|null
      */
-    public function retrieveUserByToken($apiToken)
+    public function findByApiToken($apiToken)
     {
         $user = $this->user
             ->where('api_token', $apiToken)

@@ -3,7 +3,6 @@
 namespace Tests\Integration;
 
 use Illuminate\Support\Facades\Artisan;
-use phpDocumentor\Reflection\Types\Self_;
 use TestingDatabaseSeeder;
 use Tests\TestCase;
 

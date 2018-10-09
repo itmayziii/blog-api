@@ -65,7 +65,7 @@ class WebPageRepository
             }
 
             if (!is_null($categorySlug)) {
-                $query->whereHas('category', function ($query) use ($categorySlug) {
+                $query->whereHas('category', function (Builder $query) use ($categorySlug) {
                     $query->where('slug', $categorySlug);
                 });
             }
@@ -85,7 +85,7 @@ class WebPageRepository
         $webPage = $this->cache->remember("webPage.$categorySlug.$slug", 60, function () use ($categorySlug, $slug) {
             return $this->webPage
                 ->where('slug', $slug)
-                ->whereHas('category', function ($query) use ($categorySlug) {
+                ->whereHas('category', function (Builder $query) use ($categorySlug) {
                     $query->where('slug', $categorySlug);
                 })
                 ->with('category')

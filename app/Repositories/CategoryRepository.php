@@ -3,11 +3,12 @@
 namespace App\Repositories;
 
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Builder;
 
 class CategoryRepository
 {
     /**
-     * @var Category
+     * @var Category | Builder
      */
     private $category;
 

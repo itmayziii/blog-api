@@ -17,13 +17,13 @@ class UserSchema extends BaseSchema
     public function getAttributes($user, array $fieldKeysFilter = null): ?array
     {
         return [
-            'createdAt' => $user->getAttribute('created_at')->toIso8601String(),
-            'updatedAt' => $user->getAttribute('updated_at')->toIso8601String(),
-            'firstName' => $user->getAttribute('first_name'),
-            'lastName'  => $user->getAttribute('last_name'),
-            'email'     => $user->getAttribute('email'),
-            'role'      => $user->getAttribute('role'),
-            'apiToken'  => $user->getAttribute('api_token')
+            'created_at' => $user->getAttribute('created_at')->toIso8601String(),
+            'updated_at' => $user->getAttribute('updated_at')->toIso8601String(),
+            'first_name' => $user->getAttribute('first_name'),
+            'last_name'  => $user->getAttribute('last_name'),
+            'email'      => $user->getAttribute('email'),
+            'role'       => $user->getAttribute('role'),
+            'api_token'  => $user->getAttribute('api_token')
         ];
     }
 

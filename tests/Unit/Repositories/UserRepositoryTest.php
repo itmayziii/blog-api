@@ -52,7 +52,7 @@ class UserRepositoryTest extends TestCase
             ->once()
             ->andReturn($this->userMock);
 
-        $actualResult = $this->userRepository->retrieveUserByEmail('test@test.com');
+        $actualResult = $this->userRepository->findByEmail('test@test.com');
         $expectedResult = $this->userMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
@@ -76,7 +76,7 @@ class UserRepositoryTest extends TestCase
             ->once()
             ->andReturn($this->userMock);
 
-        $actualResult = $this->userRepository->retrieveUserByToken('aaabbbccc');
+        $actualResult = $this->userRepository->findByApiToken('aaabbbccc');
         $expectedResult = $this->userMock;
 
         $this->assertThat($actualResult, $this->equalTo($expectedResult));
