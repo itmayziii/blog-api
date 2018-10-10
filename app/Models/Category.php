@@ -14,7 +14,7 @@ class Category extends Model
     /**
      * @inheritDoc
      */
-    protected $fillable = ['name', 'plural_name', 'slug'];
+    protected $fillable = ['created_by', 'last_updated_by', 'name', 'plural_name', 'slug'];
 
     /**
      * Get all the web pages under this category

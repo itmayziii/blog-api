@@ -3,9 +3,12 @@
 namespace App\Repositories;
 
 use App\Models\Category;
+use Exception;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Psr\Log\LoggerInterface;
 
 class CategoryRepository
 {
@@ -17,11 +20,16 @@ class CategoryRepository
      * @var Cache
      */
     private $cache;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
-    public function __construct(Category $category, Cache $cache)
+    public function __construct(Category $category, Cache $cache, LoggerInterface $logger)
     {
         $this->category = $category;
         $this->cache = $cache;
+        $this->logger = $logger;
     }
 
     /**
@@ -61,6 +69,45 @@ class CategoryRepository
         return $this->cache->remember("categories", 60, function () use ($page, $size) {
             return $this->category->paginate($size, null, 'page', $page);
         });
+    }
+
+    /**
+     * @param array $attributes
+     * @param Authenticatable $user
+     *
+     * @return Category
+     */
+    public function create($attributes, Authenticatable $user)
+    {
+        $attributes = $this->mapAttributes($attributes);
+        $userId = $user->getAuthIdentifier();
+        $attributes['created_by'] = $userId;
+        $attributes['last_updated_by'] = $userId;
+
+        var_dump($attributes);
+        try {
+            $category = $this->category->create($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(CategoryRepository::class . ": unable to create category with exception: {$exception->getMessage()}");
+            return null;
+        }
+
+        $this->cache->clear();
+        return $category;
+    }
+
+    /**
+     * @param array $attributes
+     *
+     * @return array
+     */
+    private function mapAttributes($attributes)
+    {
+        return [
+            'name'        => isset($attributes['name']) ? $attributes['name'] : null,
+            'plural_name' => isset($attributes['plural_name']) ? $attributes['plural_name'] : null,
+            'slug'        => isset($attributes['slug']) ? $attributes['slug'] : null
+        ];
     }
 
 //    /**

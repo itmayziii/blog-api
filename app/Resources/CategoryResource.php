@@ -74,7 +74,7 @@ class CategoryResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        // TODO: Implement storeResourceObject() method.
+        return $this->categoryRepository->create($attributes, $user);
     }
 
     /**
@@ -106,7 +106,11 @@ class CategoryResource implements ResourceInterface
      */
     public function getStoreValidationRules($attributes): array
     {
-        // TODO: Implement getStoreValidationRules() method.
+        return [
+            'name'        => 'required|max:255',
+            'plural_name' => 'required|max:255',
+            'slug'        => 'required|max:255|alpha_dash|unique:categories'
+        ];
     }
 
     /**
@@ -117,7 +121,15 @@ class CategoryResource implements ResourceInterface
      */
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        // TODO: Implement getUpdateValidationRules() method.
+        $validationRules = $this->getStoreValidationRules($attributes);
+
+        // Removing the unique validation on some fields if they have not changed
+        $newSlug = Arr::get($attributes, 'slug');
+        if ($resourceObject->getAttribute('slug') === $newSlug) {
+            $validationRules['slug'] = 'required|max:255|alpha_dash';
+        }
+
+        return $validationRules;
     }
 
     /**
@@ -149,7 +161,7 @@ class CategoryResource implements ResourceInterface
      */
     public function requireStoreAuthorization(): bool
     {
-        // TODO: Implement requireStoreAuthorization() method.
+        return true;
     }
 
     /**
@@ -161,7 +173,7 @@ class CategoryResource implements ResourceInterface
      */
     public function requireUpdateAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireUpdateAuthorization() method.
+        return true;
     }
 
     /**
@@ -173,6 +185,6 @@ class CategoryResource implements ResourceInterface
      */
     public function requireDeleteAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireDeleteAuthorization() method.
+        return true;
     }
 }

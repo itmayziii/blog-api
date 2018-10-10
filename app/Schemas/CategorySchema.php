@@ -23,6 +23,8 @@ class CategorySchema extends BaseSchema
         $attributes = [
             'created_at'  => $category->getAttribute('created_at')->toIso8601String(),
             'updated_at'  => $category->getAttribute('updated_at')->toIso8601String(),
+            'created_by'  => $category->getAttribute('created_by'),
+            'last_updated_by'  => $category->getAttribute('last_updated_by'),
             'name'        => $category->getAttribute('name'),
             'plural_name' => $category->getAttribute('plural_name'),
             'slug'        => $category->getAttribute('slug')

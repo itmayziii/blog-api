@@ -136,8 +136,7 @@ class WebPageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function getUpdateValidationRules($resourceObject,
-        $attributes): array
+    public function getUpdateValidationRules($resourceObject, $attributes): array
     {
         $validationRules = $this->getStoreValidationRules($attributes);
 

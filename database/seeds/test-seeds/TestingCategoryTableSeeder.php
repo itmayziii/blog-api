@@ -15,12 +15,14 @@ class TestingCategoryTableSeeder extends Seeder
         $categoryFactory = factory(Category::class);
 
         $categoryFactory->create([
-            'id'          => 1,
-            'created_at'  => strtotime('2018-06-18 16:00:30'),
-            'updated_at'  => strtotime('2018-06-18 17:00:00'),
-            'name'        => 'Post',
-            'plural_name' => 'Posts',
-            'slug'        => 'posts'
+            'id'              => 1,
+            'created_at'      => strtotime('2018-06-18 16:00:30'),
+            'updated_at'      => strtotime('2018-06-18 17:00:00'),
+            'created_by'      => 1,
+            'last_updated_by' => 1,
+            'name'            => 'Post',
+            'plural_name'     => 'Posts',
+            'slug'            => 'posts'
         ]);
     }
 }
