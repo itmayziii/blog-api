@@ -9,18 +9,6 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->put('/token', 'AuthenticateController@validateToken');
     $router->delete('/token', 'AuthenticateController@logout');
 
-//    $router->group(['prefix' => 'categories'], function () use ($router) {
-//
-//        $router->get('', 'CategoryController@index');
-//        $router->get('/{slug}', 'CategoryController@show');
-//        $router->post('', ['middleware' => 'auth', 'uses' => 'CategoryController@store']);
-//        $router->put('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@update']);
-//        $router->delete('/{slug}', ['middleware' => 'auth', 'uses' => 'CategoryController@delete']);
-//
-//        $router->get('/{slug}/posts', 'CategoryPostController@show');
-//
-//    });
-
     $router->group(['prefix' => 'tags'], function () use ($router) {
 
         $router->get('', 'TagController@index');
