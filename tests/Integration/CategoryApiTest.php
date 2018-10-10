@@ -71,4 +71,34 @@ class CategoryApiTest extends TestCase
             ]
         ]);
     }
+
+    public function test_index_returns_all_categories()
+    {
+        $response = $this->json('GET', 'v1/categories');
+
+        $response->assertResponseStatus(200);
+        $response->seeHeader('Content-Type', 'application/vnd.api+json');
+        $response->seeJsonEquals([
+            'data'  => [
+                [
+                    'type'       => 'categories',
+                    'id'         => '1',
+                    'attributes' => [
+                        'created_at'  => '2018-06-18T16:00:30+00:00',
+                        'updated_at'  => '2018-06-18T17:00:00+00:00',
+                        'name'        => 'Post',
+                        'plural_name' => 'Posts',
+                        'slug'        => 'posts'
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts'
+                    ]
+                ]
+            ],
+            'links' => [
+                'first' => 'http://localhost/v1/categories?page=1',
+                'last'  => 'http://localhost/v1/categories?page=1'
+            ]
+        ]);
+    }
 }

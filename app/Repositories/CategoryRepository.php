@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class CategoryRepository
 {
@@ -50,25 +51,38 @@ class CategoryRepository
     }
 
     /**
-     * @param string $slug
-     * @param bool $livePostsOnly
+     * @param int $page
+     * @param int $size
      *
-     * @return Category | null
+     * @return LengthAwarePaginator
      */
-    public function findBySlugWithPosts($slug, $livePostsOnly = true)
+    public function paginate($page, $size)
     {
-        return $this->category
-            ->where('slug', $slug)
-            ->with([
-                'posts' => function ($query) use ($livePostsOnly) {
-                    if ($livePostsOnly) {
-                        $query->where('status', 'live');
-                    }
-
-                    $query->orderBy('created_at', 'desc');
-                }
-            ])
-            ->get()
-            ->first();
+        return $this->cache->remember("categories", 60, function () use ($page, $size) {
+            return $this->category->paginate($size, null, 'page', $page);
+        });
     }
+
+//    /**
+//     * @param string $slug
+//     * @param bool $livePostsOnly
+//     *
+//     * @return Category | null
+//     */
+//    public function findBySlugWithPosts($slug, $livePostsOnly = true)
+//    {
+//        return $this->category
+//            ->where('slug', $slug)
+//            ->with([
+//                'posts' => function ($query) use ($livePostsOnly) {
+//                    if ($livePostsOnly) {
+//                        $query->where('status', 'live');
+//                    }
+//
+//                    $query->orderBy('created_at', 'desc');
+//                }
+//            ])
+//            ->get()
+//            ->first();
+//    }
 }

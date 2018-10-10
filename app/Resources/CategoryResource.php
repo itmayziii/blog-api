@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 
 class CategoryResource implements ResourceInterface
 {
@@ -59,7 +60,10 @@ class CategoryResource implements ResourceInterface
      */
     public function findResourceObjects($queryParams): LengthAwarePaginator
     {
-        // TODO: Implement findResourceObjects() method.
+        $page = Arr::get($queryParams, 'page', 1);
+        $size = Arr::get($queryParams, 'size', 15);
+
+        return $this->categoryRepository->paginate($page, $size);
     }
 
     /**
@@ -123,7 +127,7 @@ class CategoryResource implements ResourceInterface
      */
     public function requireIndexAuthorization(): bool
     {
-        // TODO: Implement requireIndexAuthorization() method.
+        return false;
     }
 
     /**
