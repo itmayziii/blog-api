@@ -84,11 +84,33 @@ class CategoryRepository
         $attributes['created_by'] = $userId;
         $attributes['last_updated_by'] = $userId;
 
-        var_dump($attributes);
         try {
             $category = $this->category->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(CategoryRepository::class . ": unable to create category with exception: {$exception->getMessage()}");
+            return null;
+        }
+
+        $this->cache->clear();
+        return $category;
+    }
+
+    /**
+     * @param Category $category
+     * @param array $attributes
+     * @param Authenticatable $user
+     *
+     * @return Category
+     */
+    public function update(Category $category, $attributes, Authenticatable $user)
+    {
+        $attributes = $this->mapAttributes($attributes);
+        $attributes['last_updated_by'] = $user->getAuthIdentifier();;
+
+        try {
+            $category->update($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(CategoryRepository::class . ": unable to update category with exception: {$exception->getMessage()}");
             return null;
         }
 

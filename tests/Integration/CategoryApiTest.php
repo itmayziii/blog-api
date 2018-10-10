@@ -205,4 +205,60 @@ class CategoryApiTest extends TestCase
         $response->assertResponseStatus(201);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
     }
+
+    public function test_update_responds_not_found()
+    {
+        $response = $this->json('PUT', 'v1/categories/not-a-real-category');
+        $response->assertResponseStatus(404);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '404',
+                    'title'  => 'Not Found'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_update_responds_unauthenticated()
+    {
+        $response = $this->json('PUT', 'v1/categories/posts');
+        $response->assertResponseStatus(401);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '401',
+                    'title'  => 'Unauthorized'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_update_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+
+        $response = $this->json('PUT', 'v1/categories/posts');
+        $response->assertResponseStatus(403);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '403',
+                    'title'  => 'Forbidden'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_update_updates_category()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('PUT', 'v1/categories/posts', [
+            'name' => 'City',
+            'plural_name' => 'Cities',
+            'slug' => 'cities'
+        ]);
+        $response->assertResponseStatus(200);
+    }
 }

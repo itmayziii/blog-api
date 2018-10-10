@@ -86,7 +86,7 @@ class CategoryResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
-        // TODO: Implement updateResourceObject() method.
+        return $this->categoryRepository->update($resourceObject, $attributes, $user);
     }
 
     /**
