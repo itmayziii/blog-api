@@ -17,11 +17,6 @@ class WebPageSchema extends BaseSchema
     public function getSelfSubUrl($webPage = null): string
     {
         $categoryRelationship = $webPage->getRelationValue('category');
-
-        if ($categoryRelationship->getAttribute('slug') === 'root') {
-            return $this->selfSubUrl . "/{$webPage->getAttribute('slug')}";
-        }
-
         return $this->selfSubUrl . "/{$categoryRelationship->getAttribute('slug')}/{$webPage->getAttribute('slug')}";
     }
 

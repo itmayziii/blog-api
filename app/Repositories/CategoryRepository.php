@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Cache\Repository as Cache;
 
 class CategoryRepository
 {
@@ -11,10 +12,15 @@ class CategoryRepository
      * @var Category | Builder
      */
     private $category;
+    /**
+     * @var Cache
+     */
+    private $cache;
 
-    public function __construct(Category $category)
+    public function __construct(Category $category, Cache $cache)
     {
         $this->category = $category;
+        $this->cache = $cache;
     }
 
     /**
@@ -24,10 +30,23 @@ class CategoryRepository
      */
     public function findBySlug($slug)
     {
-        return $this->category
-            ->where('slug', $slug)
-            ->get()
-            ->first();
+        return $this->cache->remember("category:slug.$slug", 60, function () use ($slug) {
+            return $this->category
+                ->where('slug', $slug)
+                ->first();
+        });
+    }
+
+    /**
+     * @param string | int $id
+     *
+     * @return Category | null
+     */
+    public function findById($id)
+    {
+        return $this->cache->remember("category:id.$id", 60, function () use ($id) {
+            return $this->category->find($id);
+        });
     }
 
     /**

@@ -8,9 +8,9 @@ class ContactSchema extends BaseSchema
 {
     protected $resourceType = 'contacts';
 
-    public function getId($post): ?string
+    public function getId($category): ?string
     {
-        return $post->getAttribute('id');
+        return $category->getAttribute('id');
     }
 
     public function getAttributes($post, array $fieldKeysFilter = null): ?array
@@ -20,8 +20,8 @@ class ContactSchema extends BaseSchema
             'updated_at' => $post->getAttribute('updated_at')->toIso8601String(),
             'first_name' => $post->getAttribute('first_name'),
             'last_name'  => $post->getAttribute('last_name'),
-            'email'     => $post->getAttribute('email'),
-            'comments'  => $post->getAttribute('comments')
+            'email'      => $post->getAttribute('email'),
+            'comments'   => $post->getAttribute('comments')
         ];
     }
 }

@@ -8,9 +8,9 @@ class CategorySchema extends BaseSchema
 {
     protected $resourceType = 'categories';
 
-    public function getId($post): ?string
+    public function getId($category): ?string
     {
-        return $post->getAttribute('id');
+        return $category->getAttribute('id');
     }
 
     public function getSelfSubUrl($category = null): string
@@ -21,15 +21,16 @@ class CategorySchema extends BaseSchema
     public function getAttributes($category, array $fieldKeysFilter = null): ?array
     {
         $attributes = [
-            'createdAt' => $category->getAttribute('created_at')->toIso8601String(),
-            'updatedAt' => $category->getAttribute('updated_at')->toIso8601String(),
-            'name'      => $category->getAttribute('name'),
-            'slug'      => $category->getAttribute('slug'),
+            'created_at'  => $category->getAttribute('created_at')->toIso8601String(),
+            'updated_at'  => $category->getAttribute('updated_at')->toIso8601String(),
+            'name'        => $category->getAttribute('name'),
+            'plural_name' => $category->getAttribute('plural_name'),
+            'slug'        => $category->getAttribute('slug')
         ];
 
         $postsCount = $category->getAttribute('posts_count');
         if (!is_null($postsCount)) {
-            $attributes['posts'] = $postsCount;
+            $attributes['posts_count'] = $postsCount;
         }
 
         return $attributes;

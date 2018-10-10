@@ -2,5 +2,6 @@
 
 return [
     'webpages' => App\Resources\WebPageResource::class,
-    'contacts' => App\Resources\ContactResource::class
+    'contacts' => App\Resources\ContactResource::class,
+    'categories' => App\Resources\CategoryResource::class
 ];
