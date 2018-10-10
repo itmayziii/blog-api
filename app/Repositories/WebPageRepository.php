@@ -57,7 +57,7 @@ class WebPageRepository
 
         return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $categorySlug, $liveOnly) {
             $query = $this->webPage
-                ->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->with('category');
 
             if ($liveOnly === true) {

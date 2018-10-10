@@ -39,11 +39,18 @@ class CategoryRepository
      */
     public function findBySlug($slug)
     {
-        return $this->cache->remember("category:slug.$slug", 60, function () use ($slug) {
+        $category = $this->cache->remember("category:slug.$slug", 60, function () use ($slug) {
             return $this->category
                 ->where('slug', $slug)
                 ->first();
         });
+
+        if (is_null($category)) {
+            $this->logger->notice(CategoryRepository::class . ": unable to find category with id: {$slug}");
+            return null;
+        }
+
+        return $category;
     }
 
     /**
@@ -53,9 +60,16 @@ class CategoryRepository
      */
     public function findById($id)
     {
-        return $this->cache->remember("category:id.$id", 60, function () use ($id) {
+        $category = $this->cache->remember("category:id.$id", 60, function () use ($id) {
             return $this->category->find($id);
         });
+
+        if (is_null($category)) {
+            $this->logger->notice(CategoryRepository::class . ": unable to find category with id: {$id}");
+            return null;
+        }
+
+        return $category;
     }
 
     /**

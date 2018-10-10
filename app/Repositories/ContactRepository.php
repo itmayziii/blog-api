@@ -35,7 +35,7 @@ class ContactRepository
         $cacheKey = "contacts:page.$page:size.$size";
         return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
             return $this->contact
-                ->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->paginate($size, null, 'page', $page);
         });
     }
@@ -47,7 +47,16 @@ class ContactRepository
      */
     public function findById($id)
     {
-        return $this->contact->find($id);
+        $contact = $this->cache->remember("contact:id.$id", 60, function () use ($id) {
+            return $this->contact->find($id);
+        });
+
+        if (is_null($contact)) {
+            $this->logger->notice(ContactRepository::class . ": unable to find contact with id: {$id}");
+            return null;
+        }
+
+        return $contact;
     }
 
     /**
