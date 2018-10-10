@@ -261,4 +261,56 @@ class CategoryApiTest extends TestCase
         ]);
         $response->assertResponseStatus(200);
     }
+
+    public function test_delete_responds_not_found()
+    {
+        $response = $this->json('DELETE', 'v1/categories/category-that-does-not-exist');
+        $response->assertResponseStatus(404);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '404',
+                    'title'  => 'Not Found'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_delete_responds_not_authenticated()
+    {
+        $response = $this->json('DELETE', 'v1/categories/posts');
+        $response->assertResponseStatus(401);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '401',
+                    'title'  => 'Unauthorized'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_delete_responds_forbidden()
+    {
+        $this->actAsStandardUser();
+
+        $response = $this->json('DELETE', 'v1/categories/posts');
+        $response->assertResponseStatus(403);
+        $response->seeJsonEquals([
+            'errors' => [
+                [
+                    'status' => '403',
+                    'title'  => 'Forbidden'
+                ]
+            ]
+        ]);
+    }
+
+    public function test_delete_deletes_category()
+    {
+        $this->actAsAdministrativeUser();
+
+        $response = $this->json('DELETE', 'v1/categories/posts');
+        $response->assertResponseStatus(204);
+    }
 }

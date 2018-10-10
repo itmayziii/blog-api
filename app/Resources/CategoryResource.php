@@ -96,7 +96,7 @@ class CategoryResource implements ResourceInterface
      */
     public function deleteResourceObject($resourceObject): bool
     {
-        // TODO: Implement deleteResourceObject() method.
+        return $this->categoryRepository->delete($resourceObject);
     }
 
     /**

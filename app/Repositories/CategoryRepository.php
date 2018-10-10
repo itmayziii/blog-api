@@ -119,6 +119,24 @@ class CategoryRepository
     }
 
     /**
+     * @param Category $category
+     *
+     * @return bool
+     */
+    public function delete(Category $category)
+    {
+        try {
+            $category->delete();
+        } catch (Exception $exception) {
+            $this->logger->error(CategoryRepository::class . ": unable to delete category with exception: {$exception->getMessage()}");
+            return false;
+        }
+
+        $this->cache->clear();
+        return true;
+    }
+
+    /**
      * @param array $attributes
      *
      * @return array
