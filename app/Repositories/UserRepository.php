@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
 
@@ -88,5 +89,21 @@ class UserRepository
         }
 
         return $user;
+    }
+
+    /**
+     * @param int $page
+     * @param int $size
+     *
+     * @return LengthAwarePaginator
+     */
+    public function paginate($page, $size)
+    {
+        $cacheKey = "users:page.$page:size.$size";
+        return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
+            return $this->user
+                ->orderBy('updated_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+        });
     }
 }

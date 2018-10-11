@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 
 class UserResource implements ResourceInterface
 {
@@ -59,7 +60,10 @@ class UserResource implements ResourceInterface
      */
     public function findResourceObjects($queryParams): LengthAwarePaginator
     {
-        // TODO: Implement findResourceObjects() method.
+        $page = Arr::get($queryParams, 'page', 1);
+        $size = Arr::get($queryParams, 'size', 15);
+
+        return $this->userRepository->paginate($page, $size);
     }
 
     /**
@@ -123,7 +127,7 @@ class UserResource implements ResourceInterface
      */
     public function requireIndexAuthorization(): bool
     {
-        // TODO: Implement requireIndexAuthorization() method.
+        return true;
     }
 
     /**
