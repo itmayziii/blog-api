@@ -66,7 +66,7 @@ class UserResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        return $this->userRepository->create($attributes, $user);
+        return $this->userRepository->create($attributes);
     }
 
     /**
@@ -74,7 +74,7 @@ class UserResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
-        // TODO: Implement updateResourceObject() method.
+        return $this->userRepository->update($resourceObject, $attributes);
     }
 
     /**
@@ -82,7 +82,7 @@ class UserResource implements ResourceInterface
      */
     public function deleteResourceObject($resourceObject): bool
     {
-        // TODO: Implement deleteResourceObject() method.
+        return $this->userRepository->delete($resourceObject);
     }
 
     /**

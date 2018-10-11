@@ -5,7 +5,6 @@ namespace App\Repositories;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -118,11 +117,10 @@ class UserRepository
 
     /**
      * @param array $attributes
-     * @param Authenticatable $loggedInUser
      *
      * @return User | null
      */
-    public function create($attributes, Authenticatable $loggedInUser)
+    public function create($attributes)
     {
         $attributes = $this->mapAttributes($attributes);
         $attributes['api_token'] = sha1(str_random());
@@ -137,6 +135,44 @@ class UserRepository
 
         $this->cache->clear();
         return $user;
+    }
+
+    /**
+     * @param User $user
+     * @param $attributes
+     *
+     * @return User
+     */
+    public function update(User $user, $attributes)
+    {
+        $attributes = $this->mapAttributes($attributes);
+        try {
+            $user->update($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(UserRepository::class . ": unable to update user with exception: {$exception->getMessage()}");
+            return null;
+        }
+
+        $this->cache->clear();
+        return $user;
+    }
+
+    /**
+     * @param User $user
+     *
+     * @return bool
+     */
+    public function delete(User $user)
+    {
+        try {
+            $user->delete();
+        } catch (Exception $exception) {
+            $this->logger->error(UserRepository::class . ": unable to delete user with with exception: {$exception->getMessage()}");
+            return false;
+        }
+
+        $this->cache->clear();
+        return true;
     }
 
     /**
