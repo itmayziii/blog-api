@@ -21,7 +21,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'first_name', 'last_name', 'email', 'role', 'api_token'];
+    protected $visible = ['created_at', 'updated_at', 'first_name', 'last_name', 'email', 'role', 'api_token', 'api_token_expiration'];
 
     /**
      * @inheritDoc
