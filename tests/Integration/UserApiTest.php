@@ -394,7 +394,7 @@ class UserApiTest extends TestCase
     {
         $this->actAsAdministrativeUser();
 
-        $response = $this->json('PUT', 'v1/users/2');
+        $response = $this->json('DELETE', 'v1/users/2');
         $response->assertResponseStatus(204);
     }
 }
