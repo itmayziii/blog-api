@@ -132,23 +132,23 @@ class WebPageRepository
         $attributes['last_updated_by'] = $user->getAuthIdentifier();
 
         try {
-            $webpage = $this->webPage->create($attributes);
+            $webPage = $this->webPage->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to create web page with exception: {$exception->getMessage()}");
             return null;
         }
 
         try {
-            $this->mongoDB->selectCollection('webpage_modules')->updateOne(['webpage_id' => $webpage->getAttribute('id')], [
-                'webpage_id' => $webpage->getAttribute('id'),
+            $this->mongoDB->selectCollection('webpage_modules')->updateOne(['webpage_id' => $webPage->getAttribute('id')], [
+                'webpage_id' => $webPage->getAttribute('id'),
                 'modules'    => isset($attributes['modules']) ? $attributes['modules'] : []
             ], ['upsert' => true]);
         } catch (Exception $exception) {
-            $this->logger->error(WebPageRepository::class . ": webpage may have been partially created with exception: {$exception->getMessage()}");
+            $this->logger->error(WebPageRepository::class . ": webPage may have been partially created with exception: {$exception->getMessage()}");
         }
 
         $this->cache->clear();
-        return $webpage;
+        return $webPage;
     }
 
     /**

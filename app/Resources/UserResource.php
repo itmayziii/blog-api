@@ -22,7 +22,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getResourceType(): string
     {
@@ -30,7 +30,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @return array
+     * @inheritdoc
      */
     public function getAllowedResourceActions(): array
     {
@@ -38,10 +38,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @param array $urlSegments
-     * @param array $queryParams
-     *
-     * @return mixed | null
+     * @inheritdoc
      */
     public function findResourceObject($urlSegments, $queryParams)
     {
@@ -54,9 +51,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @param array $queryParams
-     *
-     * @return LengthAwarePaginator
+     * @inheritdoc
      */
     public function findResourceObjects($queryParams): LengthAwarePaginator
     {
@@ -67,22 +62,15 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @param array $attributes
-     * @param Authenticatable $user
-     *
-     * @return mixed | null
+     * @inheritdoc
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        // TODO: Implement storeResourceObject() method.
+        return $this->userRepository->create($attributes, $user);
     }
 
     /**
-     * @param mixed $resourceObject
-     * @param array $attributes
-     * @param Authenticatable $user
-     *
-     * @return mixed | null
+     * @inheritdoc
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
@@ -90,9 +78,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @param mixed $resourceObject
-     *
-     * @return boolean
+     * @inheritdoc
      */
     public function deleteResourceObject($resourceObject): bool
     {
@@ -100,30 +86,36 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * @param array $attributes
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getStoreValidationRules($attributes): array
     {
-        // TODO: Implement getStoreValidationRules() method.
+        return [
+            'first_name' => 'required|max:255',
+            'last_name'  => 'required|max:255',
+            'email'      => 'required|max:255|email|unique:users',
+            'password'   => 'required|max:255|confirmed',
+            'api_limit'  => 'digits_between:1,5',
+            'role'       => 'max:255'
+        ];
     }
 
     /**
-     * @param mixed $resourceObject
-     * @param array $attributes
-     *
-     * @return array
+     * @inheritdoc
      */
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        // TODO: Implement getUpdateValidationRules() method.
+        $validationRules = $this->getStoreValidationRules($attributes);
+
+        if (isset($attributes['email']) && $attributes['email'] === $resourceObject->getAttribute('email')) {
+            $validationRules['email'] = 'required|max:255|email';
+        }
+
+        return $validationRules;
     }
 
     /**
-     * Determine if a resource needs authentication / authorization in order to index it
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function requireIndexAuthorization(): bool
     {
@@ -131,11 +123,7 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * Determine if a resource needs authentication / authorization in order to show it
-     *
-     * @param mixed $resourceObject
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function requireShowAuthorization($resourceObject): bool
     {
@@ -143,36 +131,26 @@ class UserResource implements ResourceInterface
     }
 
     /**
-     * Determine if a resource needs authentication / authorization in order to create it
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function requireStoreAuthorization(): bool
     {
-        // TODO: Implement requireStoreAuthorization() method.
+        return true;
     }
 
     /**
-     * Determine if a resource needs authentication / authorization in order to update it
-     *
-     * @param mixed $resourceObject
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function requireUpdateAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireUpdateAuthorization() method.
+        return true;
     }
 
     /**
-     * Determine if a resource needs authentication / authorization in order to delete it
-     *
-     * @param mixed $resourceObject
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function requireDeleteAuthorization($resourceObject): bool
     {
-        // TODO: Implement requireDeleteAuthorization() method.
+        return true;
     }
 }

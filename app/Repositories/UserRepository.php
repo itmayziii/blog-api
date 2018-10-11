@@ -3,7 +3,11 @@
 namespace App\Repositories;
 
 use App\Models\User;
+use Carbon\Carbon;
+use Exception;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
@@ -22,12 +26,33 @@ class UserRepository
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var Hasher
+     */
+    private $hasher;
 
-    public function __construct(User $user, Cache $cache, LoggerInterface $logger)
+    public function __construct(User $user, Cache $cache, LoggerInterface $logger, Hasher $hasher)
     {
         $this->user = $user;
         $this->cache = $cache;
         $this->logger = $logger;
+        $this->hasher = $hasher;
+    }
+
+    /**
+     * @param int $page
+     * @param int $size
+     *
+     * @return LengthAwarePaginator
+     */
+    public function paginate($page, $size)
+    {
+        $cacheKey = "users:page.$page:size.$size";
+        return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
+            return $this->user
+                ->orderBy('updated_at', 'desc')
+                ->paginate($size, null, 'page', $page);
+        });
     }
 
     /**
@@ -92,18 +117,42 @@ class UserRepository
     }
 
     /**
-     * @param int $page
-     * @param int $size
+     * @param array $attributes
+     * @param Authenticatable $loggedInUser
      *
-     * @return LengthAwarePaginator
+     * @return User | null
      */
-    public function paginate($page, $size)
+    public function create($attributes, Authenticatable $loggedInUser)
     {
-        $cacheKey = "users:page.$page:size.$size";
-        return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
-            return $this->user
-                ->orderBy('updated_at', 'desc')
-                ->paginate($size, null, 'page', $page);
-        });
+        $attributes = $this->mapAttributes($attributes);
+        $attributes['api_token'] = sha1(str_random());
+        $attributes['api_token_expiration'] = Carbon::now()->addDay();
+
+        try {
+            $user = $this->user->create($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(UserRepository::class . ": unable to create user with exception: {$exception->getMessage()}");
+            return null;
+        }
+
+        $this->cache->clear();
+        return $user;
+    }
+
+    /**
+     * @param array $attributes
+     *
+     * @return array
+     */
+    private function mapAttributes($attributes)
+    {
+        return [
+            'first_name' => isset($attributes['first_name']) ? $attributes['first_name'] : null,
+            'last_name'  => isset($attributes['last_name']) ? $attributes['last_name'] : null,
+            'email'      => isset($attributes['email']) ? $attributes['email'] : null,
+            'password'   => isset($attributes['password']) ? $this->hasher->make($attributes['password']) : null,
+            'api_limit'  => isset($attributes['api_limit']) ? $attributes['api_limit'] : 1000,
+            'role'       => isset($attributes['role']) ? $attributes['role'] : null,
+        ];
     }
 }

@@ -31,6 +31,18 @@ class UserPolicy
     }
 
     /**
+     * Determine whether the user can create a user.
+     *
+     * @param  User $user
+     *
+     * @return bool
+     */
+    public function store(User $user)
+    {
+        return $user->isAdmin();
+    }
+
+    /**
      * Determine whether the user can update users.
      *
      * @param  User $user
