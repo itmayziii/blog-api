@@ -105,7 +105,7 @@ class CategoryRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteCategoryCache();
         return $category;
     }
 
@@ -128,7 +128,7 @@ class CategoryRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteCategoryCache();
         return $category;
     }
 
@@ -146,7 +146,7 @@ class CategoryRepository
             return false;
         }
 
-        $this->cache->clear();
+        $this->deleteCategoryCache();
         return true;
     }
 
@@ -162,6 +162,20 @@ class CategoryRepository
             'plural_name' => isset($attributes['plural_name']) ? $attributes['plural_name'] : null,
             'slug'        => isset($attributes['slug']) ? $attributes['slug'] : null
         ];
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteCategoryCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $categoryCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'categor*');
+            $this->cache->connection()->del($categoryCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(WebPageRepository::class . ": unable to delete category cache with exception {$exception->getMessage()}");
+        }
     }
 
 //    /**

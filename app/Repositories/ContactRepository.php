@@ -74,7 +74,7 @@ class ContactRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteContactCache();
         return $contact;
     }
 
@@ -91,5 +91,19 @@ class ContactRepository
             'email'      => isset($attributes['email']) ? $attributes['email'] : null,
             'comments'   => isset($attributes['comments']) ? $attributes['comments'] : null
         ];
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteContactCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $contactCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'contact*');
+            $this->cache->connection()->del($contactCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(ContactRepository::class . ": unable to delete contact cache with exception {$exception->getMessage()}");
+        }
     }
 }

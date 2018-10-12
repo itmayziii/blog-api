@@ -59,7 +59,7 @@ class AuthServiceProvider extends ServiceProvider
             }
 
             $userRepository = app()->make(UserRepository::class);
-            $user = $userRepository->retrieveUserByToken($apiToken);
+            $user = $userRepository->findByApiToken($apiToken);
             if (is_null($user)) {
                 return null;
             }

@@ -9,15 +9,15 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->put('/token', 'AuthenticateController@validateToken');
     $router->delete('/token', 'AuthenticateController@logout');
 
-    $router->group(['prefix' => 'tags'], function () use ($router) {
-
-        $router->get('', 'TagController@index');
-        $router->get('/{id}', 'TagController@show');
-        $router->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
-        $router->put('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
-        $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
-
-    });
+//    $router->group(['prefix' => 'tags'], function () use ($router) {
+//
+//        $router->get('', 'TagController@index');
+//        $router->get('/{id}', 'TagController@show');
+//        $router->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
+//        $router->put('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
+//        $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
+//
+//    });
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 

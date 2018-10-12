@@ -133,7 +133,7 @@ class UserRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteUserCache();
         return $user;
     }
 
@@ -153,7 +153,7 @@ class UserRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteUserCache();
         return $user;
     }
 
@@ -171,7 +171,7 @@ class UserRepository
             return false;
         }
 
-        $this->cache->clear();
+        $this->deleteUserCache();
         return true;
     }
 
@@ -190,5 +190,19 @@ class UserRepository
             'api_limit'  => isset($attributes['api_limit']) ? $attributes['api_limit'] : 1000,
             'role'       => isset($attributes['role']) ? $attributes['role'] : null,
         ];
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteUserCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'user*');
+            $this->cache->connection()->del($webPageCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(UserRepository::class . ": unable to delete user cache with exception {$exception->getMessage()}");
+        }
     }
 }

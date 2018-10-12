@@ -147,7 +147,7 @@ class WebPageRepository
             $this->logger->error(WebPageRepository::class . ": webPage may have been partially created with exception: {$exception->getMessage()}");
         }
 
-        $this->cache->clear();
+        $this->deleteWebPageCache();
         return $webPage;
     }
 
@@ -169,7 +169,7 @@ class WebPageRepository
             return null;
         }
 
-        $this->cache->clear();
+        $this->deleteWebPageCache();
         return $webPage;
     }
 
@@ -187,7 +187,7 @@ class WebPageRepository
             return false;
         }
 
-        $this->cache->clear();
+        $this->deleteWebPageCache();
         return true;
     }
 
@@ -209,5 +209,19 @@ class WebPageRepository
             'image_path_lg'     => isset($attributes['image_path_lg']) ? $attributes['image_path_lg'] : null,
             'image_path_meta'   => isset($attributes['image_path_meta']) ? $attributes['image_path_meta'] : null
         ];
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteWebPageCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'webPage*');
+            $this->cache->connection()->del($webPageCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(WebPageRepository::class . ": unable to delete webPage cache with exception {$exception->getMessage()}");
+        }
     }
 }

@@ -17,6 +17,7 @@ class CreateTagsTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->string('name', 50)->unique();
+            $table->string('slug')->unique();
         });
     }
 
@@ -27,8 +28,6 @@ class CreateTagsTable extends Migration
      */
     public function down()
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;'); // Dropping table will not work because of a foreign key constraint in table "taggables"
         Schema::dropIfExists('tags');
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 }

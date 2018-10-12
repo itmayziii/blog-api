@@ -9,12 +9,12 @@ class Tag extends Model
     /**
      * @inheritDoc
      */
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'slug'];
 
     /**
      * @inheritDoc
      */
-    protected $visible = ['created_at', 'updated_at', 'name'];
+    protected $visible = ['created_at', 'updated_at', 'name', 'slug'];
 
     /**
      * Get all of the web pages that are assigned this tag
