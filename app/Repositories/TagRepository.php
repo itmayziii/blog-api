@@ -43,6 +43,7 @@ class TagRepository
         return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
             return $this->tag
                 ->orderBy('updated_at', 'desc')
+                ->withCount(['webPages'])
                 ->paginate($size, null, 'page', $page);
         });
     }
@@ -55,7 +56,9 @@ class TagRepository
     public function findById($id)
     {
         $tag = $this->cache->remember("tag:id.$id", 60, function () use ($id) {
-            return $this->tag->find($id);
+            return $this->tag
+                ->withCount(['webPages'])
+                ->find($id);
         });
 
         if (is_null($tag)) {
@@ -76,6 +79,7 @@ class TagRepository
         $tag = $this->cache->remember("tag:slug.$slug", 60, function () use ($slug) {
             return $this->tag
                 ->where('slug', $slug)
+                ->withCount(['webPages'])
                 ->first();
         });
 

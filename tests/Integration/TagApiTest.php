@@ -37,10 +37,11 @@ class TagApiTest extends TestCase
                 'id'         => '1',
                 'type'       => 'tags',
                 'attributes' => [
-                    'created_at' => '2018-08-15T17:00:00+00:00',
-                    'updated_at' => '2018-08-15T17:00:00+00:00',
-                    'name'       => 'Angular',
-                    'slug'       => 'angular'
+                    'created_at'     => '2018-08-15T17:00:00+00:00',
+                    'updated_at'     => '2018-08-15T17:00:00+00:00',
+                    'name'           => 'Angular',
+                    'slug'           => 'angular',
+                    'webpages_count' => 1
                 ],
                 'links'      => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
@@ -58,10 +59,12 @@ class TagApiTest extends TestCase
                 'id'         => '1',
                 'type'       => 'tags',
                 'attributes' => [
-                    'created_at' => '2018-08-15T17:00:00+00:00',
-                    'updated_at' => '2018-08-15T17:00:00+00:00',
-                    'name'       => 'Angular',
-                    'slug'       => 'angular'
+                    'created_at'     => '2018-08-15T17:00:00+00:00',
+                    'updated_at'     => '2018-08-15T17:00:00+00:00',
+                    'name'           => 'Angular',
+                    'slug'           => 'angular',
+                    'webpages_count' => 1
+
                 ],
                 'links'      => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
@@ -80,10 +83,12 @@ class TagApiTest extends TestCase
                     'id'         => '1',
                     'type'       => 'tags',
                     'attributes' => [
-                        'created_at' => '2018-08-15T17:00:00+00:00',
-                        'updated_at' => '2018-08-15T17:00:00+00:00',
-                        'name'       => 'Angular',
-                        'slug'       => 'angular'
+                        'created_at'     => '2018-08-15T17:00:00+00:00',
+                        'updated_at'     => '2018-08-15T17:00:00+00:00',
+                        'name'           => 'Angular',
+                        'slug'           => 'angular',
+                        'webpages_count' => 1
+
                     ],
                     'links'      => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
@@ -93,10 +98,12 @@ class TagApiTest extends TestCase
                     'id'         => '2',
                     'type'       => 'tags',
                     'attributes' => [
-                        'created_at' => '2018-08-16T17:00:00+00:00',
-                        'updated_at' => '2018-08-16T17:20:00+00:00',
-                        'name'       => 'Typescript',
-                        'slug'       => 'typescript'
+                        'created_at'     => '2018-08-16T17:00:00+00:00',
+                        'updated_at'     => '2018-08-16T17:20:00+00:00',
+                        'name'           => 'Typescript',
+                        'slug'           => 'typescript',
+                        'webpages_count' => 1
+
                     ],
                     'links'      => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/typescript'

@@ -9,18 +9,19 @@ class TagSchema extends BaseSchema
 {
     protected $resourceType = 'tags';
 
-    public function getId($user): ?string
+    public function getId($tag): ?string
     {
-        return $user->getAttribute('id');
+        return $tag->getAttribute('id');
     }
 
-    public function getAttributes($user, array $fieldKeysFilter = null): ?array
+    public function getAttributes($tag, array $fieldKeysFilter = null): ?array
     {
         return [
-            'created_at' => $user->getAttribute('created_at')->toIso8601String(),
-            'updated_at' => $user->getAttribute('updated_at')->toIso8601String(),
-            'name'       => $user->getAttribute('name'),
-            'slug'       => $user->getAttribute('slug')
+            'created_at'     => $tag->getAttribute('created_at')->toIso8601String(),
+            'updated_at'     => $tag->getAttribute('updated_at')->toIso8601String(),
+            'name'           => $tag->getAttribute('name'),
+            'slug'           => $tag->getAttribute('slug'),
+            'webpages_count' => $tag->getAttribute('web_pages_count')
         ];
     }
 
