@@ -44,5 +44,4 @@ class TagPolicy
     {
         return $user->isAdmin();
     }
-
 }

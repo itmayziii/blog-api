@@ -15,7 +15,9 @@ class TestingDatabaseSeeder extends Seeder
             TestingUserTableSeeder::class,
             TestingCategoryTableSeeder::class,
             TestingWebPageTableSeeder::class,
-            TestingContactsTableSeeder::class
+            TestingContactsTableSeeder::class,
+            TestingTagTableSeeder::class,
+            TestingTaggableTableSeeder::class
         ]);
     }
 

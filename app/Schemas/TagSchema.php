@@ -5,9 +5,9 @@ namespace App\Schemas;
 use Neomerx\JsonApi\Contracts\Document\LinkInterface;
 use Neomerx\JsonApi\Schema\BaseSchema;
 
-class UserSchema extends BaseSchema
+class TagSchema extends BaseSchema
 {
-    protected $resourceType = 'users';
+    protected $resourceType = 'tags';
 
     public function getId($user): ?string
     {
@@ -19,11 +19,8 @@ class UserSchema extends BaseSchema
         return [
             'created_at' => $user->getAttribute('created_at')->toIso8601String(),
             'updated_at' => $user->getAttribute('updated_at')->toIso8601String(),
-            'first_name' => $user->getAttribute('first_name'),
-            'last_name'  => $user->getAttribute('last_name'),
-            'email'      => $user->getAttribute('email'),
-            'role'       => $user->getAttribute('role'),
-            'api_token'  => $user->getAttribute('api_token')
+            'name'       => $user->getAttribute('name'),
+            'slug'       => $user->getAttribute('slug')
         ];
     }
 
@@ -34,5 +31,10 @@ class UserSchema extends BaseSchema
         ];
 
         return $links;
+    }
+
+    public function getSelfSubUrl($resource = null): string
+    {
+        return $resource === null ? $this->selfSubUrl : $this->selfSubUrl . '/' . $resource->getAttribute('slug');
     }
 }

@@ -75,7 +75,8 @@ $app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, func
         \App\Models\Image::class    => \App\Schemas\ImageSchema::class,
         \App\Models\User::class     => \App\Schemas\UserSchema::class,
         \App\Models\Contact::class  => \App\Schemas\ContactSchema::class,
-        \App\Models\WebPage::class  => \App\Schemas\WebPageSchema::class
+        \App\Models\WebPage::class  => \App\Schemas\WebPageSchema::class,
+        \App\Models\Tag::class      => \App\Schemas\TagSchema::class
     ];
 
     $encoder = \Neomerx\JsonApi\Encoder\Encoder::instance(
