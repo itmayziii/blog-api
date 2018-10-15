@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Tag;
+use Exception;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -86,51 +87,81 @@ class TagRepository
         return $tag;
     }
 
-//    /**
-//     * @param array $attributes
-//     *
-//     * @return Contact | null
-//     */
-//    public function create($attributes)
-//    {
-//        $attributes = $this->mapAttributes($attributes);
-//        try {
-//            $contact = $this->contact->create($attributes);
-//        } catch (Exception $exception) {
-//            $this->logger->error(ContactRepository::class . ": unable to create contact with exception: {$exception->getMessage()}");
-//            return null;
-//        }
-//
-//        $this->deleteContactCache();
-//        return $contact;
-//    }
+    /**
+     * @param array $attributes
+     *
+     * @return Tag | null
+     */
+    public function create($attributes)
+    {
+        $attributes = $this->mapAttributes($attributes);
+        try {
+            $contact = $this->tag->create($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(TagRepository::class . ": unable to create tag with exception: {$exception->getMessage()}");
+            return null;
+        }
 
-//    /**
-//     * @param array $attributes
-//     *
-//     * @return array
-//     */
-//    private function mapAttributes($attributes)
-//    {
-//        return [
-//            'first_name' => isset($attributes['first_name']) ? $attributes['first_name'] : null,
-//            'last_name'  => isset($attributes['last_name']) ? $attributes['last_name'] : null,
-//            'email'      => isset($attributes['email']) ? $attributes['email'] : null,
-//            'comments'   => isset($attributes['comments']) ? $attributes['comments'] : null
-//        ];
-//    }
-//
-//    /**
-//     * @return void
-//     */
-//    private function deleteContactCache()
-//    {
-//        try {
-//            $laravelCachePrefix = $this->cache->getPrefix();
-//            $contactCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'contact*');
-//            $this->cache->connection()->del($contactCacheKeys);
-//        } catch (Exception $exception) {
-//            $this->logger->error(ContactRepository::class . ": unable to delete contact cache with exception {$exception->getMessage()}");
-//        }
-//    }
+        $this->deleteTagCache();
+        return $contact;
+    }
+
+    /**
+     * @param Tag $tag
+     * @param array $attributes
+     *
+     * @return Tag | null
+     */
+    public function update(Tag $tag, $attributes)
+    {
+        $attributes = $this->mapAttributes($attributes);
+        try {
+            $tag->update($attributes);
+        } catch (Exception $exception) {
+            $this->logger->error(TagRepository::class . ": unable to update tag with exception: {$exception->getMessage()}");
+            return null;
+        }
+
+        $this->deleteTagCache();
+        return $tag;
+    }
+
+    public function delete(Tag $tag)
+    {
+        try {
+            $tag->delete();
+        } catch (Exception $exception) {
+            $this->logger->error(TagRepository::class . ": unable to delete tag with exception: {$exception->getMessage()}");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array $attributes
+     *
+     * @return array
+     */
+    private function mapAttributes($attributes)
+    {
+        return [
+            'name' => isset($attributes['name']) ? $attributes['name'] : null,
+            'slug' => isset($attributes['slug']) ? $attributes['slug'] : null
+        ];
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteTagCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $contactCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'tag*');
+            $this->cache->connection()->del($contactCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(TagRepository::class . ": unable to delete tag cache with exception {$exception->getMessage()}");
+        }
+    }
 }

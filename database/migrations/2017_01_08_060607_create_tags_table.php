@@ -19,7 +19,6 @@ class CreateTagsTable extends Migration
             $table->string('name', 50);
             $table->string('slug');
 
-            $table->unique(['name']);
             $table->unique(['slug']);
         });
     }

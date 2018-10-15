@@ -66,7 +66,7 @@ class TagResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        // TODO: Implement storeResourceObject() method.
+        return $this->tagRepository->create($attributes);
     }
 
     /**
@@ -74,7 +74,7 @@ class TagResource implements ResourceInterface
      */
     public function updateResourceObject($resourceObject, $attributes, Authenticatable $user = null)
     {
-        // TODO: Implement updateResourceObject() method.
+        return $this->tagRepository->update($resourceObject, $attributes);
     }
 
     /**
@@ -82,7 +82,7 @@ class TagResource implements ResourceInterface
      */
     public function deleteResourceObject($resourceObject): bool
     {
-        // TODO: Implement deleteResourceObject() method.
+        return $this->tagRepository->delete($resourceObject);
     }
 
     /**
@@ -90,7 +90,10 @@ class TagResource implements ResourceInterface
      */
     public function getStoreValidationRules($attributes): array
     {
-        // TODO: Implement getStoreValidationRules() method.
+        return [
+            'name' => 'required|max:50',
+            'slug' => 'required|max:255|alpha_dash|unique:tags',
+        ];
     }
 
     /**
@@ -98,7 +101,14 @@ class TagResource implements ResourceInterface
      */
     public function getUpdateValidationRules($resourceObject, $attributes): array
     {
-        // TODO: Implement getUpdateValidationRules() method.
+        $validationRules = $this->getStoreValidationRules($attributes);
+
+        $newSlug = Arr::get($attributes, 'slug');
+        if ($resourceObject->getAttribute('slug') === $newSlug) {
+            $validationRules['slug'] = 'required|max:255|alpha_dash';
+        }
+
+        return $validationRules;
     }
 
     /**

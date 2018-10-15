@@ -144,7 +144,7 @@ class WebPageResource implements ResourceInterface
         $newSlug = Arr::get($attributes, 'slug');
         $newCategoryId = Arr::get($attributes, 'category_id');
         if ($resourceObject->getAttribute('slug') === $newSlug && $resourceObject->getAttribute('category_id') === $newCategoryId) {
-            $validationRules['slug'] = 'required|max:255';
+            $validationRules['slug'] = 'required|max:255|alpha_dash';
         }
 
         return $validationRules;
