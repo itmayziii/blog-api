@@ -2,6 +2,7 @@
 
 use App\Http\JsonApi;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
@@ -9,14 +10,11 @@ $router->group(['prefix' => 'v1'], function () use ($router) {
     $router->put('/token', 'AuthenticateController@validateToken');
     $router->delete('/token', 'AuthenticateController@logout');
 
-//    $router->group(['prefix' => 'tags'], function () use ($router) {
-//
-//        $router->get('', 'TagController@index');
-//        $router->get('/{id}', 'TagController@show');
-//        $router->post('', ['middleware' => 'auth', 'uses' => 'TagController@store']);
-//        $router->put('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@update']);
-//        $router->delete('/{id}', ['middleware' => 'auth', 'uses' => 'TagController@delete']);
-//
+//    $router->get('/email', function () {
+//        $mailer = app()->make('mailer');
+//        $mailer->to('tommymay37@gmail.com')->send(new App\Mail\Contact());
+////        \Illuminate\Support\Facades\Mail::to('tommymay37@gmail.com')->send(new \App\Mail\Contact());
+//        return 'apples';
 //    });
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);

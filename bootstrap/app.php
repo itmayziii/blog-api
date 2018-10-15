@@ -37,6 +37,8 @@ $app->withEloquent();
 */
 $app->configure('cookies');
 $app->configure('resources');
+$app->configure('services');
+$app->configure('mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -124,6 +126,7 @@ $app->register(\App\Providers\MongoServiceProvider::class);
 $app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
 $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
 $app->register(\Illuminate\Redis\RedisServiceProvider::class);
+$app->register(\Illuminate\Mail\MailServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
