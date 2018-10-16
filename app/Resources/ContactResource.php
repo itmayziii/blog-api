@@ -109,10 +109,10 @@ class ContactResource implements ResourceInterface
     public function getStoreValidationRules($attributes): array
     {
         return [
-            'first_name' => 'required | max:255',
-            'last_name'  => 'required | max:255',
-            'email'      => 'required | max:255 | email',
-            'comments'   => 'required | max:1000',
+            'first_name' => 'required|max:255',
+            'last_name'  => 'required|max:255',
+            'email'      => 'required|max:255|email',
+            'comments'   => 'required|max:1000',
         ];
     }
 
