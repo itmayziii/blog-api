@@ -162,8 +162,11 @@ class TagRepository
     {
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
-            $contactCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'tag*');
-            $this->cache->connection()->del($contactCacheKeys);
+            $tagCacheKey = $this->cache->connection()->keys($laravelCachePrefix . 'tag*');
+            if (empty($tagCacheKey)) {
+                return;
+            }
+            $this->cache->connection()->del($tagCacheKey);
         } catch (Exception $exception) {
             $this->logger->error(TagRepository::class . ": unable to delete tag cache with exception {$exception->getMessage()}");
         }

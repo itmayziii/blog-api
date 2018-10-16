@@ -290,7 +290,7 @@ class ResourceController
             try {
                 $resourceObject = app()->make($resources[$resourceUrlId]);
             } catch (Exception $exception) {
-                $this->logger->critical(ResourceController::class . ": unable to create resource of class {$resources[$resourceUrlId]}");
+                $this->logger->critical(ResourceController::class . ": unable to create resource of class {$resources[$resourceUrlId]} with exception {$exception->getMessage()}");
                 return null;
             }
 

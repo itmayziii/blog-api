@@ -199,8 +199,11 @@ class UserRepository
     {
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
-            $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'user*');
-            $this->cache->connection()->del($webPageCacheKeys);
+            $userCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'user*');
+            if (empty($userCacheKeys)) {
+                return;
+            }
+            $this->cache->connection()->del($userCacheKeys);
         } catch (Exception $exception) {
             $this->logger->error(UserRepository::class . ": unable to delete user cache with exception {$exception->getMessage()}");
         }

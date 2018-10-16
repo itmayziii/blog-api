@@ -172,32 +172,12 @@ class CategoryRepository
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
             $categoryCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'categor*');
+            if (empty($categoryCacheKeys)) {
+                return;
+            }
             $this->cache->connection()->del($categoryCacheKeys);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to delete category cache with exception {$exception->getMessage()}");
         }
     }
-
-//    /**
-//     * @param string $slug
-//     * @param bool $livePostsOnly
-//     *
-//     * @return Category | null
-//     */
-//    public function findBySlugWithPosts($slug, $livePostsOnly = true)
-//    {
-//        return $this->category
-//            ->where('slug', $slug)
-//            ->with([
-//                'posts' => function ($query) use ($livePostsOnly) {
-//                    if ($livePostsOnly) {
-//                        $query->where('status', 'live');
-//                    }
-//
-//                    $query->orderBy('created_at', 'desc');
-//                }
-//            ])
-//            ->get()
-//            ->first();
-//    }
 }

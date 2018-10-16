@@ -4,8 +4,10 @@ namespace App\Resources;
 
 use App\Contracts\ResourceInterface;
 use App\Models\Contact;
+use App\Mail\Contact as ContactMail;
 use App\Repositories\ContactRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 
@@ -15,10 +17,15 @@ class ContactResource implements ResourceInterface
      * @var ContactRepository
      */
     private $contactRepository;
+    /**
+     * @var Mailer
+     */
+    private $mailer;
 
-    public function __construct(ContactRepository $contactRepository)
+    public function __construct(ContactRepository $contactRepository, Mailer $mailer)
     {
         $this->contactRepository = $contactRepository;
+        $this->mailer = $mailer;
     }
 
     /**
@@ -66,7 +73,18 @@ class ContactResource implements ResourceInterface
      */
     public function storeResourceObject($attributes, Authenticatable $user = null)
     {
-        return $this->contactRepository->create($attributes);
+        $contact = $this->contactRepository->create($attributes);
+        if (is_null($contact)) {
+            return null;
+        }
+
+        $this->mailer->send(new ContactMail([
+            'firstName' => $contact->getAttribute('first_name'),
+            'lastName'  => $contact->getAttribute('last_name'),
+            'email'     => $contact->getAttribute('email'),
+            'comments'  => $contact->getAttribute('comments')
+        ]));
+        return $contact;
     }
 
     /**
@@ -91,10 +109,10 @@ class ContactResource implements ResourceInterface
     public function getStoreValidationRules($attributes): array
     {
         return [
-            'first_name' => 'required|max:255',
-            'last_name'  => 'required|max:255',
-            'email'      => 'required|max:255|email',
-            'comments'   => 'required|max:1000',
+            'first_name' => 'required | max:255',
+            'last_name'  => 'required | max:255',
+            'email'      => 'required | max:255 | email',
+            'comments'   => 'required | max:1000',
         ];
     }
 
@@ -127,7 +145,7 @@ class ContactResource implements ResourceInterface
      */
     public function requireStoreAuthorization(): bool
     {
-        return true;
+        return false;
     }
 
     /**

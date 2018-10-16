@@ -101,6 +101,9 @@ class ContactRepository
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
             $contactCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'contact*');
+            if (empty($contactCacheKeys)) {
+                return;
+            }
             $this->cache->connection()->del($contactCacheKeys);
         } catch (Exception $exception) {
             $this->logger->error(ContactRepository::class . ": unable to delete contact cache with exception {$exception->getMessage()}");

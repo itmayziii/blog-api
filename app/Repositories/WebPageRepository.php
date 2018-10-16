@@ -219,6 +219,9 @@ class WebPageRepository
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
             $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'webPage*');
+            if (empty($webPageCacheKeys)) {
+                return;
+            }
             $this->cache->connection()->del($webPageCacheKeys);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to delete webPage cache with exception {$exception->getMessage()}");

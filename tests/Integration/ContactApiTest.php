@@ -144,36 +144,6 @@ class ContactApiTest extends TestCase
         ]);
     }
 
-    public function test_store_responds_unauthenticated_if_user_is_not_logged_in()
-    {
-        $response = $this->post('v1/contacts');
-        $response->assertResponseStatus(401);
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => '401',
-                    'title'  => 'Unauthorized'
-                ]
-            ]
-        ]);
-    }
-
-    public function test_store_responds_forbidden_if_user_is_not_authorized()
-    {
-        $this->actAsStandardUser();
-
-        $response = $this->post('v1/contacts');
-        $response->assertResponseStatus(403);
-        $response->seeJsonEquals([
-            'errors' => [
-                [
-                    'status' => '403',
-                    'title'  => 'Forbidden'
-                ]
-            ]
-        ]);
-    }
-
     public function test_store_responds_required_validation_failed()
     {
         $this->actAsAdministrativeUser();
@@ -223,10 +193,8 @@ class ContactApiTest extends TestCase
         ]);
     }
 
-    public function test_store_creates_contact()
+    public function test_store_creates_contact_for_everyone()
     {
-        $this->actAsAdministrativeUser();
-
         $response = $this->post('v1/contacts', [
             'first_name' => 'Jane',
             'last_name'  => 'Doe',

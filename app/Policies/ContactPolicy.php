@@ -31,16 +31,4 @@ class ContactPolicy
     {
         return $user->isAdmin();
     }
-
-    /**
-     * Determine whether the user can store a specific contact.
-     *
-     * @param  \App\Models\User $user
-     *
-     * @return bool
-     */
-    public function store(User $user)
-    {
-        return $user->isAdmin();
-    }
 }

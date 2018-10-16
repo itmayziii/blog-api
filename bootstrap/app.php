@@ -119,14 +119,15 @@ $app->routeMiddleware([
 |
 */
 
+$app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
+$app->register(\Illuminate\Redis\RedisServiceProvider::class);
+$app->register(\Illuminate\Mail\MailServiceProvider::class);
 $app->register(\App\Providers\AppServiceProvider::class);
 $app->register(\App\Providers\AuthServiceProvider::class);
 $app->register(\App\Providers\ValidationRulesServiceProvider::class);
 $app->register(\App\Providers\MongoServiceProvider::class);
 $app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
-$app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
-$app->register(\Illuminate\Redis\RedisServiceProvider::class);
-$app->register(\Illuminate\Mail\MailServiceProvider::class);
+$app->register(\App\Providers\MailServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------

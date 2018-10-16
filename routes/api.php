@@ -2,20 +2,12 @@
 
 use App\Http\JsonApi;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
 
 $router->group(['prefix' => 'v1'], function () use ($router) {
 
     $router->post('/token', 'AuthenticateController@authenticate');
     $router->put('/token', 'AuthenticateController@validateToken');
     $router->delete('/token', 'AuthenticateController@logout');
-
-//    $router->get('/email', function () {
-//        $mailer = app()->make('mailer');
-//        $mailer->to('tommymay37@gmail.com')->send(new App\Mail\Contact());
-////        \Illuminate\Support\Facades\Mail::to('tommymay37@gmail.com')->send(new \App\Mail\Contact());
-//        return 'apples';
-//    });
 
     $router->post('/images', ['middleware' => 'auth', 'uses' => 'FileController@uploadImages']);
 
