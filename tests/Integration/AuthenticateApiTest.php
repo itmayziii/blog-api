@@ -95,16 +95,15 @@ class AuthenticateApiTest extends TestCase
         ]);
     }
 
-    public function test_validateToken_responds_bad_request_without_header_or_cookie_set()
+    public function test_validateToken_responds_unauthenticated_without_header_or_cookie_set()
     {
         $response = $this->json('PUT', 'v1/token');
-        $response->assertResponseStatus(400);
+        $response->assertResponseStatus(401);
         $response->seeJsonEquals([
             'errors' => [
                 [
-                    'status' => '400',
-                    'title'  => 'Bad Request',
-                    'detail' => 'Neither API-Token header or cookie is set.'
+                    'status' => '401',
+                    'title'  => 'Unauthorized'
                 ]
             ]
         ]);
@@ -142,16 +141,15 @@ class AuthenticateApiTest extends TestCase
         ]);
     }
 
-    public function test_logout_responds_bad_request_without_header_or_cookie_set()
+    public function test_logout_responds_unauthorized_without_header_or_cookie_set()
     {
         $response = $this->json('DELETE', 'v1/token');
-        $response->assertResponseStatus(400);
+        $response->assertResponseStatus(401);
         $response->seeJsonEquals([
             'errors' => [
                 [
-                    'status' => '400',
-                    'title'  => 'Bad Request',
-                    'detail' => 'Neither API-Token header or cookie is set.'
+                    'status' => '401',
+                    'title'  => 'Unauthorized'
                 ]
             ]
         ]);

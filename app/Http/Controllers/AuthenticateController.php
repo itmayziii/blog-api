@@ -110,8 +110,7 @@ class AuthenticateController
     {
         $apiToken = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
         if (is_null($apiToken)) {
-            $apiTokenName = self::API_TOKEN_NAME;
-            return $this->jsonApi->respondBadRequest($response, "Neither $apiTokenName header or cookie is set.");
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $user = $this->userRepository->findByApiToken($apiToken);
@@ -130,8 +129,7 @@ class AuthenticateController
     {
         $apiToken = $request->hasHeader(self::API_TOKEN_NAME) ? $request->header(self::API_TOKEN_NAME) : $request->cookie(self::API_TOKEN_NAME);
         if (is_null($apiToken)) {
-            $apiTokenName = self::API_TOKEN_NAME;
-            return $this->jsonApi->respondBadRequest($response, "Neither $apiTokenName header or cookie is set.");
+            return $this->jsonApi->respondUnauthorized($response);
         }
 
         $user = $this->userRepository->findByApiToken($apiToken);
