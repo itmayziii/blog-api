@@ -15,7 +15,20 @@ class CategoriesTableSeeder extends Seeder
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Category::truncate();
-        factory(Category::class, 8)->create();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        $categoryFactory = factory(Category::class);
+
+        $categoryFactory->create([
+            'name'        => 'Post',
+            'plural_name' => 'Posts',
+            'slug'        => 'posts'
+        ]);
+
+        $categoryFactory->create([
+            'name'        => 'Main',
+            'plural_name' => 'Main',
+            'slug'        => 'main'
+        ]);
     }
 }

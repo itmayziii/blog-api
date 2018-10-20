@@ -42,7 +42,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta'   => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                     ]
                 ]
             ],
@@ -83,7 +83,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta'   => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                     ]
                 ],
                 [
@@ -106,7 +106,7 @@ class WebPageApiTest extends TestCase
                         'image_path_meta'   => '/images/post-one-image-meta'
                     ],
                     'links'      => [
-                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-two'
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-two?category=posts'
                     ]
                 ]
             ],
@@ -119,7 +119,7 @@ class WebPageApiTest extends TestCase
 
     public function test_show_returns_web_page_by_slug()
     {
-        $response = $this->json('GET', 'v1/webpages/posts/post-one');
+        $response = $this->json('GET', 'v1/webpages/post-one?category=posts');
 
         $response->assertResponseStatus(200);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
@@ -144,7 +144,7 @@ class WebPageApiTest extends TestCase
                     'image_path_meta'   => '/images/post-one-image-meta'
                 ],
                 'links'      => [
-                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                 ]
             ]
         ]);
@@ -177,7 +177,7 @@ class WebPageApiTest extends TestCase
                     'image_path_meta'   => '/images/post-one-image-meta'
                 ],
                 'links'      => [
-                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-one'
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                 ]
             ]
         ]);
@@ -185,27 +185,27 @@ class WebPageApiTest extends TestCase
 
     public function test_show_responds_not_found()
     {
-        $response = $this->json('GET', 'v1/webpages/posts/imaginary-post');
+        $response = $this->json('GET', 'v1/webpages/imaginary-post?category=posts');
         $this->assertNotFound($response);
     }
 
     public function test_show_responds_unauthenticated()
     {
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post-two?category=posts');
         $this->assertUnauthorized($response);
     }
 
     public function test_show_responds_forbidden()
     {
         $this->actAsStandardUser();
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post-two?category=posts');
         $this->assertForbidden($response);
     }
 
     public function test_show_responds_with_non_live_web_page_if_user_is_authorized()
     {
         $this->actAsAdministrativeUser();
-        $response = $this->json('GET', 'v1/webpages/posts/post-two');
+        $response = $this->json('GET', 'v1/webpages/post-two?category=posts');
 
         $response->assertResponseStatus(200);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
@@ -230,7 +230,7 @@ class WebPageApiTest extends TestCase
                     'image_path_meta'   => '/images/post-one-image-meta'
                 ],
                 'links'      => [
-                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/posts/post-two'
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-two?category=posts'
                 ]
             ]
         ]);
@@ -334,20 +334,20 @@ class WebPageApiTest extends TestCase
 
     public function test_update_responds_not_found()
     {
-        $response = $this->json('PUT', 'v1/webpages/fake-category/post-that-does-not-exist');
+        $response = $this->json('PUT', 'v1/webpages/post-that-does-not-exist?category=posts');
         $this->assertNotFound($response);
     }
 
     public function test_update_responds_unauthorized()
     {
-        $response = $this->json('PUT', 'v1/webpages/posts/post-two');
+        $response = $this->json('PUT', 'v1/webpages/post-two?category=posts');
         $this->assertUnauthorized($response);
     }
 
     public function test_update_responds_forbidden()
     {
         $this->actAsStandardUser();
-        $response = $this->json('PUT', 'v1/webpages/posts/post-two');
+        $response = $this->json('PUT', 'v1/webpages/post-two?category=posts');
         $this->assertForbidden($response);
     }
 
@@ -355,7 +355,7 @@ class WebPageApiTest extends TestCase
     {
         $this->actAsAdministrativeUser();
 
-        $response = $this->json('PUT', 'v1/webpages/posts/post-two');
+        $response = $this->json('PUT', 'v1/webpages/post-two?category=posts');
         $response->assertResponseStatus(422);
         $response->seeHeader('Content-Type', 'application/vnd.api+json');
         $response->seeJsonEquals(([
@@ -378,7 +378,7 @@ class WebPageApiTest extends TestCase
     {
         $this->actAsAdministrativeUser();
 
-        $response = $this->json('PUT', 'v1/webpages/posts/post-two', [
+        $response = $this->json('PUT', 'v1/webpages/post-two?category=posts', [
             'category_id'       => 1,
             'slug'              => 'post-two-updated',
             'is_live'           => false,
