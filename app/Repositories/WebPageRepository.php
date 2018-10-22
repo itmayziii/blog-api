@@ -148,6 +148,7 @@ class WebPageRepository
         }
 
         $this->deleteWebPageCache();
+        $this->deleteCategoryCache();
         return $webPage;
     }
 
@@ -170,6 +171,7 @@ class WebPageRepository
         }
 
         $this->deleteWebPageCache();
+        $this->deleteCategoryCache();
         return $webPage;
     }
 
@@ -188,6 +190,7 @@ class WebPageRepository
         }
 
         $this->deleteWebPageCache();
+        $this->deleteCategoryCache();
         return true;
     }
 
@@ -225,6 +228,23 @@ class WebPageRepository
             $this->cache->connection()->del($webPageCacheKeys);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to delete webPage cache with exception {$exception->getMessage()}");
+        }
+    }
+
+    /**
+     * @return void
+     */
+    private function deleteCategoryCache()
+    {
+        try {
+            $laravelCachePrefix = $this->cache->getPrefix();
+            $categoryCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'categor*');
+            if (empty($categoryCacheKeys)) {
+                return;
+            }
+            $this->cache->connection()->del($categoryCacheKeys);
+        } catch (Exception $exception) {
+            $this->logger->error(WebPageRepository::class . ": unable to delete category cache with exception {$exception->getMessage()}");
         }
     }
 }

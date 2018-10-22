@@ -4,8 +4,10 @@ namespace App\Resources;
 
 use App\Contracts\ResourceInterface;
 use App\Models\Category;
+use App\Models\WebPage;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 
@@ -15,10 +17,15 @@ class CategoryResource implements ResourceInterface
      * @var CategoryRepository
      */
     private $categoryRepository;
+    /**
+     * @var Gate
+     */
+    private $gate;
 
-    public function __construct(CategoryRepository $categoryRepository)
+    public function __construct(CategoryRepository $categoryRepository, Gate $gate)
     {
         $this->categoryRepository = $categoryRepository;
+        $this->gate = $gate;
     }
 
     /**
@@ -45,12 +52,18 @@ class CategoryResource implements ResourceInterface
      */
     public function findResourceObject($urlSegments, $queryParams)
     {
-        if (count($urlSegments) !== 1) {
+        if (count($urlSegments) === 1) {
+            [$slugOrId] = $urlSegments;
+            return is_numeric($slugOrId) ? $this->categoryRepository->findById($slugOrId) : $this->categoryRepository->findBySlug($slugOrId);
+        }
+
+        [$slugOrId, $relatedType] = $urlSegments;
+        if ($relatedType !== 'webpages') {
             return null;
         }
 
-        [$slugOrId] = $urlSegments;
-        return is_numeric($slugOrId) ? $this->categoryRepository->findById($slugOrId) : $this->categoryRepository->findBySlug($slugOrId);
+        $isAllowedToIndexAllPages = $this->gate->allows('indexAllWebPages', WebPage::class);
+        return is_numeric($slugOrId) ? $this->categoryRepository->findById($slugOrId) : $this->categoryRepository->findBySlug($slugOrId, true, !$isAllowedToIndexAllPages);
     }
 
     /**

@@ -8,16 +8,25 @@ class CategorySchema extends BaseSchema
 {
     protected $resourceType = 'categories';
 
+    /**
+     * @inheritdoc
+     */
     public function getId($category): ?string
     {
         return $category->getAttribute('id');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getSelfSubUrl($category = null): string
     {
         return $this->selfSubUrl . '/' . $category->getAttribute('slug');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getAttributes($category, array $fieldKeysFilter = null): ?array
     {
         $attributes = [
@@ -30,31 +39,32 @@ class CategorySchema extends BaseSchema
             'slug'            => $category->getAttribute('slug')
         ];
 
-        $postsCount = $category->getAttribute('posts_count');
-        if (!is_null($postsCount)) {
-            $attributes['posts_count'] = $postsCount;
-        }
-
         return $attributes;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getRelationships($category, bool $isPrimary, array $includeList): ?array
     {
         $relationships = [];
 
-        if ($category->relationLoaded('posts')) {
-            $relationships['posts'] = [
-                self::DATA => $category->getRelation('posts')
+        if ($category->relationLoaded('webpages')) {
+            $relationships['webpages'] = [
+                self::DATA => $category->getRelationValue('webpages')
             ];
         }
 
         return $relationships;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getIncludePaths(): array
     {
         return [
-            'posts'
+            'webpages'
         ];
     }
 }

@@ -77,8 +77,8 @@ class WebPageResource implements ResourceInterface
         $page = Arr::get($queryParams, 'page', 1);
         $size = Arr::get($queryParams, 'size', 15);
 
-        $isAllowedToIndexAllPosts = $this->gate->allows('indexAllWebPages', WebPage::class);
-        return $this->webPageRepository->paginateWebPages($page, $size, $type, !$isAllowedToIndexAllPosts);
+        $isAllowedToIndexAllPages = $this->gate->allows('indexAllWebPages', WebPage::class);
+        return $this->webPageRepository->paginateWebPages($page, $size, $type, !$isAllowedToIndexAllPages);
     }
 
     /**

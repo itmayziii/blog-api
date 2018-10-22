@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Psr\Log\LoggerInterface;
 
@@ -34,15 +35,37 @@ class CategoryRepository
 
     /**
      * @param string $slug
+     * @param bool $withWebPages
+     * @param bool $liveWebPagesOnly
      *
      * @return Category | null
      */
-    public function findBySlug($slug)
+    public function findBySlug($slug, $withWebPages = false, $liveWebPagesOnly = false)
     {
-        $category = $this->cache->remember("category:slug.$slug", 60, function () use ($slug) {
-            return $this->category
-                ->where('slug', $slug)
-                ->first();
+        $cacheKey = "category:slug.$slug";
+        if ($withWebPages === true) {
+            $cacheKey .= ':withWebPages';
+        }
+        if ($liveWebPagesOnly === true) {
+            $cacheKey .= ':liveWebpages';
+        }
+
+        $category = $this->cache->remember($cacheKey, 60, function () use ($slug, $withWebPages, $liveWebPagesOnly) {
+            $category = $this->category
+                ->where('slug', $slug);
+
+            if ($withWebPages === true) {
+                $category = $category->with([
+                    'webpages' => function (HasMany $query) use ($liveWebPagesOnly) {
+                        $query->with('category');
+                        if ($liveWebPagesOnly === true) {
+                            $query->where('is_live', true);
+                        }
+                    }
+                ]);
+            }
+
+            return $category->first();
         });
 
         if (is_null($category)) {
