@@ -40,14 +40,17 @@ class TagResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($urlSegments, $queryParams)
+    public function findResourceObject($resourceId, $queryParams)
     {
-        if (count($urlSegments) !== 1) {
-            return null;
-        }
+        return is_numeric($resourceId) ? $this->tagRepository->findById($resourceId) : $this->tagRepository->findBySlug($resourceId);
+    }
 
-        [$slugOrId] = $urlSegments;
-        return is_numeric($slugOrId) ? $this->tagRepository->findById($slugOrId) : $this->tagRepository->findBySlug($slugOrId);
+    /**
+     * @inheritdoc
+     */
+    public function findRelatedResource($resourceId, $relationship)
+    {
+        return null;
     }
 
     /**

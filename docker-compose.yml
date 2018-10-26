@@ -18,7 +18,7 @@ services:
 
   php:
     container_name: fullheapdeveloper_php
-    image: itmayziii/fullheapdeveloper-php:1
+    image: itmayziii/fullheapdeveloper-php:dev-1
     working_dir: /site
     ports:
     - 9000:9000

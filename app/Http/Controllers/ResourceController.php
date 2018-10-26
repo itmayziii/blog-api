@@ -100,19 +100,19 @@ class ResourceController
      * Show a specific resource
      *
      * @param string $resourceUrlId
+     * @param string $resourceId
      *
      * @return Response
      */
-    public function show($resourceUrlId)
+    public function show($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('show', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $pathSegments = array_slice($this->request->segments(), 2);
         try {
-            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+            $resourceObject = $resource->findResourceObject($resourceId, $this->request->query());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to find resource with exception: {$exception->getMessage()}");
             return $this->jsonApi->respondServerError($this->response, "Unable to find resource");
@@ -133,6 +133,37 @@ class ResourceController
         }
 
         return $this->jsonApi->respondResourceFound($this->response, $resourceObject);
+    }
+
+    public function showResourceIdentifiers($resourceUrlId, $resourceId, $relationship)
+    {
+        $resource = $this->determineResource($resourceUrlId);
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('showResourceIdentifiers', $resource->getAllowedResourceActions())) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        // TODO finish this
+    }
+
+    public function showRelatedResource($resourceUrlId, $resourceId, $relationship)
+    {
+        $resource = $this->determineResource($resourceUrlId);
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('showRelatedResource', $resource->getAllowedResourceActions())) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        try {
+            $relatedResource = $resource->findRelatedResource($resourceId, $relationship);
+        } catch (Exception $exception) {
+            $this->logger->error(ResourceController::class . ": unable to find related resource with exception: {$exception->getMessage()}");
+            return $this->jsonApi->respondServerError($this->response, "Unable to find related resource");
+        }
+
+        if (is_null($relatedResource)) {
+            return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        return $this->jsonApi->respondResourceFound($this->response, $relatedResource);
     }
 
     /**
@@ -182,19 +213,19 @@ class ResourceController
 
     /**
      * @param string $resourceUrlId
+     * @param string $resourceId
      *
      * @return Response
      */
-    public function update($resourceUrlId)
+    public function update($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('update', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $pathSegments = array_slice($this->request->segments(), 2);
         try {
-            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+            $resourceObject = $resource->findResourceObject($resourceId, $this->request->query());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to update resource with exception: {$exception->getMessage()}");
             return $this->jsonApi->respondServerError($this->response, "Unable to update resource");
@@ -236,19 +267,19 @@ class ResourceController
 
     /**
      * @param string $resourceUrlId
+     * @param string $resourceId
      *
      * @return Response
      */
-    public function delete($resourceUrlId)
+    public function delete($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
         if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('delete', $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
-        $pathSegments = array_slice($this->request->segments(), 2);
         try {
-            $resourceObject = $resource->findResourceObject($pathSegments, $this->request->query());
+            $resourceObject = $resource->findResourceObject($resourceId, $this->request->query());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to delete resource with exception: {$exception->getMessage()}");
             return $this->jsonApi->respondServerError($this->response, "Unable to delete resource");

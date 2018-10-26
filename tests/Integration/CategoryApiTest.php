@@ -34,9 +34,9 @@ class CategoryApiTest extends TestCase
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data' => [
-                'id'         => '1',
-                'type'       => 'categories',
-                'attributes' => [
+                'id'            => '1',
+                'type'          => 'categories',
+                'attributes'    => [
                     'created_at'      => '2018-06-18T16:00:30+00:00',
                     'updated_at'      => '2018-06-18T17:00:00+00:00',
                     'created_by'      => 1,
@@ -45,7 +45,15 @@ class CategoryApiTest extends TestCase
                     'plural_name'     => 'Posts',
                     'slug'            => 'posts'
                 ],
-                'links'      => [
+                'relationships' => [
+                    'webpages' => [
+                        'links' => [
+                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
+                        ]
+                    ]
+                ],
+                'links'         => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts'
                 ]
             ]
@@ -58,9 +66,9 @@ class CategoryApiTest extends TestCase
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data' => [
-                'id'         => '1',
-                'type'       => 'categories',
-                'attributes' => [
+                'id'            => '1',
+                'type'          => 'categories',
+                'attributes'    => [
                     'created_at'      => '2018-06-18T16:00:30+00:00',
                     'updated_at'      => '2018-06-18T17:00:00+00:00',
                     'created_by'      => 1,
@@ -69,7 +77,15 @@ class CategoryApiTest extends TestCase
                     'plural_name'     => 'Posts',
                     'slug'            => 'posts'
                 ],
-                'links'      => [
+                'relationships' => [
+                    'webpages' => [
+                        'links' => [
+                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
+                        ]
+                    ]
+                ],
+                'links'         => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts'
                 ]
             ]
@@ -85,9 +101,9 @@ class CategoryApiTest extends TestCase
         $response->seeJsonEquals([
             'data'  => [
                 [
-                    'type'       => 'categories',
-                    'id'         => '1',
-                    'attributes' => [
+                    'type'          => 'categories',
+                    'id'            => '1',
+                    'attributes'    => [
                         'created_at'      => '2018-06-18T16:00:30+00:00',
                         'updated_at'      => '2018-06-18T17:00:00+00:00',
                         'created_by'      => 1,
@@ -96,7 +112,15 @@ class CategoryApiTest extends TestCase
                         'plural_name'     => 'Posts',
                         'slug'            => 'posts'
                     ],
-                    'links'      => [
+                    'relationships' => [
+                        'webpages' => [
+                            'links' => [
+                                'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                                'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
+                            ]
+                        ]
+                    ],
+                    'links'         => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts'
                     ]
                 ]
@@ -316,7 +340,7 @@ class CategoryApiTest extends TestCase
 
     public function test_live_webpages_get_included()
     {
-        $response = $this->json('GET', 'v1/categories/posts/webpages');
+        $response = $this->json('GET', 'v1/categories/posts?included=webpages');
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data'     => [
@@ -333,11 +357,15 @@ class CategoryApiTest extends TestCase
                 ],
                 'relationships' => [
                     'webpages' => [
-                        'data' => [
+                        'data'  => [
                             [
                                 'type' => 'webpages',
                                 'id'   => '1'
                             ]
+                        ],
+                        'links' => [
+                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
                 ],
@@ -373,11 +401,11 @@ class CategoryApiTest extends TestCase
         ]);
     }
 
-    public function test_all_webpages_get_included_when_related_posts_are_requests_and_user_id_admin()
+    public function test_all_webpages_get_included_when_related_posts_are_requests_and_user_is_admin()
     {
         $this->actAsAdministrativeUser();
 
-        $response = $this->json('GET', 'v1/categories/posts/webpages');
+        $response = $this->json('GET', 'v1/categories/posts?included=webpages');
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data'     => [
@@ -403,6 +431,10 @@ class CategoryApiTest extends TestCase
                                 'type' => 'webpages',
                                 'id'   => '2'
                             ]
+                        ],
+                        'links' => [
+                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
                 ],
@@ -455,6 +487,39 @@ class CategoryApiTest extends TestCase
                     ],
                     'links'      => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-two?category=posts'
+                    ]
+                ]
+            ]
+        ]);
+    }
+
+    public function test_related_webpages_could_be_retrieved_via_a_relationship_related_link()
+    {
+        $response = $this->json('GET', 'v1/categories/posts/webpages');
+        $response->assertResponseStatus(200);
+        $response->seeJsonEquals([
+            'data'  => [
+                [
+                    'type'       => 'webpages',
+                    'id'         => '1',
+                    'attributes' => [
+                        'created_at'        => '2018-06-18T12:00:30+00:00',
+                        'updated_at'        => '2018-06-18T12:00:30+00:00',
+                        'created_by'        => 1,
+                        'updated_by'        => 1,
+                        'category_id'       => 1,
+                        'slug'              => 'post-one',
+                        'is_live'           => true,
+                        'title'             => 'Post One',
+                        'modules'           => [],
+                        'short_description' => 'Short description of the web page',
+                        'image_path_sm'     => '/images/post-one-image-sm',
+                        'image_path_md'     => '/images/post-one-image-md',
+                        'image_path_lg'     => '/images/post-one-image-lg',
+                        'image_path_meta'   => '/images/post-one-image-meta'
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                     ]
                 ]
             ]

@@ -40,14 +40,17 @@ class UserResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($urlSegments, $queryParams)
+    public function findResourceObject($resourceId, $queryParams)
     {
-        if (count($urlSegments) !== 1) {
-            return null;
-        }
+        return $this->userRepository->findById($resourceId);
+    }
 
-        [$id] = $urlSegments;
-        return $this->userRepository->findById($id);
+    /**
+     * @inheritdoc
+     */
+    public function findRelatedResource($resourceId, $relationship)
+    {
+        return null;
     }
 
     /**

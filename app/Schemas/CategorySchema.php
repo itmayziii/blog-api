@@ -2,10 +2,23 @@
 
 namespace App\Schemas;
 
+use Illuminate\Http\Request;
+use Neomerx\JsonApi\Contracts\Schema\SchemaFactoryInterface;
 use Neomerx\JsonApi\Schema\BaseSchema;
 
 class CategorySchema extends BaseSchema
 {
+    /**
+     * @var Request
+     */
+    private $request;
+
+    public function __construct(SchemaFactoryInterface $schemaFactory, Request $request)
+    {
+        parent::__construct($schemaFactory, $schemaFactory);
+        $this->request = $request;
+    }
+
     protected $resourceType = 'categories';
 
     /**
@@ -47,12 +60,19 @@ class CategorySchema extends BaseSchema
      */
     public function getRelationships($category, bool $isPrimary, array $includeList): ?array
     {
-        $relationships = [];
+        $relationships = [
+            'webpages' => [
+                self::SHOW_DATA    => false,
+                self::SHOW_SELF    => true,
+                self::SHOW_RELATED => true
+            ]
+        ];
 
         if ($category->relationLoaded('webpages')) {
-            $relationships['webpages'] = [
-                self::DATA => $category->getRelationValue('webpages')
-            ];
+            $relationships['webpages'] = array_merge($relationships['webpages'], [
+                self::SHOW_DATA => true,
+                self::DATA      => $category->getRelationValue('webpages')
+            ]);
         }
 
         return $relationships;

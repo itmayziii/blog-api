@@ -47,14 +47,17 @@ class ContactResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($urlSegments, $queryParams)
+    public function findResourceObject($resourceId, $queryParams)
     {
-        if (count($urlSegments) !== 1) {
-            return null;
-        }
+        return $this->contactRepository->findById($resourceId);
+    }
 
-        [$id] = $urlSegments;
-        return $this->contactRepository->findById($id);
+    /**
+     * @inheritdoc
+     */
+    public function findRelatedResource($resourceId, $relationship)
+    {
+        return null;
     }
 
     /**

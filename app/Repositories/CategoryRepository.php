@@ -3,9 +3,11 @@
 namespace App\Repositories;
 
 use App\Models\Category;
+use App\Models\WebPage;
 use Exception;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,9 +16,9 @@ use Psr\Log\LoggerInterface;
 class CategoryRepository
 {
     /**
-     * @var Category | Builder
+     * @var Container
      */
-    private $category;
+    private $container;
     /**
      * @var Cache
      */
@@ -25,34 +27,40 @@ class CategoryRepository
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var Gate
+     */
+    private $gate;
 
-    public function __construct(Category $category, Cache $cache, LoggerInterface $logger)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate)
     {
-        $this->category = $category;
+        $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
+        $this->gate = $gate;
     }
 
     /**
-     * @param string $slug
+     * @param string | int $slugOrId
      * @param bool $withWebPages
-     * @param bool $liveWebPagesOnly
      *
      * @return Category | null
      */
-    public function findBySlug($slug, $withWebPages = false, $liveWebPagesOnly = false)
+    public function findBySlugOrId($slugOrId, $withWebPages = false)
     {
-        $cacheKey = "category:slug.$slug";
+        $type = is_numeric($slugOrId) ? 'id' : 'slug';
+        $cacheKey = "category:$type.$slugOrId";
         if ($withWebPages === true) {
             $cacheKey .= ':withWebPages';
         }
+        $liveWebPagesOnly = $this->gate->denies('indexAllWebPages', WebPage::class);
         if ($liveWebPagesOnly === true) {
             $cacheKey .= ':liveWebpages';
         }
 
-        $category = $this->cache->remember($cacheKey, 60, function () use ($slug, $withWebPages, $liveWebPagesOnly) {
-            $category = $this->category
-                ->where('slug', $slug);
+        $category = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly) {
+            $category = $this->container->make(Category::class);
+            $category = $type === 'id' ? $category->where('id', $slugOrId) : $category->where('slug', $slugOrId);
 
             if ($withWebPages === true) {
                 $category = $category->with([
@@ -69,26 +77,7 @@ class CategoryRepository
         });
 
         if (is_null($category)) {
-            $this->logger->notice(CategoryRepository::class . ": unable to find category with id: {$slug}");
-            return null;
-        }
-
-        return $category;
-    }
-
-    /**
-     * @param string | int $id
-     *
-     * @return Category | null
-     */
-    public function findById($id)
-    {
-        $category = $this->cache->remember("category:id.$id", 60, function () use ($id) {
-            return $this->category->find($id);
-        });
-
-        if (is_null($category)) {
-            $this->logger->notice(CategoryRepository::class . ": unable to find category with id: {$id}");
+            $this->logger->notice(CategoryRepository::class . ": unable to find category with $type: {$slugOrId}");
             return null;
         }
 
@@ -104,7 +93,7 @@ class CategoryRepository
     public function paginate($page, $size)
     {
         return $this->cache->remember("categories", 60, function () use ($page, $size) {
-            return $this->category->paginate($size, null, 'page', $page);
+            return $this->container->make(Category::class)->paginate($size, null, 'page', $page);
         });
     }
 
@@ -122,7 +111,7 @@ class CategoryRepository
         $attributes['last_updated_by'] = $userId;
 
         try {
-            $category = $this->category->create($attributes);
+            $category = $this->container->make(Category::class)->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(CategoryRepository::class . ": unable to create category with exception: {$exception->getMessage()}");
             return null;

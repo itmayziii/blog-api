@@ -52,20 +52,22 @@ class WebPageResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findResourceObject($urlSegments, $queryParams)
+    public function findResourceObject($resourceId, $queryParams)
     {
-        if (count($urlSegments) !== 1) {
-            return null;
-        }
-
         $categorySlug = Arr::get($queryParams, 'category');
         if (is_null($categorySlug)) {
-            [$id] = $urlSegments;
-            return $this->webPageRepository->findById($id);
+            return $this->webPageRepository->findById($resourceId);
         }
 
-        [$slug] = $urlSegments;
-        return $this->webPageRepository->findBySlug($categorySlug, $slug);
+        return $this->webPageRepository->findBySlug($categorySlug, $resourceId);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function findRelatedResource($resourceId, $relationship)
+    {
+        return null;
     }
 
     /**

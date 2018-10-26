@@ -4,11 +4,10 @@ namespace App\Resources;
 
 use App\Contracts\ResourceInterface;
 use App\Models\Category;
-use App\Models\WebPage;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 
 class CategoryResource implements ResourceInterface
@@ -17,15 +16,10 @@ class CategoryResource implements ResourceInterface
      * @var CategoryRepository
      */
     private $categoryRepository;
-    /**
-     * @var Gate
-     */
-    private $gate;
 
-    public function __construct(CategoryRepository $categoryRepository, Gate $gate)
+    public function __construct(CategoryRepository $categoryRepository)
     {
         $this->categoryRepository = $categoryRepository;
-        $this->gate = $gate;
     }
 
     /**
@@ -41,29 +35,37 @@ class CategoryResource implements ResourceInterface
      */
     public function getAllowedResourceActions(): array
     {
-        return ['index', 'show', 'store', 'update', 'delete'];
+        return ['index', 'show', 'showResourceIdentifiers', 'showRelatedResource', 'store', 'update', 'delete'];
     }
 
     /**
-     * @param array $urlSegments
-     * @param array $queryParams
-     *
-     * @return mixed | null
+     * @inheritdoc
      */
-    public function findResourceObject($urlSegments, $queryParams)
+    public function findResourceObject($resourceId, $queryParams)
     {
-        if (count($urlSegments) === 1) {
-            [$slugOrId] = $urlSegments;
-            return is_numeric($slugOrId) ? $this->categoryRepository->findById($slugOrId) : $this->categoryRepository->findBySlug($slugOrId);
+        $includedRelationships = Arr::get($queryParams, 'included');
+        $shouldLoadWebPages = false;
+        if (!is_null($includedRelationships)) {
+            $includedRelationships = explode(',', $includedRelationships);
+            if (in_array('webpages', $includedRelationships)) {
+                $shouldLoadWebPages = true;
+            }
         }
 
-        [$slugOrId, $relatedType] = $urlSegments;
-        if ($relatedType !== 'webpages') {
+        return $this->categoryRepository->findBySlugOrId($resourceId, $shouldLoadWebPages);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function findRelatedResource($resourceId, $relationship)
+    {
+        $category = $this->categoryRepository->findBySlugOrId($resourceId, true);
+        if (is_null($category)) {
             return null;
         }
 
-        $isAllowedToIndexAllPages = $this->gate->allows('indexAllWebPages', WebPage::class);
-        return is_numeric($slugOrId) ? $this->categoryRepository->findById($slugOrId) : $this->categoryRepository->findBySlug($slugOrId, true, !$isAllowedToIndexAllPages);
+        return $category->getRelationValue('webpages');
     }
 
     /**

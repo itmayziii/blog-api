@@ -18,12 +18,20 @@ interface ResourceInterface
     public function getAllowedResourceActions(): array;
 
     /**
-     * @param array $urlSegments
+     * @param string $resourceId
      * @param array $queryParams
      *
      * @return mixed | null
      */
-    public function findResourceObject($urlSegments, $queryParams);
+    public function findResourceObject($resourceId, $queryParams);
+
+    /**
+     * @param string $resourceId
+     * @param string $relationship
+     *
+     * @return mixed | null
+     */
+    public function findRelatedResource($resourceId, $relationship);
 
     /**
      * @param array $queryParams
