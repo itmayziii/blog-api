@@ -34,16 +34,23 @@ class TagApiTest extends TestCase
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data' => [
-                'id'         => '1',
-                'type'       => 'tags',
-                'attributes' => [
+                'id'            => '1',
+                'type'          => 'tags',
+                'attributes'    => [
                     'created_at'     => '2018-08-15T17:00:00+00:00',
                     'updated_at'     => '2018-08-15T17:00:00+00:00',
                     'name'           => 'Angular',
                     'slug'           => 'angular',
                     'webpages_count' => 1
                 ],
-                'links'      => [
+                'relationships' => [
+                    'webpages' => [
+                        'links' => [
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular/webpages'
+                        ]
+                    ]
+                ],
+                'links'         => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
                 ]
             ]
@@ -56,17 +63,23 @@ class TagApiTest extends TestCase
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
             'data' => [
-                'id'         => '1',
-                'type'       => 'tags',
-                'attributes' => [
+                'id'            => '1',
+                'type'          => 'tags',
+                'attributes'    => [
                     'created_at'     => '2018-08-15T17:00:00+00:00',
                     'updated_at'     => '2018-08-15T17:00:00+00:00',
                     'name'           => 'Angular',
                     'slug'           => 'angular',
                     'webpages_count' => 1
-
                 ],
-                'links'      => [
+                'relationships' => [
+                    'webpages' => [
+                        'links' => [
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular/webpages'
+                        ]
+                    ]
+                ],
+                'links'         => [
                     'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
                 ]
             ]
@@ -80,32 +93,45 @@ class TagApiTest extends TestCase
         $response->seeJsonEquals([
             'data'  => [
                 [
-                    'id'         => '1',
-                    'type'       => 'tags',
-                    'attributes' => [
+                    'id'            => '1',
+                    'type'          => 'tags',
+                    'attributes'    => [
                         'created_at'     => '2018-08-15T17:00:00+00:00',
                         'updated_at'     => '2018-08-15T17:00:00+00:00',
                         'name'           => 'Angular',
                         'slug'           => 'angular',
                         'webpages_count' => 1
-
                     ],
-                    'links'      => [
+                    'relationships' => [
+                        'webpages' => [
+                            'links' => [
+                                'related' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular/webpages'
+                            ]
+                        ]
+                    ],
+                    'links'         => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
                     ]
                 ],
                 [
-                    'id'         => '2',
-                    'type'       => 'tags',
-                    'attributes' => [
+                    'id'            => '2',
+                    'type'          => 'tags',
+                    'attributes'    => [
                         'created_at'     => '2018-08-16T17:00:00+00:00',
                         'updated_at'     => '2018-08-16T17:20:00+00:00',
                         'name'           => 'Typescript',
                         'slug'           => 'typescript',
-                        'webpages_count' => 1
+                        'webpages_count' => 0
 
                     ],
-                    'links'      => [
+                    'relationships' => [
+                        'webpages' => [
+                            'links' => [
+                                'related' => 'http://api.fullheapdeveloper.local:8080/v1/tags/typescript/webpages'
+                            ]
+                        ]
+                    ],
+                    'links'         => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/typescript'
                     ]
                 ]
@@ -321,5 +347,98 @@ class TagApiTest extends TestCase
 
         $response = $this->delete('v1/tags/2');
         $response->assertResponseStatus(204);
+    }
+
+    public function test_live_webpages_get_included()
+    {
+        $response = $this->json('GET', 'v1/tags/angular?included=webpages');
+        $response->assertResponseStatus(200);
+        $response->seeJsonEquals([
+            'data'     => [
+                'id'            => '1',
+                'type'          => 'tags',
+                'attributes'    => [
+                    'created_at'     => '2018-08-15T17:00:00+00:00',
+                    'updated_at'     => '2018-08-15T17:00:00+00:00',
+                    'name'           => 'Angular',
+                    'slug'           => 'angular',
+                    'webpages_count' => 1
+                ],
+                'relationships' => [
+                    'webpages' => [
+                        'links' => [
+                            'related' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular/webpages'
+                        ],
+                        'data'  => [
+                            [
+                                'type' => 'webpages',
+                                'id'   => '1'
+                            ]
+                        ]
+                    ]
+                ],
+                'links'         => [
+                    'self' => 'http://api.fullheapdeveloper.local:8080/v1/tags/angular'
+                ]
+            ],
+            'included' => [
+                [
+                    'type'       => 'webpages',
+                    'id'         => '1',
+                    'attributes' => [
+                        'created_at'        => '2018-06-18T12:00:30+00:00',
+                        'updated_at'        => '2018-06-18T12:00:30+00:00',
+                        'created_by'        => 1,
+                        'updated_by'        => 1,
+                        'category_id'       => 1,
+                        'slug'              => 'post-one',
+                        'is_live'           => true,
+                        'title'             => 'Post One',
+                        'modules'           => [],
+                        'short_description' => 'Short description of the web page',
+                        'image_path_sm'     => '/images/post-one-image-sm',
+                        'image_path_md'     => '/images/post-one-image-md',
+                        'image_path_lg'     => '/images/post-one-image-lg',
+                        'image_path_meta'   => '/images/post-one-image-meta'
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
+                    ]
+                ]
+            ]
+        ]);
+    }
+
+    public function test_related_webpages_could_be_retrieved_via_a_relationship_related_link()
+    {
+        $response = $this->json('GET', 'v1/tags/angular/webpages');
+        $response->assertResponseStatus(200);
+        $response->seeJsonEquals([
+            'data' => [
+                [
+                    'type'       => 'webpages',
+                    'id'         => '1',
+                    'attributes' => [
+                        'created_at'        => '2018-06-18T12:00:30+00:00',
+                        'updated_at'        => '2018-06-18T12:00:30+00:00',
+                        'created_by'        => 1,
+                        'updated_by'        => 1,
+                        'category_id'       => 1,
+                        'slug'              => 'post-one',
+                        'is_live'           => true,
+                        'title'             => 'Post One',
+                        'modules'           => [],
+                        'short_description' => 'Short description of the web page',
+                        'image_path_sm'     => '/images/post-one-image-sm',
+                        'image_path_md'     => '/images/post-one-image-md',
+                        'image_path_lg'     => '/images/post-one-image-lg',
+                        'image_path_meta'   => '/images/post-one-image-meta'
+                    ],
+                    'links'      => [
+                        'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
+                    ]
+                ]
+            ]
+        ]);
     }
 }

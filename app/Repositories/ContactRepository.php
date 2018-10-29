@@ -5,15 +5,15 @@ namespace App\Repositories;
 use App\Models\Contact;
 use Exception;
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Container\Container;
 use Psr\Log\LoggerInterface;
 
 class ContactRepository
 {
     /**
-     * @var Contact | Builder
+     * @var Container
      */
-    private $contact;
+    private $container;
     /**
      * @var Cache
      */
@@ -23,9 +23,9 @@ class ContactRepository
      */
     private $logger;
 
-    public function __construct(Contact $contact, Cache $cache, LoggerInterface $logger)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger)
     {
-        $this->contact = $contact;
+        $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
     }
@@ -34,8 +34,9 @@ class ContactRepository
     {
         $cacheKey = "contacts:page.$page:size.$size";
         return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
-            return $this->contact
-                ->orderBy('updated_at', 'desc')
+            $contactBuilder = $this->container->make(Contact::class);
+            return $contactBuilder
+                ->orderBy('created_at', 'desc')
                 ->paginate($size, null, 'page', $page);
         });
     }
@@ -48,13 +49,9 @@ class ContactRepository
     public function findById($id)
     {
         $contact = $this->cache->remember("contact:id.$id", 60, function () use ($id) {
-            return $this->contact->find($id);
+            $contactBuilder = $this->container->make(Contact::class);
+            return $contactBuilder->find($id);
         });
-
-        if (is_null($contact)) {
-            $this->logger->notice(ContactRepository::class . ": unable to find contact with id: {$id}");
-            return null;
-        }
 
         return $contact;
     }
@@ -68,7 +65,8 @@ class ContactRepository
     {
         $attributes = $this->mapAttributes($attributes);
         try {
-            $contact = $this->contact->create($attributes);
+            $contactBuilder = $this->container->make(Contact::class);
+            $contact = $contactBuilder->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(ContactRepository::class . ": unable to create contact with exception: {$exception->getMessage()}");
             return null;

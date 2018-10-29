@@ -6,6 +6,7 @@ use App\Models\WebPage;
 use Exception;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use MongoDB\Database as MongoDB;
@@ -14,9 +15,9 @@ use Psr\Log\LoggerInterface;
 class WebPageRepository
 {
     /**
-     * @var WebPage | Builder
+     * @var Container
      */
-    private $webPage;
+    private $container;
     /**
      * @var Cache
      */
@@ -30,9 +31,9 @@ class WebPageRepository
      */
     private $mongoDB;
 
-    public function __construct(WebPage $webPage, Cache $cache, LoggerInterface $logger, MongoDB $mongoDB)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, MongoDB $mongoDB)
     {
-        $this->webPage = $webPage;
+        $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
         $this->mongoDB = $mongoDB;
@@ -56,8 +57,9 @@ class WebPageRepository
         $cacheKey .= ":page.$page:size.$size";
 
         return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $categorySlug, $liveOnly) {
-            $query = $this->webPage
-                ->orderBy('updated_at', 'desc')
+            $webPageBuilder = $this->container->make(WebPage::class);
+            $query = $webPageBuilder
+                ->orderBy('created_at', 'desc')
                 ->with('category');
 
             if ($liveOnly === true) {
@@ -83,7 +85,8 @@ class WebPageRepository
     public function findBySlug($categorySlug, $slug)
     {
         $webPage = $this->cache->remember("webPage.$categorySlug.$slug", 60, function () use ($categorySlug, $slug) {
-            return $this->webPage
+            $webPageBuilder = $this->container->make(WebPage::class);
+            return $webPageBuilder
                 ->where('slug', $slug)
                 ->whereHas('category', function (Builder $query) use ($categorySlug) {
                     $query->where('slug', $categorySlug);
@@ -91,11 +94,6 @@ class WebPageRepository
                 ->with('category')
                 ->first();
         });
-
-        if (is_null($webPage)) {
-            $this->logger->notice(WebPageRepository::class . ": unable to find web page with category: {$categorySlug}, slug: {$slug}");
-            return null;
-        }
 
         return $webPage;
     }
@@ -108,13 +106,9 @@ class WebPageRepository
     public function findById($id)
     {
         $webPage = $this->cache->remember("webPage:id.$id", 60, function () use ($id) {
-            return $this->webPage->find($id);
+            $webPageBuilder = $this->container->make(WebPage::class);
+            return $webPageBuilder->find($id);
         });
-
-        if (is_null($webPage)) {
-            $this->logger->notice(WebPageRepository::class . ": unable to find web page with id: {$id}");
-            return null;
-        }
 
         return $webPage;
     }
@@ -132,7 +126,8 @@ class WebPageRepository
         $attributes['last_updated_by'] = $user->getAuthIdentifier();
 
         try {
-            $webPage = $this->webPage->create($attributes);
+            $webPageBuilder = $this->container->make(WebPage::class);
+            $webPage = $webPageBuilder->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(WebPageRepository::class . ": unable to create web page with exception: {$exception->getMessage()}");
             return null;
@@ -147,8 +142,7 @@ class WebPageRepository
             $this->logger->error(WebPageRepository::class . ": webPage may have been partially created with exception: {$exception->getMessage()}");
         }
 
-        $this->deleteWebPageCache();
-        $this->deleteCategoryCache();
+        $this->clearCache();
         return $webPage;
     }
 
@@ -170,8 +164,7 @@ class WebPageRepository
             return null;
         }
 
-        $this->deleteWebPageCache();
-        $this->deleteCategoryCache();
+        $this->clearCache();
         return $webPage;
     }
 
@@ -189,8 +182,7 @@ class WebPageRepository
             return false;
         }
 
-        $this->deleteWebPageCache();
-        $this->deleteCategoryCache();
+        $this->clearCache();
         return true;
     }
 
@@ -214,37 +206,27 @@ class WebPageRepository
         ];
     }
 
-    /**
-     * @return void
-     */
-    private function deleteWebPageCache()
+    private function clearCache()
     {
-        try {
-            $laravelCachePrefix = $this->cache->getPrefix();
-            $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'webPage*');
-            if (empty($webPageCacheKeys)) {
-                return;
-            }
-            $this->cache->connection()->del($webPageCacheKeys);
-        } catch (Exception $exception) {
-            $this->logger->error(WebPageRepository::class . ": unable to delete webPage cache with exception {$exception->getMessage()}");
-        }
+        $this->deleteCacheByPattern('webPage*');
+        $this->deleteCacheByPattern('categor*');
+        $this->deleteCacheByPattern('tag*');
     }
 
     /**
      * @return void
      */
-    private function deleteCategoryCache()
+    private function deleteCacheByPattern($pattern)
     {
         try {
             $laravelCachePrefix = $this->cache->getPrefix();
-            $categoryCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . 'categor*');
-            if (empty($categoryCacheKeys)) {
+            $webPageCacheKeys = $this->cache->connection()->keys($laravelCachePrefix . $pattern);
+            if (empty($webPageCacheKeys)) {
                 return;
             }
-            $this->cache->connection()->del($categoryCacheKeys);
+            $this->cache->connection()->del($webPageCacheKeys);
         } catch (Exception $exception) {
-            $this->logger->error(WebPageRepository::class . ": unable to delete category cache with exception {$exception->getMessage()}");
+            $this->logger->error(WebPageRepository::class . ": unable to delete cache with exception {$exception->getMessage()}");
         }
     }
 }

@@ -9,9 +9,20 @@ class TagSchema extends BaseSchema
 {
     protected $resourceType = 'tags';
 
+    /**
+     * @inheritdoc
+     */
     public function getId($tag): ?string
     {
         return $tag->getAttribute('id');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSelfSubUrl($tag = null): string
+    {
+        return $tag === null ? $this->selfSubUrl : $this->selfSubUrl . '/' . $tag->getAttribute('slug');
     }
 
     public function getAttributes($tag, array $fieldKeysFilter = null): ?array
@@ -25,17 +36,36 @@ class TagSchema extends BaseSchema
         ];
     }
 
-    public function getIncludedResourceLinks($resource): array
+    /**
+     * @inheritdoc
+     */
+    public function getRelationships($tag, bool $isPrimary, array $includeList): ?array
     {
-        $links = [
-            LinkInterface::SELF => $this->getSelfSubLink($resource),
+        $relationships = [
+            'webpages' => [
+                self::SHOW_DATA    => false,
+                self::SHOW_SELF    => false,
+                self::SHOW_RELATED => true
+            ]
         ];
 
-        return $links;
+        if ($tag->relationLoaded('webpages')) {
+            $relationships['webpages'] = array_merge($relationships['webpages'], [
+                self::SHOW_DATA => true,
+                self::DATA      => $tag->getRelationValue('webpages')
+            ]);
+        }
+
+        return $relationships;
     }
 
-    public function getSelfSubUrl($resource = null): string
+    /**
+     * @inheritdoc
+     */
+    public function getIncludePaths(): array
     {
-        return $resource === null ? $this->selfSubUrl : $this->selfSubUrl . '/' . $resource->getAttribute('slug');
+        return [
+            'webpages'
+        ];
     }
 }

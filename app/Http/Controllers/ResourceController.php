@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\ResourceInterface;
 use App\Http\JsonApi;
+use App\Resources\BaseResource;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Guard;
@@ -78,7 +79,7 @@ class ResourceController
     public function index($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('index', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::INDEX_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -107,7 +108,7 @@ class ResourceController
     public function show($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('show', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::SHOW_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -138,7 +139,7 @@ class ResourceController
     public function showResourceIdentifiers($resourceUrlId, $resourceId, $relationship)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('showResourceIdentifiers', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::SHOW_RESOURCE_IDENTIFIER_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -148,7 +149,7 @@ class ResourceController
     public function showRelatedResource($resourceUrlId, $resourceId, $relationship)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('showRelatedResource', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::SHOW_RELATED_RESOURCE_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -176,7 +177,7 @@ class ResourceController
     public function store($resourceUrlId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('store', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::STORE_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -220,7 +221,7 @@ class ResourceController
     public function update($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('update', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::UPDATE_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 
@@ -274,7 +275,7 @@ class ResourceController
     public function delete($resourceUrlId, $resourceId)
     {
         $resource = $this->determineResource($resourceUrlId);
-        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array('delete', $resource->getAllowedResourceActions())) {
+        if (is_null($resource) || !$resource instanceof ResourceInterface || !in_array(BaseResource::DELETE_ACTION, $resource->getAllowedResourceActions())) {
             return $this->jsonApi->respondResourceNotFound($this->response);
         }
 

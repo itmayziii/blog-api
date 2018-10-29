@@ -6,17 +6,17 @@ use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Psr\Log\LoggerInterface;
 
 class UserRepository
 {
     /**
-     * @var User | Builder
+     * @var Container
      */
-    private $user;
+    private $container;
     /**
      * @var Cache
      */
@@ -30,9 +30,9 @@ class UserRepository
      */
     private $hasher;
 
-    public function __construct(User $user, Cache $cache, LoggerInterface $logger, Hasher $hasher)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Hasher $hasher)
     {
-        $this->user = $user;
+        $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
         $this->hasher = $hasher;
@@ -48,8 +48,9 @@ class UserRepository
     {
         $cacheKey = "users:page.$page:size.$size";
         return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
-            return $this->user
-                ->orderBy('updated_at', 'desc')
+            $userBuilder = $this->container->make(User::class);
+            return $userBuilder
+                ->orderBy('created_at', 'desc')
                 ->paginate($size, null, 'page', $page);
         });
     }
@@ -62,13 +63,9 @@ class UserRepository
     public function findById($id)
     {
         $user = $this->cache->remember("user:id.$id", 60, function () use ($id) {
-            return $this->user->find($id);
+            $userBuilder = $this->container->make(User::class);
+            return $userBuilder->find($id);
         });
-
-        if (is_null($user)) {
-            $this->logger->notice(UserRepository::class . ": unable to find user with id: {$id}");
-            return null;
-        }
 
         return $user;
     }
@@ -81,15 +78,11 @@ class UserRepository
     public function findByEmail($email)
     {
         $user = $this->cache->remember("user:email.$email", 60, function () use ($email) {
-            return $this->user
+            $userBuilder = $this->container->make(User::class);
+            return $userBuilder
                 ->where('email', $email)
                 ->first();
         });
-
-        if (is_null($user)) {
-            $this->logger->notice(UserRepository::class . ": unable to find user with email: {$email}");
-            return null;
-        }
 
         return $user;
     }
@@ -102,15 +95,11 @@ class UserRepository
     public function findByApiToken($apiToken)
     {
         $user = $this->cache->remember("user:token.$apiToken", 60, function () use ($apiToken) {
-            return $this->user
+            $userBuilder = $this->container->make(User::class);
+            return $userBuilder
                 ->where('api_token', $apiToken)
                 ->first();
         });
-
-        if (is_null($user)) {
-            $this->logger->notice(UserRepository::class . ": unable to find user with token: {$apiToken}");
-            return null;
-        }
 
         return $user;
     }
@@ -127,7 +116,8 @@ class UserRepository
         $attributes['api_token_expiration'] = Carbon::now()->addDay();
 
         try {
-            $user = $this->user->create($attributes);
+            $userBuilder = $this->container->make(User::class);
+            $user = $userBuilder->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(UserRepository::class . ": unable to create user with exception: {$exception->getMessage()}");
             return null;

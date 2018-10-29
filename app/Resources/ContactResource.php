@@ -11,7 +11,7 @@ use Illuminate\Contracts\Mail\Mailer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 
-class ContactResource implements ResourceInterface
+class ContactResource extends BaseResource implements ResourceInterface
 {
     /**
      * @var ContactRepository
@@ -41,7 +41,7 @@ class ContactResource implements ResourceInterface
      */
     public function getAllowedResourceActions(): array
     {
-        return ['index', 'show', 'store'];
+        return [self::INDEX_ACTION, self::SHOW_ACTION, self::STORE_ACTION];
     }
 
     /**

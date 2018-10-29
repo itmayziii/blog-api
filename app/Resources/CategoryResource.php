@@ -7,10 +7,9 @@ use App\Models\Category;
 use App\Repositories\CategoryRepository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 
-class CategoryResource implements ResourceInterface
+class CategoryResource extends BaseResource implements ResourceInterface
 {
     /**
      * @var CategoryRepository
@@ -35,7 +34,7 @@ class CategoryResource implements ResourceInterface
      */
     public function getAllowedResourceActions(): array
     {
-        return ['index', 'show', 'showResourceIdentifiers', 'showRelatedResource', 'store', 'update', 'delete'];
+        return [self::INDEX_ACTION, self::SHOW_ACTION, self::SHOW_RELATED_RESOURCE_ACTION, self::STORE_ACTION, self::UPDATE_ACTION, self::DELETE_ACTION];
     }
 
     /**
@@ -43,13 +42,9 @@ class CategoryResource implements ResourceInterface
      */
     public function findResourceObject($resourceId, $queryParams)
     {
-        $includedRelationships = Arr::get($queryParams, 'included');
         $shouldLoadWebPages = false;
-        if (!is_null($includedRelationships)) {
-            $includedRelationships = explode(',', $includedRelationships);
-            if (in_array('webpages', $includedRelationships)) {
-                $shouldLoadWebPages = true;
-            }
+        if ($this->isRelationshipIncluded($queryParams, 'webpages')) {
+            $shouldLoadWebPages = true;
         }
 
         return $this->categoryRepository->findBySlugOrId($resourceId, $shouldLoadWebPages);

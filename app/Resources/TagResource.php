@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 
-class TagResource implements ResourceInterface
+class TagResource extends BaseResource implements ResourceInterface
 {
     /**
      * @var TagRepository
@@ -34,7 +34,7 @@ class TagResource implements ResourceInterface
      */
     public function getAllowedResourceActions(): array
     {
-        return ['index', 'show', 'store', 'update', 'delete'];
+        return [self::INDEX_ACTION, self::SHOW_ACTION, self::SHOW_RELATED_RESOURCE_ACTION, self::STORE_ACTION, self::UPDATE_ACTION, self::DELETE_ACTION];
     }
 
     /**
@@ -42,7 +42,12 @@ class TagResource implements ResourceInterface
      */
     public function findResourceObject($resourceId, $queryParams)
     {
-        return is_numeric($resourceId) ? $this->tagRepository->findById($resourceId) : $this->tagRepository->findBySlug($resourceId);
+        $shouldLoadWebPages = false;
+        if ($this->isRelationshipIncluded($queryParams, 'webpages')) {
+            $shouldLoadWebPages = true;
+        }
+
+        return $this->tagRepository->findBySlugOrId($resourceId, $shouldLoadWebPages);
     }
 
     /**
@@ -50,7 +55,12 @@ class TagResource implements ResourceInterface
      */
     public function findRelatedResource($resourceId, $relationship)
     {
-        return null;
+        $tag = $this->tagRepository->findBySlugOrId($resourceId, true);
+        if (is_null($tag)) {
+            return null;
+        }
+
+        return $tag->getRelationValue('webpages');
     }
 
     /**

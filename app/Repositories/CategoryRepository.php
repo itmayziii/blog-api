@@ -55,7 +55,7 @@ class CategoryRepository
         }
         $liveWebPagesOnly = $this->gate->denies('indexAllWebPages', WebPage::class);
         if ($liveWebPagesOnly === true) {
-            $cacheKey .= ':liveWebpages';
+            $cacheKey .= ':liveWebPages';
         }
 
         $category = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly) {
@@ -76,11 +76,6 @@ class CategoryRepository
             return $category->first();
         });
 
-        if (is_null($category)) {
-            $this->logger->notice(CategoryRepository::class . ": unable to find category with $type: {$slugOrId}");
-            return null;
-        }
-
         return $category;
     }
 
@@ -93,7 +88,11 @@ class CategoryRepository
     public function paginate($page, $size)
     {
         return $this->cache->remember("categories", 60, function () use ($page, $size) {
-            return $this->container->make(Category::class)->paginate($size, null, 'page', $page);
+            $categoryBuilder = $this->container->make(Category::class);
+
+            return $categoryBuilder
+                ->orderBy('created_at', 'desc')
+                ->paginate($size, null, 'page', $page);
         });
     }
 

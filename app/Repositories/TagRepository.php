@@ -3,18 +3,22 @@
 namespace App\Repositories;
 
 use App\Models\Tag;
+use App\Models\WebPage;
 use Exception;
+use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Psr\Log\LoggerInterface;
 
 class TagRepository
 {
     /**
-     * @var Tag | Builder
+     * @var Container
      */
-    private $tag;
+    private $container;
     /**
      * @var Cache
      */
@@ -23,12 +27,17 @@ class TagRepository
      * @var LoggerInterface
      */
     private $logger;
+    /**
+     * @var Gate
+     */
+    private $gate;
 
-    public function __construct(Tag $contact, Cache $cache, LoggerInterface $logger)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate)
     {
-        $this->tag = $contact;
+        $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
+        $this->gate = $gate;
     }
 
     /**
@@ -40,53 +49,68 @@ class TagRepository
     public function paginate($page, $size)
     {
         $cacheKey = "tags:page.$page:size.$size";
-        return $this->cache->remember($cacheKey, 60, function () use ($page, $size) {
-            return $this->tag
-                ->orderBy('updated_at', 'desc')
-                ->withCount(['webPages'])
+        $liveWebPagesOnly = $this->gate->denies('indexAllWebPages', WebPage::class);
+        if ($liveWebPagesOnly === true) {
+            $cacheKey .= ':liveWebPages';
+        }
+
+        return $this->cache->remember($cacheKey, 60, function () use ($page, $size, $liveWebPagesOnly) {
+            $tag = $this->container->make(Tag::class);
+
+            return $tag
+                ->orderBy('created_at', 'desc')
+                ->withCount([
+                    'webPages' => function (Builder $query) use ($liveWebPagesOnly) {
+                        if ($liveWebPagesOnly === true) {
+                            $query->where('is_live', true);
+                        }
+                    }
+                ])
                 ->paginate($size, null, 'page', $page);
         });
     }
 
     /**
-     * @param string | int $id
+     * @param string | int $slugOrId
+     * @param bool $withWebPages
      *
      * @return Tag | null
      */
-    public function findById($id)
+    public function findBySlugOrId($slugOrId, $withWebPages = false)
     {
-        $tag = $this->cache->remember("tag:id.$id", 60, function () use ($id) {
-            return $this->tag
-                ->withCount(['webPages'])
-                ->find($id);
-        });
-
-        if (is_null($tag)) {
-            $this->logger->notice(TagRepository::class . ": unable to find tag with id: {$id}");
-            return null;
+        $type = is_numeric($slugOrId) ? 'id' : 'slug';
+        $cacheKey = "tag:$type.$slugOrId";
+        if ($withWebPages === true) {
+            $cacheKey .= ':withWebPages';
+        }
+        $liveWebPagesOnly = $this->gate->denies('indexAllWebPages', WebPage::class);
+        if ($liveWebPagesOnly === true) {
+            $cacheKey .= ':liveWebPages';
         }
 
-        return $tag;
-    }
+        $tag = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly) {
+            $tag = $this->container->make(Tag::class);
+            $tag = $type === 'id' ? $tag->where('id', $slugOrId) : $tag->where('slug', $slugOrId);
 
-    /**
-     * @param string $slug
-     *
-     * @return Tag | null
-     */
-    public function findBySlug($slug)
-    {
-        $tag = $this->cache->remember("tag:slug.$slug", 60, function () use ($slug) {
-            return $this->tag
-                ->where('slug', $slug)
-                ->withCount(['webPages'])
-                ->first();
+            if ($withWebPages === true) {
+                $tag = $tag->with([
+                    'webpages' => function (MorphToMany $query) use ($liveWebPagesOnly) {
+                        $query->with('category');
+                        if ($liveWebPagesOnly === true) {
+                            $query->where('is_live', true);
+                        }
+                    }
+                ]);
+            }
+
+            return $tag->withCount([
+                'webPages' => function (Builder $query) use ($liveWebPagesOnly) {
+                    if ($liveWebPagesOnly === true) {
+                        $query->where('is_live', true);
+                    }
+                }
+            ])->first();
         });
-
-        if (is_null($tag)) {
-            $this->logger->notice(TagRepository::class . ": unable to find tag with slug: {$slug}");
-            return null;
-        }
 
         return $tag;
     }
@@ -100,14 +124,15 @@ class TagRepository
     {
         $attributes = $this->mapAttributes($attributes);
         try {
-            $contact = $this->tag->create($attributes);
+            $tag = $this->container->make(Tag::class);
+            $tag = $tag->create($attributes);
         } catch (Exception $exception) {
             $this->logger->error(TagRepository::class . ": unable to create tag with exception: {$exception->getMessage()}");
             return null;
         }
 
         $this->deleteTagCache();
-        return $contact;
+        return $tag;
     }
 
     /**

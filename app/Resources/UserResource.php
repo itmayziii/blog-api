@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 
-class UserResource implements ResourceInterface
+class UserResource extends BaseResource implements ResourceInterface
 {
     /**
      * @var UserRepository
@@ -34,7 +34,7 @@ class UserResource implements ResourceInterface
      */
     public function getAllowedResourceActions(): array
     {
-        return ['index', 'show', 'store', 'update', 'delete'];
+        return [self::INDEX_ACTION, self::SHOW_ACTION, self::STORE_ACTION, self::UPDATE_ACTION, self::DELETE_ACTION];
     }
 
     /**
