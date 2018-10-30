@@ -73,9 +73,7 @@ $app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, func
     ($prettyPrintQueryString === 'false') ? $prettyPrintInt = 0 : $prettyPrintInt = JSON_PRETTY_PRINT;
 
     $schemas = [
-        \App\Models\Category::class => function (Neomerx\JsonApi\Contracts\Schema\SchemaFactoryInterface $factory) use ($request) {
-            return new \App\Schemas\CategorySchema($factory, $request);
-        },
+        \App\Models\Category::class => \App\Schemas\CategorySchema::class,
         \App\Models\Image::class    => \App\Schemas\ImageSchema::class,
         \App\Models\User::class     => \App\Schemas\UserSchema::class,
         \App\Models\Contact::class  => \App\Schemas\ContactSchema::class,

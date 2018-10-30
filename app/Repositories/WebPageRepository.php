@@ -72,7 +72,10 @@ class WebPageRepository
                 });
             }
 
-            return $query->paginate($size, null, 'page', $page);
+            return $query->paginate($size, null, 'page', $page)->appends([
+                'page' => $page,
+                'size' => $size
+            ]);
         });
     }
 

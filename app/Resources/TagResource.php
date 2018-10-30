@@ -53,7 +53,7 @@ class TagResource extends BaseResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findRelatedResource($resourceId, $relationship)
+    public function findRelatedResource($resourceId, $relationship, $queryParams)
     {
         $tag = $this->tagRepository->findBySlugOrId($resourceId, true);
         if (is_null($tag)) {

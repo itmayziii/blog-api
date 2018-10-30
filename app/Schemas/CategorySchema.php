@@ -2,21 +2,16 @@
 
 namespace App\Schemas;
 
-use Illuminate\Http\Request;
+use Neomerx\JsonApi\Contracts\Document\LinkInterface;
 use Neomerx\JsonApi\Contracts\Schema\SchemaFactoryInterface;
+use Neomerx\JsonApi\Document\Link;
 use Neomerx\JsonApi\Schema\BaseSchema;
 
 class CategorySchema extends BaseSchema
 {
-    /**
-     * @var Request
-     */
-    private $request;
-
-    public function __construct(SchemaFactoryInterface $schemaFactory, Request $request)
+    public function __construct(SchemaFactoryInterface $schemaFactory)
     {
-        parent::__construct($schemaFactory, $schemaFactory);
-        $this->request = $request;
+        parent::__construct($schemaFactory);
     }
 
     protected $resourceType = 'categories';
@@ -63,16 +58,39 @@ class CategorySchema extends BaseSchema
         $relationships = [
             'webpages' => [
                 self::SHOW_DATA    => false,
-                self::SHOW_SELF    => true,
+                self::SHOW_SELF    => false,
                 self::SHOW_RELATED => true
             ]
         ];
 
         if ($category->relationLoaded('webpages')) {
+            $baseUri = env('API_URI') . "/v1/categories/{$category->getAttribute('slug')}";
+            $webPages = $category->getRelationValue('webpages')->setPath($baseUri)->appends('included', 'webpages');
             $relationships['webpages'] = array_merge($relationships['webpages'], [
                 self::SHOW_DATA => true,
-                self::DATA      => $category->getRelationValue('webpages')
+                self::DATA      => $webPages->items()
             ]);
+
+            $firstUrl = $webPages->url(1);
+            $lastUrl = $webPages->url($webPages->lastPage());
+            $previousUrl = $webPages->previousPageUrl();
+            $nextUrl = $webPages->nextPageUrl();
+
+            if (!is_null($firstUrl)) {
+                $relationships['webpages'][self::LINKS][LinkInterface::FIRST] = new Link($firstUrl, null, true);
+            }
+
+            if (!is_null($lastUrl)) {
+                $relationships['webpages'][self::LINKS][LinkInterface::LAST] = new Link($lastUrl, null, true);
+            }
+
+            if (!is_null($previousUrl)) {
+                $relationships['webpages'][self::LINKS][LinkInterface::PREV] = new Link($previousUrl, null, true);
+            }
+
+            if (!is_null($nextUrl)) {
+                $relationships['webpages'][self::LINKS][LinkInterface::NEXT] = new Link($nextUrl, null, true);
+            }
         }
 
         return $relationships;

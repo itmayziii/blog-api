@@ -48,7 +48,7 @@ class UserResource extends BaseResource implements ResourceInterface
     /**
      * @inheritdoc
      */
-    public function findRelatedResource($resourceId, $relationship)
+    public function findRelatedResource($resourceId, $relationship, $queryParams)
     {
         return null;
     }

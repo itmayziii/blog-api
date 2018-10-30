@@ -42,18 +42,21 @@ class CategoryResource extends BaseResource implements ResourceInterface
      */
     public function findResourceObject($resourceId, $queryParams)
     {
+        $page = Arr::get($queryParams, 'page', 1);
+        $size = Arr::get($queryParams, 'size', 15);
+
         $shouldLoadWebPages = false;
         if ($this->isRelationshipIncluded($queryParams, 'webpages')) {
             $shouldLoadWebPages = true;
         }
 
-        return $this->categoryRepository->findBySlugOrId($resourceId, $shouldLoadWebPages);
+        return $this->categoryRepository->findBySlugOrId($resourceId, $shouldLoadWebPages, $page, $size);
     }
 
     /**
      * @inheritdoc
      */
-    public function findRelatedResource($resourceId, $relationship)
+    public function findRelatedResource($resourceId, $relationship, $queryParams)
     {
         $category = $this->categoryRepository->findBySlugOrId($resourceId, true);
         if (is_null($category)) {

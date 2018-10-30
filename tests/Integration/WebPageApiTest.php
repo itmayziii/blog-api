@@ -47,8 +47,8 @@ class WebPageApiTest extends TestCase
                 ]
             ],
             'links' => [
-                'first' => 'http://localhost/v1/webpages?page=1',
-                'last'  => 'http://localhost/v1/webpages?page=1'
+                'first' => 'http://localhost/v1/webpages?size=15&page=1',
+                'last'  => 'http://localhost/v1/webpages?size=15&page=1'
             ]
         ]);
     }
@@ -111,8 +111,8 @@ class WebPageApiTest extends TestCase
                 ]
             ],
             'links' => [
-                'first' => 'http://localhost/v1/webpages?page=1',
-                'last'  => 'http://localhost/v1/webpages?page=1'
+                'first' => 'http://localhost/v1/webpages?size=15&page=1',
+                'last'  => 'http://localhost/v1/webpages?size=15&page=1'
             ]
         ]);
     }

@@ -9,6 +9,7 @@ use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -154,7 +155,7 @@ class ResourceController
         }
 
         try {
-            $relatedResource = $resource->findRelatedResource($resourceId, $relationship);
+            $relatedResource = $resource->findRelatedResource($resourceId, $relationship, $this->request->query());
         } catch (Exception $exception) {
             $this->logger->error(ResourceController::class . ": unable to find related resource with exception: {$exception->getMessage()}");
             return $this->jsonApi->respondServerError($this->response, "Unable to find related resource");
@@ -162,6 +163,10 @@ class ResourceController
 
         if (is_null($relatedResource)) {
             return $this->jsonApi->respondResourceNotFound($this->response);
+        }
+
+        if ($relatedResource instanceof LengthAwarePaginator) {
+            return $this->jsonApi->respondResourcesFound($this->response, $relatedResource);
         }
 
         return $this->jsonApi->respondResourceFound($this->response, $relatedResource);

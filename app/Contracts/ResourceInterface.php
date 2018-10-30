@@ -28,10 +28,11 @@ interface ResourceInterface
     /**
      * @param string $resourceId
      * @param string $relationship
+     * @param array $queryParams
      *
      * @return mixed | null
      */
-    public function findRelatedResource($resourceId, $relationship);
+    public function findRelatedResource($resourceId, $relationship, $queryParams);
 
     /**
      * @param array $queryParams

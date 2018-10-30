@@ -3,6 +3,7 @@
 namespace App\Schemas;
 
 use Neomerx\JsonApi\Contracts\Document\LinkInterface;
+use Neomerx\JsonApi\Document\Link;
 use Neomerx\JsonApi\Schema\BaseSchema;
 
 class WebPageSchema extends BaseSchema

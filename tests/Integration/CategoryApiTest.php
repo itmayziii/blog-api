@@ -48,7 +48,6 @@ class CategoryApiTest extends TestCase
                 'relationships' => [
                     'webpages' => [
                         'links' => [
-                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
                             'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
@@ -80,7 +79,6 @@ class CategoryApiTest extends TestCase
                 'relationships' => [
                     'webpages' => [
                         'links' => [
-                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
                             'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
@@ -115,7 +113,6 @@ class CategoryApiTest extends TestCase
                     'relationships' => [
                         'webpages' => [
                             'links' => [
-                                'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
                                 'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                             ]
                         ]
@@ -364,7 +361,8 @@ class CategoryApiTest extends TestCase
                             ]
                         ],
                         'links' => [
-                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'first'   => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts?size=15&included=webpages&page=1',
+                            'last'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts?size=15&included=webpages&page=1',
                             'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
@@ -422,7 +420,7 @@ class CategoryApiTest extends TestCase
                 ],
                 'relationships' => [
                     'webpages' => [
-                        'data' => [
+                        'data'  => [
                             [
                                 'type' => 'webpages',
                                 'id'   => '1'
@@ -433,7 +431,8 @@ class CategoryApiTest extends TestCase
                             ]
                         ],
                         'links' => [
-                            'self'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/relationships/webpages',
+                            'first'   => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts?size=15&included=webpages&page=1',
+                            'last'    => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts?size=15&included=webpages&page=1',
                             'related' => 'http://api.fullheapdeveloper.local:8080/v1/categories/posts/webpages'
                         ]
                     ]
@@ -522,6 +521,10 @@ class CategoryApiTest extends TestCase
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                     ]
                 ]
+            ],
+            'links' => [
+                'first' => 'http://localhost/v1/categories/posts?size=15&page=1',
+                'last'  => 'http://localhost/v1/categories/posts?size=15&page=1'
             ]
         ]);
     }

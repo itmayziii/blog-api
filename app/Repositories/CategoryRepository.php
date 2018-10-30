@@ -9,7 +9,6 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Psr\Log\LoggerInterface;
 
@@ -31,49 +30,51 @@ class CategoryRepository
      * @var Gate
      */
     private $gate;
+    /**
+     * @var WebPageRepository
+     */
+    private $webPageRepository;
 
-    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate, WebPageRepository $webPageRepository)
     {
         $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
         $this->gate = $gate;
+        $this->webPageRepository = $webPageRepository;
     }
 
     /**
      * @param string | int $slugOrId
      * @param bool $withWebPages
+     * @param string | int $relatedResourcePage
+     * @param string | int $relatedResourceSize
      *
      * @return Category | null
      */
-    public function findBySlugOrId($slugOrId, $withWebPages = false)
+    public function findBySlugOrId($slugOrId, $withWebPages = false, $relatedResourcePage = 1, $relatedResourceSize = 15)
     {
         $type = is_numeric($slugOrId) ? 'id' : 'slug';
         $cacheKey = "category:$type.$slugOrId";
         if ($withWebPages === true) {
-            $cacheKey .= ':withWebPages';
+            $cacheKey .= ":withWebPages:page.$relatedResourcePage:size.$relatedResourceSize";
         }
         $liveWebPagesOnly = $this->gate->denies('indexAllWebPages', WebPage::class);
         if ($liveWebPagesOnly === true) {
             $cacheKey .= ':liveWebPages';
         }
 
-        $category = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly) {
-            $category = $this->container->make(Category::class);
-            $category = $type === 'id' ? $category->where('id', $slugOrId) : $category->where('slug', $slugOrId);
+        $category = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly, $relatedResourcePage, $relatedResourceSize) {
+            $categoryBuilder = $this->container->make(Category::class);
+            $categoryBuilder = $type === 'id' ? $categoryBuilder->where('id', $slugOrId) : $categoryBuilder->where('slug', $slugOrId);
+            $category = $categoryBuilder->first();
 
             if ($withWebPages === true) {
-                $category = $category->with([
-                    'webpages' => function (HasMany $query) use ($liveWebPagesOnly) {
-                        $query->with('category');
-                        if ($liveWebPagesOnly === true) {
-                            $query->where('is_live', true);
-                        }
-                    }
-                ]);
+                $webPages = $this->webPageRepository->paginateWebPages($relatedResourcePage, $relatedResourceSize, $category->getAttribute('slug'), $liveWebPagesOnly);
+                $category->setRelation('webpages', $webPages);
             }
 
-            return $category->first();
+            return $category;
         });
 
         return $category;
