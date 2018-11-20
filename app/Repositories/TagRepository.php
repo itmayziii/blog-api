@@ -10,7 +10,6 @@ use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Psr\Log\LoggerInterface;
 
 class TagRepository
@@ -31,13 +30,18 @@ class TagRepository
      * @var Gate
      */
     private $gate;
+    /**
+     * @var WebPageRepository
+     */
+    private $webPageRepository;
 
-    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, Gate $gate, WebPageRepository $webPageRepository)
     {
         $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
         $this->gate = $gate;
+        $this->webPageRepository = $webPageRepository;
     }
 
     /**
@@ -55,9 +59,9 @@ class TagRepository
         }
 
         return $this->cache->remember($cacheKey, 60, function () use ($page, $size, $liveWebPagesOnly) {
-            $tag = $this->container->make(Tag::class);
+            $tagBuilder = $this->container->make(Tag::class);
 
-            return $tag
+            return $tagBuilder
                 ->orderBy('created_at', 'desc')
                 ->withCount([
                     'webPages' => function (Builder $query) use ($liveWebPagesOnly) {
@@ -65,18 +69,19 @@ class TagRepository
                             $query->where('is_live', true);
                         }
                     }
-                ])
-                ->paginate($size, null, 'page', $page);
+                ])->paginate($size, null, 'page', $page);
         });
     }
 
     /**
      * @param string | int $slugOrId
      * @param bool $withWebPages
+     * @param string | int $relatedResourcePage
+     * @param string | int $relatedResourceSize
      *
      * @return Tag | null
      */
-    public function findBySlugOrId($slugOrId, $withWebPages = false)
+    public function findBySlugOrId($slugOrId, $withWebPages = false, $relatedResourcePage = 1, $relatedResourceSize = 15)
     {
         $type = is_numeric($slugOrId) ? 'id' : 'slug';
         $cacheKey = "tag:$type.$slugOrId";
@@ -88,28 +93,23 @@ class TagRepository
             $cacheKey .= ':liveWebPages';
         }
 
-        $tag = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly) {
-            $tag = $this->container->make(Tag::class);
-            $tag = $type === 'id' ? $tag->where('id', $slugOrId) : $tag->where('slug', $slugOrId);
-
-            if ($withWebPages === true) {
-                $tag = $tag->with([
-                    'webpages' => function (MorphToMany $query) use ($liveWebPagesOnly) {
-                        $query->with('category');
-                        if ($liveWebPagesOnly === true) {
-                            $query->where('is_live', true);
-                        }
-                    }
-                ]);
-            }
-
-            return $tag->withCount([
+        $tag = $this->cache->remember($cacheKey, 60, function () use ($type, $slugOrId, $withWebPages, $liveWebPagesOnly, $relatedResourcePage, $relatedResourceSize) {
+            $tagBuilder = $this->container->make(Tag::class);
+            $tagBuilder = $type === 'id' ? $tagBuilder->where('id', $slugOrId) : $tagBuilder->where('slug', $slugOrId);
+            $tag = $tagBuilder->withCount([
                 'webPages' => function (Builder $query) use ($liveWebPagesOnly) {
                     if ($liveWebPagesOnly === true) {
                         $query->where('is_live', true);
                     }
                 }
             ])->first();
+
+            if ($withWebPages === true) {
+                $webPages = $this->webPageRepository->paginateWebPages($relatedResourcePage, $relatedResourceSize, null, $liveWebPagesOnly);
+                $tag->setRelation('webpages', $webPages);
+            }
+
+            return $tag;
         });
 
         return $tag;

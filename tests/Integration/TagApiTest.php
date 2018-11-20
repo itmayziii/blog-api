@@ -86,7 +86,7 @@ class TagApiTest extends TestCase
         ]);
     }
 
-    public function test_index_responds_with_contacts()
+    public function test_index_responds_with_tags()
     {
         $response = $this->get('v1/tags');
         $response->assertResponseStatus(200);
@@ -414,7 +414,7 @@ class TagApiTest extends TestCase
         $response = $this->json('GET', 'v1/tags/angular/webpages');
         $response->assertResponseStatus(200);
         $response->seeJsonEquals([
-            'data' => [
+            'data'  => [
                 [
                     'type'       => 'webpages',
                     'id'         => '1',
@@ -437,7 +437,11 @@ class TagApiTest extends TestCase
                     'links'      => [
                         'self' => 'http://api.fullheapdeveloper.local:8080/v1/webpages/post-one?category=posts'
                     ]
-                ]
+                ],
+            ],
+            'links' => [
+                'first' => 'http://localhost/v1/tags/angular?size=15&page=1',
+                'last'  => 'http://localhost/v1/tags/angular?size=15&page=1'
             ]
         ]);
     }

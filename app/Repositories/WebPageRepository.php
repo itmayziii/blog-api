@@ -9,6 +9,7 @@ use Illuminate\Contracts\Cache\Repository as Cache;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use MongoDB\Database as MongoDB;
 use Psr\Log\LoggerInterface;
 
@@ -30,13 +31,18 @@ class WebPageRepository
      * @var MongoDB
      */
     private $mongoDB;
+    /**
+     * @var Request
+     */
+    private $request;
 
-    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, MongoDB $mongoDB)
+    public function __construct(Container $container, Cache $cache, LoggerInterface $logger, MongoDB $mongoDB, Request $request)
     {
         $this->container = $container;
         $this->cache = $cache;
         $this->logger = $logger;
         $this->mongoDB = $mongoDB;
+        $this->request = $request;
     }
 
     /**
@@ -51,28 +57,26 @@ class WebPageRepository
     {
         $status = ($liveOnly === true) ? 'live' : 'all';
         $cacheKey = "webPages:$status";
-        if (!is_null($categorySlug)) {
-            $cacheKey .= ":category.$categorySlug";
-        }
+        $cacheKey .= ":path.{$this->request->path()}";
         $cacheKey .= ":page.$page:size.$size";
 
         return $this->cache->remember($cacheKey, 60, function () use ($size, $page, $categorySlug, $liveOnly) {
             $webPageBuilder = $this->container->make(WebPage::class);
-            $query = $webPageBuilder
+            $webPageBuilder
                 ->orderBy('created_at', 'desc')
                 ->with('category');
 
             if ($liveOnly === true) {
-                $query->where('is_live', true);
+                $webPageBuilder = $webPageBuilder->where('is_live', true);
             }
 
             if (!is_null($categorySlug)) {
-                $query->whereHas('category', function (Builder $query) use ($categorySlug) {
+                $webPageBuilder = $webPageBuilder->whereHas('category', function (Builder $query) use ($categorySlug) {
                     $query->where('slug', $categorySlug);
                 });
             }
 
-            return $query->paginate($size, null, 'page', $page)->appends([
+            return $webPageBuilder->paginate($size, null, 'page', $page)->appends([
                 'page' => $page,
                 'size' => $size
             ]);

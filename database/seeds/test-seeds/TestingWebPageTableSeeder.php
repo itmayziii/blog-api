@@ -42,10 +42,10 @@ class TestingWebPageTableSeeder extends Seeder
             'is_live'           => 0,
             'title'             => 'Post Two',
             'short_description' => 'Short description of the web page',
-            'image_path_sm'     => '/images/post-one-image-sm',
-            'image_path_md'     => '/images/post-one-image-md',
-            'image_path_lg'     => '/images/post-one-image-lg',
-            'image_path_meta'   => '/images/post-one-image-meta'
+            'image_path_sm'     => '/images/post-two-image-sm',
+            'image_path_md'     => '/images/post-two-image-md',
+            'image_path_lg'     => '/images/post-two-image-lg',
+            'image_path_meta'   => '/images/post-two-image-meta'
         ]);
     }
 }

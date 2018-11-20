@@ -10,17 +10,26 @@ class WebPageSchema extends BaseSchema
 {
     protected $resourceType = 'webpages';
 
+    /**
+     * @inheritdoc
+     */
     public function getId($webpage): ?string
     {
         return $webpage->getAttribute('id');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getSelfSubUrl($webPage = null): string
     {
         $categoryRelationship = $webPage->getRelationValue('category');
         return $this->selfSubUrl . "/{$webPage->getAttribute('slug')}?category={$categoryRelationship->getAttribute('slug')}";
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getAttributes($webPage, array $fieldKeysFilter = null): ?array
     {
         return [
@@ -41,6 +50,9 @@ class WebPageSchema extends BaseSchema
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getIncludedResourceLinks($resource): array
     {
         $links = [

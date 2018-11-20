@@ -1,6 +1,7 @@
 {
-  "name": "laravel/lumen",
-  "description": "The Laravel Lumen Framework.",
+  "name": "itmayzIII/blog-api",
+  "version": "0.0.1",
+  "description": "API for backend",
   "keywords": [
     "framework",
     "laravel",
