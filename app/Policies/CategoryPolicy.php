@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Category;
-use App\User;
+use App\Models\Category;
+use App\Models\User;
 
 class CategoryPolicy
 {
@@ -11,10 +11,10 @@ class CategoryPolicy
      * Determine whether the user can create a specific category.
      *
      * @param  User $user
-     * @param  Category $category
+     *
      * @return bool
      */
-    public function store(User $user, Category $category)
+    public function store(User $user)
     {
         return $user->isAdmin();
     }
@@ -24,6 +24,7 @@ class CategoryPolicy
      *
      * @param  User $user
      * @param  Category $category
+     *
      * @return bool
      */
     public function update(User $user, Category $category)
@@ -36,6 +37,7 @@ class CategoryPolicy
      *
      * @param  User $user
      * @param  Category $category
+     *
      * @return bool
      */
     public function delete(User $user, Category $category)

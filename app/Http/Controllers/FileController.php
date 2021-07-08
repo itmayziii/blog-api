@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\JsonApi;
-use App\Image;
+use App\Models\Image;
 use Exception;
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Filesystem\Filesystem;

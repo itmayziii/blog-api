@@ -47,6 +47,7 @@ public/images/
 # Vendor #
 #######################
 vendor/
+node_modules/
 
 # Configuration #
 #######################

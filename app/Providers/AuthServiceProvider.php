@@ -2,19 +2,18 @@
 
 namespace App\Providers;
 
-use App\Category;
-use App\Contact;
-use App\Page;
+use App\Models\Category;
+use App\Models\Contact;
 use App\Policies\CategoryPolicy;
 use App\Policies\ContactPolicy;
 use App\Policies\FilesystemPolicy;
-use App\Policies\PagePolicy;
-use App\Policies\PostPolicy;
 use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
-use App\Post;
-use App\Tag;
-use App\User;
+use App\Policies\WebPagePolicy;
+use App\Models\Tag;
+use App\Models\User;
+use App\Models\WebPage;
+use App\Repositories\UserRepository;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -23,12 +22,11 @@ class AuthServiceProvider extends ServiceProvider
 {
     private $policies = [
         Contact::class    => ContactPolicy::class,
-        Post::class       => PostPolicy::class,
+        WebPage::class    => WebPagePolicy::class,
         Category::class   => CategoryPolicy::class,
         Tag::class        => TagPolicy::class,
         User::class       => UserPolicy::class,
-        Filesystem::class => FilesystemPolicy::class,
-        Page::class       => PagePolicy::class
+        Filesystem::class => FilesystemPolicy::class
     ];
 
     /**
@@ -54,14 +52,23 @@ class AuthServiceProvider extends ServiceProvider
         // application. The callback which receives the incoming request instance
         // should return either a User instance or null. You're free to obtain
         // the User instance via an API token or any other method necessary.
-
         $this->app['auth']->viaRequest('api', function ($request) {
             $apiToken = $request->hasHeader('API-Token') ? $request->header('API-Token') : $request->cookie('API-Token');
             if (is_null($apiToken)) {
                 return null;
             }
 
-            return User::where('api_token', $apiToken)->first();
+            $userRepository = app()->make(UserRepository::class);
+            $user = $userRepository->findByApiToken($apiToken);
+            if (is_null($user)) {
+                return null;
+            }
+
+            if ($user->isApiTokenExpired()) {
+                return null;
+            }
+
+            return $user;
         });
     }
 

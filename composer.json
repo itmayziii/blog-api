@@ -1,6 +1,7 @@
 {
-  "name": "laravel/lumen",
-  "description": "The Laravel Lumen Framework.",
+  "name": "itmayzIII/blog-api",
+  "version": "0.0.1",
+  "description": "API for backend",
   "keywords": [
     "framework",
     "laravel",
@@ -10,11 +11,16 @@
   "type": "project",
   "require": {
     "php": ">=7.2.0",
-    "laravel/lumen-framework": "^5.6",
+    "ext-mongodb": "^1.5",
+    "laravel/lumen-framework": "^5.7",
     "vlucas/phpdotenv": "~2.2",
     "nordsoftware/lumen-cors": "^2.1",
     "neomerx/json-api": "^2.0",
-    "illuminate/redis": "^5.6"
+    "illuminate/redis": "^5.7",
+    "doctrine/dbal": "^2.7",
+    "mongodb/mongodb": "^1.4",
+    "guzzlehttp/guzzle": "^6.3",
+    "illuminate/mail": "^5.7"
   },
   "require-dev": {
     "fzaninotto/faker": "~1.4",
@@ -40,13 +46,14 @@
   "scripts": {
     "post-root-package-install": [
       "php -r \"copy('.env.example', '.env');\""
-    ]
+    ],
+    "test": "vendor/bin/phpunit --stop-on-failure"
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
   "config": {
     "platform": {
-      "php": "7.2.2"
+      "php": "7.2"
     }
   }
 }

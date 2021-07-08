@@ -16,8 +16,15 @@ class CreateCategoriesTable extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
-            $table->string('name', 100);
-            $table->string('slug', 50)->index()->unique();
+            $table->integer('created_by')->unsigned();
+            $table->integer('last_updated_by')->unsigned();
+            $table->string('name');
+            $table->string('plural_name');
+            $table->string('slug');
+
+            $table->unique(['slug']);
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('last_updated_by')->references('id')->on('users');
         });
     }
 

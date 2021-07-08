@@ -2,17 +2,20 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function boot()
     {
         if (app()->environment('local', 'testing')) {
-            DB::listen(function ($query) {
-                Log::info("Query: $query->sql\n" . 'Bindings: ' . print_r($query->bindings, true));
+            $logger = $this->app->make(LoggerInterface::class);
+            $db = $this->app->make(DatabaseManager::class);
+
+            $db->listen(function ($query) use ($logger) {
+                $logger->info("Query: $query->sql\n" . 'Bindings: ' . print_r($query->bindings, true));
             });
         }
     }

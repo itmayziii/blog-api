@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Tag;
-use App\User;
+use App\Models\Tag;
+use App\Models\User;
 
 class TagPolicy
 {
@@ -11,10 +11,10 @@ class TagPolicy
      * Determine whether the user can create a specific tag.
      *
      * @param  User $user
-     * @param  Tag $tag
+     *
      * @return bool
      */
-    public function store(User $user, Tag $tag)
+    public function store(User $user)
     {
         return $user->isAdmin();
     }
@@ -24,6 +24,7 @@ class TagPolicy
      *
      * @param  User $user
      * @param  Tag $tag
+     *
      * @return bool
      */
     public function update(User $user, Tag $tag)
@@ -36,11 +37,11 @@ class TagPolicy
      *
      * @param  User $user
      * @param  Tag $tag
+     *
      * @return bool
      */
     public function delete(User $user, Tag $tag)
     {
         return $user->isAdmin();
     }
-
 }

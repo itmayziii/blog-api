@@ -1,0 +1,32 @@
+{
+  "name": "blog-api",
+  "version": "0.0.1",
+  "description": "API for backend",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itmayziii/blog-api.git"
+  },
+  "author": "Tommy May <tommymay37@gmail.com> (https://www.fullheapdeveloper.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/itmayziii/blog-api/issues"
+  },
+  "homepage": "https://github.com/itmayziii/blog-api#readme",
+  "devDependencies": {
+    "commitizen": "^3.0.4",
+    "cz-conventional-changelog": "^2.1.0",
+    "standard-version": "^4.4.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}

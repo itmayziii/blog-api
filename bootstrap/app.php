@@ -36,6 +36,9 @@ $app->withEloquent();
 |
 */
 $app->configure('cookies');
+$app->configure('resources');
+$app->configure('services');
+$app->configure('mail');
 
 /*
 |--------------------------------------------------------------------------
@@ -70,12 +73,12 @@ $app->singleton(\Neomerx\JsonApi\Contracts\Encoder\EncoderInterface::class, func
     ($prettyPrintQueryString === 'false') ? $prettyPrintInt = 0 : $prettyPrintInt = JSON_PRETTY_PRINT;
 
     $schemas = [
-        \App\Post::class     => \App\Schemas\PostSchema::class,
-        \App\Category::class => \App\Schemas\CategorySchema::class,
-        \App\Image::class    => \App\Schemas\ImageSchema::class,
-        \App\User::class     => \App\Schemas\UserSchema::class,
-        \App\Contact::class  => \App\Schemas\ContactSchema::class,
-        \App\Page::class     => \App\Schemas\PageSchema::class
+        \App\Models\Category::class => \App\Schemas\CategorySchema::class,
+        \App\Models\Image::class    => \App\Schemas\ImageSchema::class,
+        \App\Models\User::class     => \App\Schemas\UserSchema::class,
+        \App\Models\Contact::class  => \App\Schemas\ContactSchema::class,
+        \App\Models\WebPage::class  => \App\Schemas\WebPageSchema::class,
+        \App\Models\Tag::class      => \App\Schemas\TagSchema::class
     ];
 
     $encoder = \Neomerx\JsonApi\Encoder\Encoder::instance(
@@ -116,12 +119,15 @@ $app->routeMiddleware([
 |
 */
 
-$app->register(\App\Providers\AppServiceProvider::class);
-$app->register(\App\Providers\AuthServiceProvider::class);
-$app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
 $app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
 $app->register(\Illuminate\Redis\RedisServiceProvider::class);
-// $app->register(App\Providers\EventServiceProvider::class);
+$app->register(\Illuminate\Mail\MailServiceProvider::class);
+$app->register(\App\Providers\AppServiceProvider::class);
+$app->register(\App\Providers\AuthServiceProvider::class);
+$app->register(\App\Providers\ValidationRulesServiceProvider::class);
+$app->register(\App\Providers\MongoServiceProvider::class);
+$app->register(\Nord\Lumen\Cors\CorsServiceProvider::class);
+$app->register(\App\Providers\MailServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
